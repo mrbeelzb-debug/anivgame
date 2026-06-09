@@ -572,6 +572,17 @@ body:not(.game-started) .touch-stick {
   }
 }
 
+@keyframes rotate-phone {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(90deg);
+  }
+}
+
 .hud {
   position: fixed;
   z-index: 5;
@@ -731,6 +742,48 @@ h1 {
   box-shadow: 0 8px 18px rgb(0 0 0 / 22%);
 }
 
+.rotate-device {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  place-items: center;
+  padding: 28px;
+  color: #fff8ed;
+  background:
+    radial-gradient(circle at 50% 28%, rgb(255 183 200 / 26%), transparent 34%),
+    linear-gradient(145deg, #171a2d 0%, #33214a 48%, #101417 100%);
+  text-align: center;
+}
+
+.rotate-device div {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(360px, 100%);
+}
+
+.rotate-device span {
+  width: 72px;
+  height: 112px;
+  border: 4px solid rgb(255 248 237 / 84%);
+  border-radius: 18px;
+  box-shadow: 0 0 34px rgb(255 183 200 / 34%);
+  animation: rotate-phone 1.8s ease-in-out infinite;
+}
+
+.rotate-device strong {
+  font-size: clamp(1.6rem, 8vw, 2.4rem);
+  line-height: 1;
+}
+
+.rotate-device p {
+  margin: 0;
+  color: rgb(255 248 237 / 78%);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
 @media (hover: none), (pointer: coarse) {
   .touch-stick {
     display: block;
@@ -763,6 +816,12 @@ h1 {
 
   .fireworks span {
     transform-origin: center;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
+  .rotate-device {
+    display: grid;
   }
 }
 

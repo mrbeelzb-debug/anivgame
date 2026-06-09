@@ -383,6 +383,8 @@ const pointer = {
   origin: new THREE.Vector2(),
   current: new THREE.Vector2(),
 };
+const pinchPointers = new Map();
+let lastPinchDistance = 0;
 let collected = 0;
 let yaw = 0;
 let draggingLook = false;
@@ -399,8 +401,16 @@ function stopMovementInput() {
   move.set(0, 0);
   pointer.active = false;
   pointer.id = null;
+  pinchPointers.clear();
+  lastPinchDistance = 0;
   draggingLook = false;
   knob.style.transform = 'translate(-50%, -50%)';
+}
+
+function getPinchDistance() {
+  const points = [...pinchPointers.values()];
+  if (points.length < 2) return 0;
+  return points[0].distanceTo(points[1]);
 }
 
 function lerpAngle(from, to, amount) {
@@ -452,21 +462,49 @@ menuButton.addEventListener('click', () => {
 
 canvas.addEventListener('pointerdown', (event) => {
   if (!gameStarted) return;
-  if (event.pointerType === 'touch') return;
+  if (event.pointerType === 'touch') {
+    pinchPointers.set(event.pointerId, new THREE.Vector2(event.clientX, event.clientY));
+    if (pinchPointers.size === 2) {
+      lastPinchDistance = getPinchDistance();
+    }
+    canvas.setPointerCapture(event.pointerId);
+    return;
+  }
   draggingLook = true;
   lastX = event.clientX;
   canvas.setPointerCapture(event.pointerId);
 });
 
 canvas.addEventListener('pointermove', (event) => {
+  if (event.pointerType === 'touch') {
+    if (!pinchPointers.has(event.pointerId)) return;
+    pinchPointers.get(event.pointerId).set(event.clientX, event.clientY);
+    if (pinchPointers.size >= 2) {
+      const pinchDistance = getPinchDistance();
+      if (lastPinchDistance > 0) {
+        cameraDistance = THREE.MathUtils.clamp(cameraDistance - (pinchDistance - lastPinchDistance) * 0.018, 3.4, 10);
+      }
+      lastPinchDistance = pinchDistance;
+    }
+    return;
+  }
+
   if (!draggingLook) return;
   yaw -= (event.clientX - lastX) * 0.006;
   lastX = event.clientX;
 });
 
-canvas.addEventListener('pointerup', () => {
+function endCanvasPointer(event) {
+  if (event.pointerType === 'touch') {
+    pinchPointers.delete(event.pointerId);
+    lastPinchDistance = pinchPointers.size >= 2 ? getPinchDistance() : 0;
+    return;
+  }
   draggingLook = false;
-});
+}
+
+canvas.addEventListener('pointerup', endCanvasPointer);
+canvas.addEventListener('pointercancel', endCanvasPointer);
 
 canvas.addEventListener(
   'wheel',
