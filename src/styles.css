@@ -7,12 +7,18 @@ body,
 #app {
   width: 100%;
   height: 100%;
+  min-height: 100dvh;
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #fff8ed;
   background: #101417;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body:not(.game-started) .hud,
@@ -24,13 +30,14 @@ body:not(.game-started) .touch-stick {
 #game {
   display: block;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   touch-action: none;
 }
 
 .main-menu {
   position: fixed;
   inset: 0;
+  min-height: 100dvh;
   z-index: 20;
   display: grid;
   place-items: center;
@@ -43,11 +50,21 @@ body:not(.game-started) .touch-stick {
     linear-gradient(120deg, #f6a45b 0%, #aa637f 38%, #322a62 68%, #111a35 100%);
   text-align: center;
   overflow: hidden;
+  pointer-events: auto;
+  touch-action: manipulation;
   transition:
     opacity 650ms ease,
     transform 650ms ease,
     filter 650ms ease,
     visibility 650ms ease;
+}
+
+.dream-sky,
+.fireworks,
+.menu-particles,
+.falling-drops,
+.memory-preview {
+  pointer-events: none;
 }
 
 .main-menu.is-hidden {
@@ -62,6 +79,7 @@ body:not(.game-started) .touch-stick {
   position: relative;
   z-index: 4;
   width: min(680px, 100%);
+  pointer-events: auto;
   text-shadow: 0 8px 28px rgb(39 18 38 / 44%);
   animation: menu-rise 900ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
 }
@@ -114,6 +132,8 @@ body:not(.game-started) .touch-stick {
     0 16px 36px rgb(0 0 0 / 28%),
     0 0 34px rgb(255 189 135 / 46%);
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
   font: inherit;
   font-size: 1.02rem;
   font-weight: 900;
@@ -785,6 +805,23 @@ h1 {
 }
 
 @media (hover: none), (pointer: coarse) {
+  .main-menu {
+    padding: max(14px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  }
+
+  .menu-content h1 {
+    font-size: clamp(3rem, 10vw, 5.4rem);
+  }
+
+  .menu-subtitle {
+    margin: 12px auto 18px;
+  }
+
+  .start-button {
+    min-height: 52px;
+  }
+
   .touch-stick {
     display: block;
   }

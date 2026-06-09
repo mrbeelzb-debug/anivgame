@@ -27,6 +27,17 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+function requestFullscreen() {
+  const target = document.documentElement;
+  const fullscreen =
+    target.requestFullscreen ||
+    target.webkitRequestFullscreen ||
+    target.msRequestFullscreen;
+  if (!document.fullscreenElement && fullscreen) {
+    fullscreen.call(target).catch?.(() => {});
+  }
+}
+
 const hemi = new THREE.HemisphereLight(0xccefff, 0x3b2d22, 2.2);
 scene.add(hemi);
 
@@ -443,6 +454,7 @@ window.addEventListener('keydown', (event) => keys.add(event.key.toLowerCase()))
 window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
 
 startButton.addEventListener('click', () => {
+  requestFullscreen();
   mainMenu.classList.add('is-hidden');
   startTransition.classList.add('is-active');
   stopMovementInput();
@@ -646,12 +658,15 @@ function updateMarkers(time) {
 }
 
 function resize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const width = window.visualViewport?.width || window.innerWidth;
+  const height = window.visualViewport?.height || window.innerHeight;
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
 }
 
 window.addEventListener('resize', resize);
+window.visualViewport?.addEventListener('resize', resize);
 
 const clock = new THREE.Clock();
 
