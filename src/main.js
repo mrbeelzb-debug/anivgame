@@ -27,6 +27,11 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+function updateAppViewport() {
+  const height = window.visualViewport?.height || window.innerHeight;
+  document.documentElement.style.setProperty('--app-height', `${height}px`);
+}
+
 function requestFullscreen() {
   const target = document.documentElement;
   const fullscreen =
@@ -37,6 +42,8 @@ function requestFullscreen() {
     fullscreen.call(target).catch?.(() => {});
   }
 }
+
+updateAppViewport();
 
 const hemi = new THREE.HemisphereLight(0xccefff, 0x3b2d22, 2.2);
 scene.add(hemi);
@@ -453,6 +460,12 @@ function updateFace(time) {
 window.addEventListener('keydown', (event) => keys.add(event.key.toLowerCase()));
 window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
 
+mainMenu.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'touch') {
+    requestFullscreen();
+  }
+});
+
 startButton.addEventListener('click', () => {
   requestFullscreen();
   mainMenu.classList.add('is-hidden');
@@ -658,6 +671,7 @@ function updateMarkers(time) {
 }
 
 function resize() {
+  updateAppViewport();
   const width = window.visualViewport?.width || window.innerWidth;
   const height = window.visualViewport?.height || window.innerHeight;
   camera.aspect = width / height;
@@ -666,6 +680,8 @@ function resize() {
 }
 
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 250));
+document.addEventListener('fullscreenchange', resize);
 window.visualViewport?.addEventListener('resize', resize);
 
 const clock = new THREE.Clock();

@@ -1,0 +1,11 @@
+{
+  "name": "Memory Garden 2.0 For Marvellyn my Amo",
+  "short_name": "Memory Garden",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#101417",
+  "theme_color": "#101417",
+  "icons": []
+}

@@ -6,8 +6,8 @@ html,
 body,
 #app {
   width: 100%;
-  height: 100%;
-  min-height: 100dvh;
+  height: var(--app-height, 100dvh);
+  min-height: var(--app-height, 100dvh);
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
@@ -30,14 +30,14 @@ body:not(.game-started) .touch-stick {
 #game {
   display: block;
   width: 100%;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   touch-action: none;
 }
 
 .main-menu {
   position: fixed;
   inset: 0;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   z-index: 20;
   display: grid;
   place-items: center;
@@ -100,7 +100,7 @@ body:not(.game-started) .touch-stick {
   margin-inline: auto;
   color: #ffe9bd;
   font-family: "Brush Script MT", "Segoe Script", "Snell Roundhand", Georgia, serif;
-  font-size: clamp(4rem, 12vw, 9rem);
+  font-size: clamp(3rem, min(10vw, 19vh), 8rem);
   font-weight: 800;
   line-height: 0.78;
   text-wrap: balance;
@@ -811,15 +811,23 @@ h1 {
   }
 
   .menu-content h1 {
-    font-size: clamp(3rem, 10vw, 5.4rem);
+    font-size: clamp(2.4rem, min(8.6vw, 17vh), 4.8rem);
+    line-height: 0.82;
+  }
+
+  .menu-kicker {
+    margin-bottom: 6px;
+    font-size: 0.68rem;
   }
 
   .menu-subtitle {
-    margin: 12px auto 18px;
+    margin: 8px auto 12px;
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
   }
 
   .start-button {
-    min-height: 52px;
+    min-height: 46px;
+    min-width: min(230px, 72vw);
   }
 
   .touch-stick {
