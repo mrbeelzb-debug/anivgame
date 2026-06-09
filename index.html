@@ -88,12 +88,6 @@
         </div>
       </div>
 
-      <div class="hud prompt-panel">
-        <p class="eyebrow">For Marvellyn</p>
-        <h1>Memory Garden 2.0</h1>
-        <p>Collect the glowing memories around the garden.</p>
-      </div>
-
       <div class="hud controls-hint">
         <span>WASD / Arrows</span>
         <span>Drag to look</span>
@@ -103,11 +97,33 @@
         <div class="touch-knob" id="touch-knob"></div>
       </div>
 
+      <div class="dog-bubble" id="dog-bubble" aria-hidden="true">woof! follow the hearts</div>
+
       <div class="rotate-device" aria-hidden="true">
         <div>
           <span></span>
           <strong>Rotate Your Device</strong>
           <p>Memory Garden is made to play in landscape.</p>
+        </div>
+      </div>
+
+      <div class="tutorial" id="tutorial" aria-live="polite">
+        <div class="motmot" aria-hidden="true">
+          <span class="motmot-ear left"></span>
+          <span class="motmot-ear right"></span>
+          <span class="motmot-face">
+            <span class="motmot-eye left"></span>
+            <span class="motmot-eye right"></span>
+            <span class="motmot-nose"></span>
+          </span>
+        </div>
+        <div class="tutorial-card">
+          <p class="tutorial-speaker">mot mot</p>
+          <p class="tutorial-text" id="tutorial-text"></p>
+          <div class="tutorial-actions">
+            <button class="tutorial-skip" id="tutorial-skip" type="button">Skip</button>
+            <button class="tutorial-next" id="tutorial-next" type="button">Next</button>
+          </div>
         </div>
       </div>
     </div>

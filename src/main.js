@@ -9,6 +9,11 @@ const mainMenu = document.querySelector('#main-menu');
 const startButton = document.querySelector('#start-button');
 const startTransition = document.querySelector('#start-transition');
 const menuButton = document.querySelector('#menu-button');
+const tutorial = document.querySelector('#tutorial');
+const tutorialText = document.querySelector('#tutorial-text');
+const tutorialNext = document.querySelector('#tutorial-next');
+const tutorialSkip = document.querySelector('#tutorial-skip');
+const dogBubble = document.querySelector('#dog-bubble');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x101417);
@@ -344,6 +349,46 @@ rig.bangs = [];
 avatar.add(rig.skirt);
 scene.add(player);
 
+const dogMaterial = new THREE.MeshStandardMaterial({ color: 0x7b4a2d, roughness: 0.82 });
+const dogDarkMaterial = new THREE.MeshStandardMaterial({ color: 0x3d2418, roughness: 0.85 });
+const dogNoseMaterial = new THREE.MeshStandardMaterial({ color: 0x17100c, roughness: 0.6 });
+
+const dog = new THREE.Group();
+const dogBody = addPart(dog, new THREE.CapsuleGeometry(0.16, 0.34, 8, 16), dogMaterial, [0, 0.28, 0], [1.35, 0.82, 0.82], [0, 0, Math.PI / 2]);
+const dogHead = addPart(dog, new THREE.SphereGeometry(0.18, 18, 14), dogMaterial, [0.28, 0.38, 0], [1, 0.92, 0.9]);
+addPart(dog, new THREE.SphereGeometry(0.07, 12, 10), dogNoseMaterial, [0.42, 0.36, 0], [1, 0.72, 0.72]);
+addPart(dog, new THREE.SphereGeometry(0.018, 8, 8), dogNoseMaterial, [0.39, 0.43, -0.06]);
+addPart(dog, new THREE.SphereGeometry(0.018, 8, 8), dogNoseMaterial, [0.39, 0.43, 0.06]);
+addPart(dog, new THREE.CapsuleGeometry(0.045, 0.18, 8, 12), dogDarkMaterial, [0.23, 0.33, -0.15], [1, 1, 0.75], [0.22, 0, -0.45]);
+addPart(dog, new THREE.CapsuleGeometry(0.045, 0.18, 8, 12), dogDarkMaterial, [0.23, 0.33, 0.15], [1, 1, 0.75], [0.22, 0, 0.45]);
+
+const dogLegs = [
+  addPart(dog, new THREE.CapsuleGeometry(0.035, 0.2, 6, 10), dogDarkMaterial, [-0.15, 0.11, -0.1]),
+  addPart(dog, new THREE.CapsuleGeometry(0.035, 0.2, 6, 10), dogDarkMaterial, [-0.15, 0.11, 0.1]),
+  addPart(dog, new THREE.CapsuleGeometry(0.035, 0.2, 6, 10), dogDarkMaterial, [0.16, 0.11, -0.1]),
+  addPart(dog, new THREE.CapsuleGeometry(0.035, 0.2, 6, 10), dogDarkMaterial, [0.16, 0.11, 0.1]),
+];
+const dogTail = addPart(dog, new THREE.CapsuleGeometry(0.035, 0.22, 6, 10), dogDarkMaterial, [-0.32, 0.36, 0], [1, 1, 0.8], [0, 0, -0.72]);
+dog.position.set(1.8, 0.03, 2.2);
+dog.rotation.y = -0.8;
+scene.add(dog);
+
+const dogTarget = new THREE.Vector3(1.8, 0.03, 2.2);
+const dogScreenPosition = new THREE.Vector3();
+const dogBubbleMessages = [
+  "woof! follow the hearts",
+  "mot mot is watching!",
+  "try walking around",
+  "hearts unlock memories",
+];
+let dogNextMessageAt = 0;
+
+function pickDogTarget() {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 0.7 + Math.random() * 5.9;
+  dogTarget.set(Math.cos(angle) * radius, 0.03, Math.sin(angle) * radius);
+}
+
 const markers = [];
 const heartGeometry = createHeartGeometry();
 for (let i = 0; i < 5; i += 1) {
@@ -413,6 +458,16 @@ let nextBlinkAt = 2.9;
 let gameStarted = false;
 let cameraDistance = 6.2;
 const avatarGroundOffset = 0.14;
+let tutorialActive = false;
+let tutorialIndex = 0;
+
+const tutorialSteps = [
+  "Hi hi, I'm mot mot. I'll help you walk around Memory Garden.",
+  "On phone or tablet, drag the glowing circle on the left to move. On PC, use WASD or the arrow keys.",
+  "Pinch with two fingers to zoom in or out. On PC, use the mouse wheel.",
+  "The spinning heart is a memory key. Walk close to collect it.",
+  "Later, you can press hearts to open pictures, little puzzles, messages, and other surprises. For now, collect them and explore.",
+];
 
 function stopMovementInput() {
   keys.clear();
@@ -429,6 +484,25 @@ function getPinchDistance() {
   const points = [...pinchPointers.values()];
   if (points.length < 2) return 0;
   return points[0].distanceTo(points[1]);
+}
+
+function showTutorialStep() {
+  tutorialText.textContent = tutorialSteps[tutorialIndex];
+  tutorialNext.textContent = tutorialIndex === tutorialSteps.length - 1 ? "Explore" : "Next";
+}
+
+function startTutorial() {
+  tutorialActive = true;
+  tutorialIndex = 0;
+  stopMovementInput();
+  showTutorialStep();
+  tutorial.classList.add('is-visible');
+}
+
+function finishTutorial() {
+  tutorialActive = false;
+  tutorial.classList.remove('is-visible');
+  stopMovementInput();
 }
 
 function lerpAngle(from, to, amount) {
@@ -475,18 +549,32 @@ startButton.addEventListener('click', () => {
     gameStarted = true;
     document.body.classList.add('game-started');
     startTransition.classList.remove('is-active');
+    startTutorial();
   }, 850);
 });
 
 menuButton.addEventListener('click', () => {
   gameStarted = false;
+  tutorialActive = false;
+  tutorial.classList.remove('is-visible');
   stopMovementInput();
   document.body.classList.remove('game-started');
   mainMenu.classList.remove('is-hidden');
 });
 
+tutorialNext.addEventListener('click', () => {
+  if (tutorialIndex >= tutorialSteps.length - 1) {
+    finishTutorial();
+    return;
+  }
+  tutorialIndex += 1;
+  showTutorialStep();
+});
+
+tutorialSkip.addEventListener('click', finishTutorial);
+
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted) return;
+  if (!gameStarted || tutorialActive) return;
   if (event.pointerType === 'touch') {
     pinchPointers.set(event.pointerId, new THREE.Vector2(event.clientX, event.clientY));
     if (pinchPointers.size === 2) {
@@ -542,7 +630,7 @@ canvas.addEventListener(
 );
 
 stick.addEventListener('pointerdown', (event) => {
-  if (!gameStarted) return;
+  if (!gameStarted || tutorialActive) return;
   pointer.active = true;
   pointer.id = event.pointerId;
   pointer.origin.set(event.clientX, event.clientY);
@@ -564,7 +652,7 @@ stick.addEventListener('pointerup', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted) return;
+  if (!gameStarted || tutorialActive) return;
   if (keys.has('w') || keys.has('arrowup')) move.y += 1;
   if (keys.has('s') || keys.has('arrowdown')) move.y -= 1;
   if (keys.has('a') || keys.has('arrowleft')) move.x -= 1;
@@ -670,6 +758,46 @@ function updateMarkers(time) {
   });
 }
 
+function updateDog(time, delta) {
+  const toTarget = dogTarget.clone().sub(dog.position);
+  toTarget.y = 0;
+
+  if (toTarget.length() < 0.22) {
+    pickDogTarget();
+  }
+
+  const speed = 0.75;
+  const direction = dogTarget.clone().sub(dog.position);
+  direction.y = 0;
+  const isWalking = direction.lengthSq() > 0.01;
+
+  if (isWalking) {
+    direction.normalize();
+    dog.position.addScaledVector(direction, speed * delta);
+    dog.rotation.y = lerpAngle(dog.rotation.y, Math.atan2(direction.x, direction.z) - Math.PI / 2, 0.08);
+  }
+
+  dog.position.y = 0.03 + Math.abs(Math.sin(time * 4.2)) * 0.012;
+  dogBody.rotation.x = Math.sin(time * 3.8) * 0.04;
+  dogHead.rotation.z = Math.sin(time * 2.2) * 0.04;
+  dogTail.rotation.z = -0.72 + Math.sin(time * 8) * 0.34;
+  dogLegs.forEach((leg, index) => {
+    leg.rotation.x = Math.sin(time * 7.2 + index * Math.PI) * (isWalking ? 0.24 : 0.04);
+  });
+
+  if (time > dogNextMessageAt) {
+    dogBubble.textContent = dogBubbleMessages[Math.floor(Math.random() * dogBubbleMessages.length)];
+    dogNextMessageAt = time + 4 + Math.random() * 4;
+  }
+
+  dogScreenPosition.set(dog.position.x, dog.position.y + 0.9, dog.position.z);
+  dogScreenPosition.project(camera);
+  const width = window.visualViewport?.width || window.innerWidth;
+  const height = window.visualViewport?.height || window.innerHeight;
+  dogBubble.style.left = `${(dogScreenPosition.x * 0.5 + 0.5) * width}px`;
+  dogBubble.style.top = `${(-dogScreenPosition.y * 0.5 + 0.5) * height}px`;
+}
+
 function resize() {
   updateAppViewport();
   const width = window.visualViewport?.width || window.innerWidth;
@@ -694,6 +822,7 @@ function tick() {
   updatePlayer(delta);
   updateCamera();
   updateMarkers(time);
+  updateDog(time, delta);
   updateFace(time);
 
   root.rotation.y = Math.sin(time * 0.15) * 0.025;
