@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#101417" />
+    <title>Memory Garden 2.0 For Marvellyn my Amo</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game"></canvas>
+
+      <div class="main-menu" id="main-menu">
+        <div class="dream-sky" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="fireworks" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="menu-particles" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="falling-drops" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="memory-preview preview-photo" aria-hidden="true">
+          <strong>Our First Photo</strong>
+          <span></span>
+        </div>
+        <div class="memory-preview preview-song" aria-hidden="true">
+          <strong>Our Song</strong>
+          <span>Better Together</span>
+        </div>
+        <div class="memory-preview preview-wish" aria-hidden="true">
+          <strong>Future Wish</strong>
+          <span>Adventures together</span>
+        </div>
+        <div class="menu-content">
+          <p class="menu-kicker">June 30 Anniversary</p>
+          <h1>Memory Garden 2.0</h1>
+          <p class="menu-subtitle">For Marvellyn my Amo</p>
+          <button class="start-button" id="start-button" type="button">Start Game</button>
+        </div>
+      </div>
+
+      <div class="start-transition" id="start-transition" aria-hidden="true">
+        <span>Entering the garden...</span>
+      </div>
+
+      <div class="hud hud-top">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span>Memory Garden 2.0</span>
+        </div>
+        <div class="hud-actions">
+          <button class="menu-button" id="menu-button" type="button">Menu</button>
+          <div class="counter">
+            <span id="memory-count">0</span>
+            <span>/</span>
+            <span>5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud prompt-panel">
+        <p class="eyebrow">For Marvellyn</p>
+        <h1>Memory Garden 2.0</h1>
+        <p>Collect the glowing memories around the garden.</p>
+      </div>
+
+      <div class="hud controls-hint">
+        <span>WASD / Arrows</span>
+        <span>Drag to look</span>
+      </div>
+
+      <div class="touch-stick" id="touch-stick" aria-hidden="true">
+        <div class="touch-knob" id="touch-knob"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
