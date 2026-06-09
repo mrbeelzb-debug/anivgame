@@ -14,6 +14,7 @@ const tutorialText = document.querySelector('#tutorial-text');
 const tutorialNext = document.querySelector('#tutorial-next');
 const tutorialSkip = document.querySelector('#tutorial-skip');
 const dogBubble = document.querySelector('#dog-bubble');
+const cuddleButton = document.querySelector('#cuddle-button');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x101417);
@@ -31,6 +32,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const raycaster = new THREE.Raycaster();
+const pointerNdc = new THREE.Vector2();
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -382,11 +386,31 @@ const dogBubbleMessages = [
   "hearts unlock memories",
 ];
 let dogNextMessageAt = 0;
+let dogPlayful = false;
+let cuddleUntil = 0;
+let lastDogPlayful = false;
 
 function pickDogTarget() {
   const angle = Math.random() * Math.PI * 2;
   const radius = 0.7 + Math.random() * 5.9;
   dogTarget.set(Math.cos(angle) * radius, 0.03, Math.sin(angle) * radius);
+}
+
+function startDogCuddle() {
+  if (!gameStarted || tutorialActive) return;
+  const distanceToPlayer = dog.position.distanceTo(player.position);
+  if (distanceToPlayer > 2.2) return;
+  cuddleUntil = clock.elapsedTime + 2.4;
+  dogBubble.textContent = "mot mot loves cuddles!";
+  dogNextMessageAt = cuddleUntil + 1.2;
+}
+
+function isPointerOnDog(event) {
+  const width = window.visualViewport?.width || window.innerWidth;
+  const height = window.visualViewport?.height || window.innerHeight;
+  pointerNdc.set((event.clientX / width) * 2 - 1, -(event.clientY / height) * 2 + 1);
+  raycaster.setFromCamera(pointerNdc, camera);
+  return raycaster.intersectObjects(dog.children, true).length > 0;
 }
 
 const markers = [];
@@ -478,6 +502,7 @@ function stopMovementInput() {
   lastPinchDistance = 0;
   draggingLook = false;
   knob.style.transform = 'translate(-50%, -50%)';
+  cuddleButton.classList.remove('is-visible');
 }
 
 function getPinchDistance() {
@@ -583,10 +608,16 @@ canvas.addEventListener('pointerdown', (event) => {
     canvas.setPointerCapture(event.pointerId);
     return;
   }
+  if (event.button === 0 && isPointerOnDog(event)) {
+    startDogCuddle();
+    return;
+  }
   draggingLook = true;
   lastX = event.clientX;
   canvas.setPointerCapture(event.pointerId);
 });
+
+cuddleButton.addEventListener('click', startDogCuddle);
 
 canvas.addEventListener('pointermove', (event) => {
   if (event.pointerType === 'touch') {
@@ -759,33 +790,55 @@ function updateMarkers(time) {
 }
 
 function updateDog(time, delta) {
+  const distanceToPlayer = dog.position.distanceTo(player.position);
+  dogPlayful = gameStarted && !tutorialActive && distanceToPlayer < 1.7;
+  const isCuddling = time < cuddleUntil;
+
+  if (dogPlayful !== lastDogPlayful) {
+    dogBubble.textContent = dogPlayful ? "cuddle mot mot?" : "woof! follow the hearts";
+    dogNextMessageAt = time + 3;
+    cuddleButton.classList.toggle('is-visible', dogPlayful);
+    lastDogPlayful = dogPlayful;
+  }
+
+  cuddleButton.classList.toggle('is-visible', dogPlayful);
+
   const toTarget = dogTarget.clone().sub(dog.position);
   toTarget.y = 0;
 
-  if (toTarget.length() < 0.22) {
+  if (!isCuddling && toTarget.length() < 0.22) {
     pickDogTarget();
   }
 
-  const speed = 0.75;
+  const speed = dogPlayful ? 1.05 : 0.75;
   const direction = dogTarget.clone().sub(dog.position);
   direction.y = 0;
-  const isWalking = direction.lengthSq() > 0.01;
+  const isWalking = !isCuddling && direction.lengthSq() > 0.01;
 
   if (isWalking) {
     direction.normalize();
     dog.position.addScaledVector(direction, speed * delta);
     dog.rotation.y = lerpAngle(dog.rotation.y, Math.atan2(direction.x, direction.z) - Math.PI / 2, 0.08);
+  } else if (isCuddling) {
+    const toPlayer = player.position.clone().sub(dog.position);
+    toPlayer.y = 0;
+    if (toPlayer.lengthSq() > 0.001) {
+      toPlayer.normalize();
+      dog.rotation.y = lerpAngle(dog.rotation.y, Math.atan2(toPlayer.x, toPlayer.z) - Math.PI / 2, 0.14);
+    }
   }
 
-  dog.position.y = 0.03 + Math.abs(Math.sin(time * 4.2)) * 0.012;
-  dogBody.rotation.x = Math.sin(time * 3.8) * 0.04;
-  dogHead.rotation.z = Math.sin(time * 2.2) * 0.04;
-  dogTail.rotation.z = -0.72 + Math.sin(time * 8) * 0.34;
+  const bounceSpeed = isCuddling ? 12 : dogPlayful ? 7 : 4.2;
+  dog.position.y = 0.03 + Math.abs(Math.sin(time * bounceSpeed)) * (isCuddling ? 0.075 : dogPlayful ? 0.035 : 0.012);
+  dog.scale.setScalar(isCuddling ? 1 + Math.sin(time * 18) * 0.04 : 1);
+  dogBody.rotation.x = Math.sin(time * (isCuddling ? 9 : 3.8)) * (isCuddling ? 0.1 : 0.04);
+  dogHead.rotation.z = Math.sin(time * (isCuddling ? 8 : 2.2)) * (isCuddling ? 0.13 : dogPlayful ? 0.08 : 0.04);
+  dogTail.rotation.z = -0.72 + Math.sin(time * (isCuddling ? 18 : dogPlayful ? 13 : 8)) * (isCuddling ? 0.62 : dogPlayful ? 0.48 : 0.34);
   dogLegs.forEach((leg, index) => {
-    leg.rotation.x = Math.sin(time * 7.2 + index * Math.PI) * (isWalking ? 0.24 : 0.04);
+    leg.rotation.x = Math.sin(time * (isCuddling ? 13 : 7.2) + index * Math.PI) * (isCuddling ? 0.32 : isWalking ? 0.24 : 0.04);
   });
 
-  if (time > dogNextMessageAt) {
+  if (!isCuddling && time > dogNextMessageAt) {
     dogBubble.textContent = dogBubbleMessages[Math.floor(Math.random() * dogBubbleMessages.length)];
     dogNextMessageAt = time + 4 + Math.random() * 4;
   }
