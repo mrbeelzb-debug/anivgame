@@ -15,6 +15,8 @@ const tutorialNext = document.querySelector('#tutorial-next');
 const tutorialSkip = document.querySelector('#tutorial-skip');
 const dogBubble = document.querySelector('#dog-bubble');
 const cuddleButton = document.querySelector('#cuddle-button');
+const doorButton = document.querySelector('#door-button');
+const loadingScreen = document.querySelector('#loading-screen');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x8ed8ff);
@@ -35,6 +37,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
+const textureLoader = new THREE.TextureLoader();
+const phoneLogoTexture = textureLoader.load('/bumble-1.svg');
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -353,6 +357,16 @@ addPart(rig.rightTwinTail, new THREE.CapsuleGeometry(0.075, 0.36, 10, 16), hairM
 
 rig.bangs = [];
 avatar.add(rig.skirt);
+
+const playerPhone = new THREE.Group();
+const handheldPhoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
+const handheldPhoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
+addPart(playerPhone, new THREE.BoxGeometry(0.32, 0.46, 0.035), handheldPhoneMaterial, [0, 0, 0]);
+addPart(playerPhone, new THREE.BoxGeometry(0.26, 0.36, 0.04), handheldPhoneScreenMaterial, [0, 0, 0.024]);
+playerPhone.position.set(0, 1.02, 0.26);
+playerPhone.rotation.x = -0.22;
+playerPhone.visible = false;
+avatar.add(playerPhone);
 scene.add(player);
 
 const dogMaterial = new THREE.MeshStandardMaterial({ color: 0x7b4a2d, roughness: 0.82 });
@@ -451,9 +465,9 @@ addPart(room, new THREE.BoxGeometry(0.84, 0.18, 1.18), pillowMaterial, [-2.28, 0
 addPart(room, new THREE.SphereGeometry(0.22, 20, 16), skinMaterial, [-2.15, 0.94, -1.4], [1, 0.9, 0.9]);
 addPart(room, new THREE.SphereGeometry(0.27, 20, 16), hairMaterial, [-2.19, 0.98, -1.4], [1.05, 0.65, 0.9]);
 addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-0.92, 1.02, -1.4], [1, 1, 1], [0, 0, 0.2]);
-addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-0.92, 1.08, -1.4], [1, 1, 1], [0, 0, 0.2]);
+const bedPhoneScreen = addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-0.92, 1.08, -1.4], [1, 1, 1], [0, 0, 0.2]);
 addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [1.9, 1.15, -2.45], [1, 1, 1], [0.12, 0, 0]);
-addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [1.9, 1.15, -2.36], [1, 1, 1], [0.12, 0, 0]);
+const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [1.9, 1.15, -2.36], [1, 1, 1], [0.12, 0, 0]);
 
 const markers = [];
 const heartGeometry = createHeartGeometry();
@@ -530,13 +544,15 @@ let currentArea = 'tutorial-island';
 let doorUnlocked = false;
 let doorFalling = false;
 let doorReady = false;
+let doorPromptVisible = false;
+let roomLoading = false;
+const doorScreenPosition = new THREE.Vector3();
 
 const tutorialSteps = [
   "Hi hi, I'm mot mot. I'll help you walk around Memory Garden.",
   "On phone or tablet, drag the glowing circle on the left to move. On PC, use WASD or the arrow keys.",
   "Pinch with two fingers to zoom in or out. On PC, use the mouse wheel.",
-  "The spinning hearts are memory keys. Collect all 5 hearts on this tutorial island.",
-  "After the 5 hearts are collected, a door will fall from the sky. Walk into it to go to the next part.",
+  "The spinning hearts are memory keys. Walk close to collect all 5 hearts on this island.",
   "Later, hearts can open pictures, little puzzles, messages, and other surprises. For now, collect them and explore.",
 ];
 
@@ -550,6 +566,7 @@ function stopMovementInput() {
   draggingLook = false;
   knob.style.transform = 'translate(-50%, -50%)';
   cuddleButton.classList.remove('is-visible');
+  doorButton.classList.remove('is-visible');
 }
 
 function getPinchDistance() {
@@ -669,6 +686,7 @@ canvas.addEventListener('pointerdown', (event) => {
 });
 
 cuddleButton.addEventListener('click', startDogCuddle);
+doorButton.addEventListener('click', startRoomLoading);
 
 canvas.addEventListener('pointermove', (event) => {
   if (event.pointerType === 'touch') {
@@ -843,12 +861,27 @@ function resetGameProgress() {
   doorUnlocked = false;
   doorFalling = false;
   doorReady = false;
+  doorPromptVisible = false;
+  roomLoading = false;
   collected = 0;
   memoryCount.textContent = '0';
   root.visible = true;
   room.visible = false;
   dog.visible = true;
   dogBubble.style.display = '';
+  loadingScreen.classList.remove('is-visible');
+  doorButton.classList.remove('is-visible');
+  phoneScreenMaterial.map = null;
+  phoneScreenMaterial.color.set(0x8fd8ff);
+  phoneScreenMaterial.emissive.set(0x4db8ff);
+  phoneScreenMaterial.needsUpdate = true;
+  handheldPhoneScreenMaterial.map = null;
+  handheldPhoneScreenMaterial.color.set(0x8fd8ff);
+  handheldPhoneScreenMaterial.emissive.set(0x4db8ff);
+  handheldPhoneScreenMaterial.needsUpdate = true;
+  playerPhone.visible = false;
+  bedPhoneScreen.scale.set(1, 1, 1);
+  bigPhoneScreen.scale.set(1, 1, 1);
   nextDoor.visible = false;
   nextDoor.position.set(0, 5.4, -5.35);
   markers.forEach((marker) => {
@@ -869,6 +902,7 @@ function resetGameProgress() {
 
 function enterBedroom() {
   currentArea = 'bedroom';
+  doorButton.classList.remove('is-visible');
   root.visible = false;
   dog.visible = false;
   dogBubble.style.display = 'none';
@@ -876,11 +910,35 @@ function enterBedroom() {
   room.visible = true;
   scene.background.set(0x2b2645);
   scene.fog.color.set(0x2b2645);
-  player.position.set(1.4, 0, 1.6);
-  player.rotation.y = Math.PI;
+  player.position.set(-0.2, 0, 1.65);
+  player.rotation.y = Math.PI * 0.92;
   yaw = Math.PI;
+  playerPhone.visible = true;
   cameraDistance = 5.4;
   stopMovementInput();
+  setTimeout(() => {
+    phoneScreenMaterial.map = phoneLogoTexture;
+    phoneScreenMaterial.color.set(0xffffff);
+    phoneScreenMaterial.emissive.set(0x222222);
+    phoneScreenMaterial.needsUpdate = true;
+    handheldPhoneScreenMaterial.map = phoneLogoTexture;
+    handheldPhoneScreenMaterial.color.set(0xffffff);
+    handheldPhoneScreenMaterial.emissive.set(0x222222);
+    handheldPhoneScreenMaterial.needsUpdate = true;
+    bedPhoneScreen.scale.set(1.05, 1.12, 1.05);
+    bigPhoneScreen.scale.set(1.06, 1.06, 1.06);
+  }, 650);
+}
+
+function startRoomLoading() {
+  if (!doorReady || roomLoading) return;
+  roomLoading = true;
+  stopMovementInput();
+  loadingScreen.classList.add('is-visible');
+  setTimeout(() => {
+    loadingScreen.classList.remove('is-visible');
+    enterBedroom();
+  }, 900);
 }
 
 function updateDoor(delta, time) {
@@ -897,8 +955,17 @@ function updateDoor(delta, time) {
     }
   }
 
-  if (doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 0.9) {
-    enterBedroom();
+  const nearDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.35;
+  doorPromptVisible = nearDoor && !roomLoading;
+  doorButton.classList.toggle('is-visible', doorPromptVisible);
+
+  if (doorPromptVisible) {
+    doorScreenPosition.set(nextDoor.position.x, nextDoor.position.y + 1.8, nextDoor.position.z);
+    doorScreenPosition.project(camera);
+    const width = window.visualViewport?.width || window.innerWidth;
+    const height = window.visualViewport?.height || window.innerHeight;
+    doorButton.style.left = `${(doorScreenPosition.x * 0.5 + 0.5) * width}px`;
+    doorButton.style.top = `${(-doorScreenPosition.y * 0.5 + 0.5) * height}px`;
   }
 }
 
