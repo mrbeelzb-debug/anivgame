@@ -916,6 +916,240 @@ body.game-started .dog-bubble {
   font-size: clamp(1.2rem, 4vw, 2rem);
 }
 
+.bumble-app {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  opacity: 0;
+  background: radial-gradient(circle at 50% 45%, rgb(255 209 102 / 28%), rgb(16 20 23 / 62%));
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  transition:
+    opacity 240ms ease,
+    visibility 240ms ease;
+}
+
+.bumble-app.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bumble-phone {
+  width: min(330px, calc(100vw - 34px));
+  height: min(640px, calc(var(--app-height) - 34px));
+  min-height: 470px;
+  padding: 14px;
+  border: 8px solid #17151b;
+  border-radius: 32px;
+  background: linear-gradient(180deg, #fff9ed 0%, #fff1c6 100%);
+  box-shadow: 0 28px 80px rgb(0 0 0 / 42%);
+  animation: bumble-phone-in 360ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.bumble-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  color: #201314;
+  font-weight: 950;
+}
+
+.bumble-status span {
+  padding-left: 8px;
+  color: #f4a900;
+  font-size: 1.15rem;
+}
+
+.bumble-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  color: #201314;
+  background: rgb(32 19 20 / 8%);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  touch-action: manipulation;
+}
+
+.bumble-card-stack {
+  position: relative;
+  height: calc(100% - 128px);
+  min-height: 300px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #ffd447;
+}
+
+.bumble-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff8ed;
+  box-shadow: 0 18px 40px rgb(81 48 0 / 18%);
+  opacity: 0;
+  transform: translateX(110%) rotate(4deg);
+  transition: transform 260ms ease, opacity 220ms ease;
+  touch-action: pan-y;
+}
+
+.bumble-card.is-active {
+  opacity: 1;
+  transform: translateX(0) rotate(0);
+}
+
+.bumble-card.is-left {
+  opacity: 0;
+  transform: translateX(-120%) rotate(-10deg);
+}
+
+.bumble-card.is-right {
+  opacity: 0;
+  transform: translateX(120%) rotate(10deg);
+}
+
+.bumble-card.is-denied {
+  animation: card-denied 260ms ease;
+}
+
+.bumble-photo {
+  min-height: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.bumble-photo-a {
+  background:
+    radial-gradient(circle at 28% 30%, rgb(255 255 255 / 80%) 0 8%, transparent 9%),
+    linear-gradient(135deg, #ff9fb2 0%, #ffd166 46%, #9bd7ff 100%);
+}
+
+.bumble-photo-b {
+  background:
+    radial-gradient(circle at 64% 34%, rgb(255 255 255 / 72%) 0 10%, transparent 11%),
+    linear-gradient(145deg, #b8f2e6 0%, #cdb4db 45%, #ffb7c8 100%);
+}
+
+.bumble-photo-maker {
+  background:
+    radial-gradient(circle at 50% 28%, #2a2225 0 18%, transparent 19%),
+    radial-gradient(circle at 42% 35%, #f0b8a9 0 4%, transparent 5%),
+    radial-gradient(circle at 58% 35%, #f0b8a9 0 4%, transparent 5%),
+    linear-gradient(180deg, #ffd166 0 52%, #7b2231 53% 72%, #527393 73% 100%);
+}
+
+.bumble-card-copy {
+  padding: 16px;
+  color: #201314;
+  background: linear-gradient(180deg, rgb(255 248 237 / 86%), #fff8ed);
+}
+
+.bumble-card-copy strong,
+.bumble-card-copy span {
+  display: block;
+}
+
+.bumble-card-copy strong {
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.bumble-card-copy span {
+  margin-top: 4px;
+  color: rgb(32 19 20 / 68%);
+  font-weight: 750;
+}
+
+.bumble-instruction {
+  min-height: 22px;
+  margin: 10px 0 8px;
+  color: #5a3b00;
+  font-size: 0.9rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.bumble-actions {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+}
+
+.bumble-swipe {
+  width: 58px;
+  height: 58px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.75rem;
+  font-weight: 950;
+  touch-action: manipulation;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 14%);
+}
+
+.bumble-left {
+  color: #7b2231;
+  background: #fff8ed;
+}
+
+.bumble-right {
+  color: #201314;
+  background: #ffd044;
+}
+
+.bumble-right.is-disabled {
+  color: rgb(32 19 20 / 32%);
+  background: rgb(32 19 20 / 10%);
+}
+
+body.bumble-open .hud,
+body.bumble-open .touch-stick,
+body.bumble-open .dog-bubble,
+body.bumble-open .cuddle-button,
+body.bumble-open .door-button {
+  display: none !important;
+}
+
+@keyframes bumble-phone-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes card-denied {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+
+  35% {
+    transform: translateX(14px) rotate(2deg);
+  }
+
+  70% {
+    transform: translateX(-10px) rotate(-1.5deg);
+  }
+}
+
 @keyframes marker-pulse {
   50% {
     transform: scale(1.12);

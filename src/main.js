@@ -17,6 +17,13 @@ const dogBubble = document.querySelector('#dog-bubble');
 const cuddleButton = document.querySelector('#cuddle-button');
 const doorButton = document.querySelector('#door-button');
 const loadingScreen = document.querySelector('#loading-screen');
+const bumbleApp = document.querySelector('#bumble-app');
+const bumbleClose = document.querySelector('#bumble-close');
+const bumbleCardStack = document.querySelector('#bumble-card-stack');
+const bumbleCards = Array.from(document.querySelectorAll('.bumble-card'));
+const bumbleInstruction = document.querySelector('#bumble-instruction');
+const bumbleLeft = document.querySelector('#bumble-left');
+const bumbleRight = document.querySelector('#bumble-right');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x8ed8ff);
@@ -39,6 +46,7 @@ const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 const textureLoader = new THREE.TextureLoader();
 const phoneLogoTexture = textureLoader.load('/bumble-1.svg');
+const bumbleWordmarkTexture = textureLoader.load('/bumble.png');
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -429,16 +437,44 @@ function isPointerOnDog(event) {
   return raycaster.intersectObjects(dog.children, true).length > 0;
 }
 
+function setPointerRay(event) {
+  const width = window.visualViewport?.width || window.innerWidth;
+  const height = window.visualViewport?.height || window.innerHeight;
+  pointerNdc.set((event.clientX / width) * 2 - 1, -(event.clientY / height) * 2 + 1);
+  raycaster.setFromCamera(pointerNdc, camera);
+}
+
+function isPointerOnBumbleLogo(event) {
+  if (currentArea !== 'bedroom' || !bumbleLogo.visible) return false;
+  setPointerRay(event);
+  return raycaster.intersectObjects([bumbleLogo.userData.hitBox], true).length > 0;
+}
+
+function isPlayerNearBumbleLogo() {
+  const logoFlat = new THREE.Vector2(bumbleLogo.position.x, bumbleLogo.position.z);
+  const playerFlat = new THREE.Vector2(player.position.x, player.position.z);
+  return logoFlat.distanceTo(playerFlat) < 2.3;
+}
+
+function activateBumbleLogo() {
+  if (currentArea !== 'bedroom' || !isPlayerNearBumbleLogo()) return;
+  bumbleLogoPulseUntil = clock.elapsedTime + 1.4;
+  phoneScreenMaterial.emissive.set(0xffc82e);
+  openBumbleApp();
+}
+
 const nextDoor = new THREE.Group();
-addPart(nextDoor, new THREE.BoxGeometry(0.85, 1.35, 0.12), doorMaterial, [0, 0.78, 0]);
-addPart(nextDoor, new THREE.BoxGeometry(1.05, 0.12, 0.16), doorTrimMaterial, [0, 1.5, 0.01]);
-addPart(nextDoor, new THREE.BoxGeometry(0.12, 1.48, 0.16), doorTrimMaterial, [-0.52, 0.8, 0.01]);
-addPart(nextDoor, new THREE.BoxGeometry(0.12, 1.48, 0.16), doorTrimMaterial, [0.52, 0.8, 0.01]);
+const doorDropStartY = 6.4;
+const doorGroundY = 0.02;
+addPart(nextDoor, new THREE.BoxGeometry(1.34, 2.12, 0.18), doorMaterial, [0, 1.18, 0]);
+addPart(nextDoor, new THREE.BoxGeometry(1.62, 0.16, 0.22), doorTrimMaterial, [0, 2.32, 0.01]);
+addPart(nextDoor, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [-0.8, 1.22, 0.01]);
+addPart(nextDoor, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [0.8, 1.22, 0.01]);
 const doorHeart = new THREE.Mesh(createHeartGeometry(), glowMaterial);
-doorHeart.position.set(0, 0.88, 0.09);
-doorHeart.scale.setScalar(0.28);
+doorHeart.position.set(0, 1.35, 0.13);
+doorHeart.scale.setScalar(0.42);
 nextDoor.add(doorHeart);
-nextDoor.position.set(0, 5.4, -5.35);
+nextDoor.position.set(0, doorDropStartY, -5.35);
 nextDoor.rotation.y = Math.PI;
 nextDoor.visible = false;
 root.add(nextDoor);
@@ -446,6 +482,13 @@ root.add(nextDoor);
 const room = new THREE.Group();
 room.visible = false;
 scene.add(room);
+
+const roomWidth = 18;
+const roomDepth = 14;
+const roomHalfWidth = roomWidth / 2;
+const roomHalfDepth = roomDepth / 2;
+const roomWallHeight = 4.2;
+const bumbleLogoBasePosition = new THREE.Vector3(4.7, 2.55, -5.38);
 
 const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf3d0bd, roughness: 0.86 });
 const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xffc8dd, roughness: 0.8, transparent: true, opacity: 1 });
@@ -466,42 +509,77 @@ const clothesMaterials = [
 ];
 const phoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
 const phoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
+const bumbleLogoMaterial = new THREE.MeshBasicMaterial({
+  map: bumbleWordmarkTexture,
+  transparent: true,
+  side: THREE.DoubleSide,
+});
+const bumbleLogoGlowMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffd044,
+  emissive: 0xffb000,
+  emissiveIntensity: 0.65,
+  roughness: 0.35,
+});
 
-addPart(room, new THREE.BoxGeometry(12, 0.12, 9), roomFloorMaterial, [0, -0.02, 0]);
-const roomBackWall = addPart(room, new THREE.BoxGeometry(12, 3.6, 0.12), roomBackWallMaterial, [0, 1.72, -4.5]);
-const roomLeftWall = addPart(room, new THREE.BoxGeometry(0.12, 3.6, 9), roomLeftWallMaterial, [-6, 1.72, 0]);
-const roomRightWall = addPart(room, new THREE.BoxGeometry(0.12, 3.6, 9), roomRightWallMaterial, [6, 1.72, 0]);
+addPart(room, new THREE.BoxGeometry(roomWidth, 0.12, roomDepth), roomFloorMaterial, [0, -0.02, 0]);
+const roomBackWall = addPart(room, new THREE.BoxGeometry(roomWidth, roomWallHeight, 0.12), roomBackWallMaterial, [0, roomWallHeight / 2 - 0.08, -roomHalfDepth]);
+const roomLeftWall = addPart(room, new THREE.BoxGeometry(0.12, roomWallHeight, roomDepth), roomLeftWallMaterial, [-roomHalfWidth, roomWallHeight / 2 - 0.08, 0]);
+const roomRightWall = addPart(room, new THREE.BoxGeometry(0.12, roomWallHeight, roomDepth), roomRightWallMaterial, [roomHalfWidth, roomWallHeight / 2 - 0.08, 0]);
 const roomWalls = [roomBackWall, roomLeftWall, roomRightWall];
 
-addPart(room, new THREE.CylinderGeometry(1.45, 1.45, 0.035, 48), rugMaterial, [0.2, 0.05, 0.85], [1.45, 1, 1]);
-addPart(room, new THREE.BoxGeometry(3.3, 0.42, 1.75), bedMaterial, [-2.4, 0.22, -2.25]);
-addPart(room, new THREE.BoxGeometry(3.3, 0.2, 1.75), blanketMaterial, [-2.4, 0.66, -2.25]);
-addPart(room, new THREE.BoxGeometry(0.9, 0.2, 1.22), pillowMaterial, [-3.62, 0.78, -2.25]);
-addPart(room, new THREE.SphereGeometry(0.23, 20, 16), skinMaterial, [-3.44, 1.02, -2.25], [1, 0.9, 0.9]);
-addPart(room, new THREE.SphereGeometry(0.29, 20, 16), hairMaterial, [-3.48, 1.06, -2.25], [1.05, 0.65, 0.9]);
-addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-2.18, 1.1, -2.25], [1, 1, 1], [0, 0, 0.2]);
-const bedPhoneScreen = addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-2.18, 1.16, -2.25], [1, 1, 1], [0, 0, 0.2]);
+addPart(room, new THREE.CylinderGeometry(1.45, 1.45, 0.035, 48), rugMaterial, [0.15, 0.05, 1.1], [1.9, 1, 1.25]);
+addPart(room, new THREE.BoxGeometry(3.7, 0.42, 2), bedMaterial, [-4.6, 0.22, -4.55]);
+addPart(room, new THREE.BoxGeometry(3.7, 0.2, 2), blanketMaterial, [-4.6, 0.66, -4.55]);
+addPart(room, new THREE.BoxGeometry(1.05, 0.2, 1.38), pillowMaterial, [-5.98, 0.78, -4.55]);
+addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-4.45, 1.1, -4.55], [1, 1, 1], [0, 0, 0.2]);
+const bedPhoneScreen = addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-4.45, 1.16, -4.55], [1, 1, 1], [0, 0, 0.2]);
 
-addPart(room, new THREE.BoxGeometry(1.25, 2.45, 0.58), cabinetMaterial, [4.95, 1.23, -3.92]);
-addPart(room, new THREE.BoxGeometry(1.18, 0.055, 0.62), shelfMaterial, [4.95, 2.06, -3.56]);
-addPart(room, new THREE.BoxGeometry(1.18, 0.055, 0.62), shelfMaterial, [4.95, 1.38, -3.56]);
-addPart(room, new THREE.BoxGeometry(0.05, 2.1, 0.64), shelfMaterial, [4.95, 1.25, -3.54]);
+addPart(room, new THREE.BoxGeometry(1.4, 2.65, 0.64), cabinetMaterial, [7.55, 1.33, -6.25]);
+addPart(room, new THREE.BoxGeometry(1.34, 0.055, 0.68), shelfMaterial, [7.55, 2.2, -5.86]);
+addPart(room, new THREE.BoxGeometry(1.34, 0.055, 0.68), shelfMaterial, [7.55, 1.44, -5.86]);
+addPart(room, new THREE.BoxGeometry(0.05, 2.3, 0.7), shelfMaterial, [7.55, 1.33, -5.84]);
 for (let i = 0; i < 4; i += 1) {
-  addPart(room, new THREE.BoxGeometry(0.22, 0.52, 0.08), clothesMaterials[i], [4.45 + i * 0.34, 1.75, -3.18], [1, 1, 1], [0, 0, -0.08 + i * 0.05]);
+  addPart(room, new THREE.BoxGeometry(0.25, 0.58, 0.08), clothesMaterials[i], [6.98 + i * 0.38, 1.84, -5.45], [1, 1, 1], [0, 0, -0.08 + i * 0.05]);
 }
 
-addPart(room, new THREE.BoxGeometry(2.1, 0.12, 0.34), shelfMaterial, [-4.35, 1.85, -4.08]);
-addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[0], [-5.05, 2.05, -4.0]);
-addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[2], [-4.58, 2.05, -4.0]);
-addPart(room, new THREE.BoxGeometry(0.56, 0.42, 0.08), clothesMaterials[3], [-3.8, 2.08, -4.0]);
+addPart(room, new THREE.BoxGeometry(2.65, 0.12, 0.34), shelfMaterial, [-6.35, 1.95, -6.5]);
+addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[0], [-7.2, 2.15, -6.42]);
+addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[2], [-6.6, 2.15, -6.42]);
+addPart(room, new THREE.BoxGeometry(0.56, 0.42, 0.08), clothesMaterials[3], [-5.55, 2.18, -6.42]);
 
-addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [2.55, 1.18, -3.45], [1, 1, 1], [0.12, 0, 0]);
-const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [2.55, 1.18, -3.36], [1, 1, 1], [0.12, 0, 0]);
+addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [4.7, 1.18, -5.75], [1, 1, 1], [0.12, 0, 0]);
+const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [4.7, 1.18, -5.66], [1, 1, 1], [0.12, 0, 0]);
 
-addPart(room, new THREE.BoxGeometry(1.3, 0.12, 0.55), shelfMaterial, [2.65, 0.62, 1.85]);
-addPart(room, new THREE.CylinderGeometry(0.18, 0.16, 0.44, 20), clothesMaterials[1], [2.26, 0.92, 1.85]);
-addPart(room, new THREE.SphereGeometry(0.18, 16, 12), clothesMaterials[0], [2.75, 0.92, 1.85]);
-addPart(room, new THREE.BoxGeometry(0.58, 0.75, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff0f7, roughness: 0.72 }), [-5.92, 1.76, -1.4], [1, 1, 1], [0, Math.PI / 2, 0]);
+addPart(room, new THREE.BoxGeometry(1.8, 0.14, 0.72), shelfMaterial, [3.85, 0.62, 2.85]);
+for (const x of [3.12, 4.58]) {
+  for (const z of [2.57, 3.13]) {
+    addPart(room, new THREE.CylinderGeometry(0.035, 0.04, 0.58, 12), shelfMaterial, [x, 0.3, z]);
+  }
+}
+addPart(room, new THREE.CylinderGeometry(0.18, 0.16, 0.44, 20), clothesMaterials[1], [3.35, 0.94, 2.85]);
+addPart(room, new THREE.SphereGeometry(0.18, 16, 12), clothesMaterials[0], [4.35, 0.94, 2.85]);
+addPart(room, new THREE.BoxGeometry(0.58, 0.75, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff0f7, roughness: 0.72 }), [-8.92, 1.9, -1.6], [1, 1, 1], [0, Math.PI / 2, 0]);
+
+addPart(room, new THREE.BoxGeometry(1.7, 0.1, 0.42), shelfMaterial, [-7.25, 0.82, 3.75]);
+addPart(room, new THREE.BoxGeometry(0.9, 1.15, 0.44), cabinetMaterial, [-7.3, 0.57, 4.35]);
+addPart(room, new THREE.CylinderGeometry(0.72, 0.72, 0.04, 36), new THREE.MeshStandardMaterial({ color: 0xfff3ba, roughness: 0.82 }), [-3.2, 0.055, 3.9], [1.4, 1, 0.82]);
+addPart(room, new THREE.BoxGeometry(1.05, 1.05, 0.08), new THREE.MeshStandardMaterial({ color: 0xffd9eb, roughness: 0.7 }), [0.1, 1.76, -6.86]);
+addPart(room, new THREE.BoxGeometry(1.05, 1.05, 0.08), new THREE.MeshStandardMaterial({ color: 0xd7f4ff, roughness: 0.7 }), [1.45, 1.76, -6.86]);
+
+const bumbleLogo = new THREE.Group();
+const bumbleLogoPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 0.46), bumbleLogoMaterial);
+const bumbleLogoHitBox = new THREE.Mesh(
+  new THREE.BoxGeometry(1.85, 0.62, 0.16),
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+);
+addPart(bumbleLogo, new THREE.TorusGeometry(0.48, 0.025, 8, 48), bumbleLogoGlowMaterial, [0, 0, -0.03], [1.95, 0.32, 1], [0, 0, 0]);
+bumbleLogoPlane.position.z = 0.045;
+bumbleLogoHitBox.position.z = 0.035;
+bumbleLogo.add(bumbleLogoPlane, bumbleLogoHitBox);
+bumbleLogo.position.copy(bumbleLogoBasePosition);
+bumbleLogo.rotation.y = 0;
+bumbleLogo.userData.hitBox = bumbleLogoHitBox;
+room.add(bumbleLogo);
 
 const markers = [];
 const heartGeometry = createHeartGeometry();
@@ -582,6 +660,15 @@ let doorFalling = false;
 let doorReady = false;
 let doorPromptVisible = false;
 let roomLoading = false;
+let bumbleLogoPulseUntil = 0;
+let bumbleOpen = false;
+let bumbleCardIndex = 0;
+const bumbleSwipe = {
+  active: false,
+  id: null,
+  startX: 0,
+  currentX: 0,
+};
 const doorScreenPosition = new THREE.Vector3();
 
 const tutorialSteps = [
@@ -606,6 +693,115 @@ function stopMovementInput() {
   knob.style.transform = 'translate(-50%, -50%)';
   cuddleButton.classList.remove('is-visible');
   doorButton.classList.remove('is-visible');
+}
+
+function updateBumbleCards() {
+  bumbleCards.forEach((card, index) => {
+    card.classList.toggle('is-active', index === bumbleCardIndex);
+    card.classList.toggle('is-left', index < bumbleCardIndex);
+    card.classList.toggle('is-right', index > bumbleCardIndex);
+    card.classList.remove('is-denied');
+  });
+
+  const activeCard = bumbleCards[bumbleCardIndex];
+  const canLike = activeCard?.dataset.canLike === 'true';
+  bumbleRight.classList.toggle('is-disabled', !canLike);
+  bumbleInstruction.textContent = canLike
+    ? "Swipe right to choose the maker"
+    : "Swipe left to continue. Right swipe is locked.";
+}
+
+function openBumbleApp() {
+  bumbleOpen = true;
+  bumbleCardIndex = 0;
+  updateBumbleCards();
+  stopMovementInput();
+  bumbleApp.classList.add('is-visible');
+  bumbleApp.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('bumble-open');
+}
+
+function closeBumbleApp() {
+  bumbleOpen = false;
+  bumbleApp.classList.remove('is-visible');
+  bumbleApp.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('bumble-open');
+  stopMovementInput();
+}
+
+function denyBumbleRightSwipe() {
+  const activeCard = bumbleCards[bumbleCardIndex];
+  if (!activeCard) return;
+  activeCard.classList.remove('is-denied');
+  void activeCard.offsetWidth;
+  activeCard.classList.add('is-denied');
+  bumbleInstruction.textContent = "Not this one yet. Swipe left.";
+}
+
+function swipeBumbleLeft() {
+  if (!bumbleOpen) return;
+  if (bumbleCardIndex < bumbleCards.length - 1) {
+    bumbleCardIndex += 1;
+    updateBumbleCards();
+    return;
+  }
+  bumbleInstruction.textContent = "That is the last card.";
+}
+
+function swipeBumbleRight() {
+  if (!bumbleOpen) return;
+  const activeCard = bumbleCards[bumbleCardIndex];
+  if (activeCard?.dataset.canLike !== 'true') {
+    denyBumbleRightSwipe();
+    return;
+  }
+  activeCard.classList.add('is-right');
+  activeCard.classList.remove('is-active');
+  bumbleInstruction.textContent = "Matched with the maker.";
+  bumbleLogoPulseUntil = clock.elapsedTime + 2.2;
+}
+
+function getActiveBumbleCard() {
+  return bumbleCards[bumbleCardIndex];
+}
+
+function resetBumbleCardDrag() {
+  const activeCard = getActiveBumbleCard();
+  if (activeCard) activeCard.style.transform = '';
+  bumbleSwipe.active = false;
+  bumbleSwipe.id = null;
+  bumbleSwipe.startX = 0;
+  bumbleSwipe.currentX = 0;
+}
+
+function startBumbleSwipe(event) {
+  if (!bumbleOpen) return;
+  bumbleSwipe.active = true;
+  bumbleSwipe.id = event.pointerId;
+  bumbleSwipe.startX = event.clientX;
+  bumbleSwipe.currentX = event.clientX;
+  bumbleCardStack.setPointerCapture(event.pointerId);
+}
+
+function moveBumbleSwipe(event) {
+  if (!bumbleSwipe.active || event.pointerId !== bumbleSwipe.id) return;
+  bumbleSwipe.currentX = event.clientX;
+  const delta = THREE.MathUtils.clamp(bumbleSwipe.currentX - bumbleSwipe.startX, -120, 120);
+  const activeCard = getActiveBumbleCard();
+  if (activeCard) {
+    activeCard.style.transform = `translateX(${delta}px) rotate(${delta * 0.035}deg)`;
+  }
+}
+
+function finishBumbleSwipe(event) {
+  if (!bumbleSwipe.active || event.pointerId !== bumbleSwipe.id) return;
+  const delta = bumbleSwipe.currentX - bumbleSwipe.startX;
+  resetBumbleCardDrag();
+  if (delta < -62) {
+    swipeBumbleLeft();
+  } else if (delta > 62) {
+    swipeBumbleRight();
+  }
 }
 
 function getPinchDistance() {
@@ -661,7 +857,15 @@ function updateFace(time) {
   }
 }
 
-window.addEventListener('keydown', (event) => keys.add(event.key.toLowerCase()));
+window.addEventListener('keydown', (event) => {
+  if (bumbleOpen) {
+    if (event.key === 'Escape') closeBumbleApp();
+    if (event.key === 'ArrowLeft') swipeBumbleLeft();
+    if (event.key === 'ArrowRight') swipeBumbleRight();
+    return;
+  }
+  keys.add(event.key.toLowerCase());
+});
 window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
 
 mainMenu.addEventListener('pointerdown', (event) => {
@@ -706,8 +910,12 @@ tutorialNext.addEventListener('click', () => {
 tutorialSkip.addEventListener('click', finishTutorial);
 
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive) return;
+  if (!gameStarted || tutorialActive || bumbleOpen) return;
   if (event.pointerType === 'touch') {
+    if (isPointerOnBumbleLogo(event)) {
+      activateBumbleLogo();
+      return;
+    }
     pinchPointers.set(event.pointerId, new THREE.Vector2(event.clientX, event.clientY));
     if (pinchPointers.size === 2) {
       lastPinchDistance = getPinchDistance();
@@ -717,6 +925,10 @@ canvas.addEventListener('pointerdown', (event) => {
       touchLookLastX = event.clientX;
     }
     canvas.setPointerCapture(event.pointerId);
+    return;
+  }
+  if (event.button === 0 && isPointerOnBumbleLogo(event)) {
+    activateBumbleLogo();
     return;
   }
   if (event.button === 0 && isPointerOnDog(event)) {
@@ -730,8 +942,19 @@ canvas.addEventListener('pointerdown', (event) => {
 
 cuddleButton.addEventListener('click', startDogCuddle);
 doorButton.addEventListener('click', startRoomLoading);
+bumbleClose.addEventListener('click', closeBumbleApp);
+bumbleLeft.addEventListener('click', swipeBumbleLeft);
+bumbleRight.addEventListener('click', swipeBumbleRight);
+bumbleApp.addEventListener('pointerdown', (event) => {
+  if (event.target === bumbleApp) closeBumbleApp();
+});
+bumbleCardStack.addEventListener('pointerdown', startBumbleSwipe);
+bumbleCardStack.addEventListener('pointermove', moveBumbleSwipe);
+bumbleCardStack.addEventListener('pointerup', finishBumbleSwipe);
+bumbleCardStack.addEventListener('pointercancel', resetBumbleCardDrag);
 
 canvas.addEventListener('pointermove', (event) => {
+  if (bumbleOpen) return;
   if (event.pointerType === 'touch') {
     if (!pinchPointers.has(event.pointerId)) return;
     pinchPointers.get(event.pointerId).set(event.clientX, event.clientY);
@@ -801,7 +1024,7 @@ stick.addEventListener('pointerup', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive) return;
+  if (!gameStarted || tutorialActive || bumbleOpen) return;
   if (keys.has('w') || keys.has('arrowup')) move.y += 1;
   if (keys.has('s') || keys.has('arrowdown')) move.y -= 1;
   if (keys.has('a') || keys.has('arrowleft')) move.x -= 1;
@@ -875,8 +1098,8 @@ function updatePlayer(delta) {
   });
 
   if (currentArea === 'bedroom') {
-    player.position.x = THREE.MathUtils.clamp(player.position.x, -5.35, 5.35);
-    player.position.z = THREE.MathUtils.clamp(player.position.z, -3.85, 3.85);
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -roomHalfWidth + 0.75, roomHalfWidth - 0.75);
+    player.position.z = THREE.MathUtils.clamp(player.position.z, -roomHalfDepth + 0.75, roomHalfDepth - 0.75);
   } else {
     const maxRadius = 6.7;
     const flat = new THREE.Vector2(player.position.x, player.position.z);
@@ -904,9 +1127,9 @@ function updateRoomWalls() {
     return;
   }
 
-  const backTarget = camera.position.z < -4.25 && player.position.z > -4.5 ? 0.18 : 1;
-  const leftTarget = camera.position.x < -5.65 && player.position.x > -6 ? 0.18 : 1;
-  const rightTarget = camera.position.x > 5.65 && player.position.x < 6 ? 0.18 : 1;
+  const backTarget = camera.position.z < -roomHalfDepth + 0.35 && player.position.z > -roomHalfDepth ? 0.18 : 1;
+  const leftTarget = camera.position.x < -roomHalfWidth + 0.35 && player.position.x > -roomHalfWidth ? 0.18 : 1;
+  const rightTarget = camera.position.x > roomHalfWidth - 0.35 && player.position.x < roomHalfWidth ? 0.18 : 1;
 
   roomBackWallMaterial.opacity = THREE.MathUtils.lerp(roomBackWallMaterial.opacity, backTarget, 0.16);
   roomLeftWallMaterial.opacity = THREE.MathUtils.lerp(roomLeftWallMaterial.opacity, leftTarget, 0.16);
@@ -916,12 +1139,30 @@ function updateRoomWalls() {
   roomRightWallMaterial.depthWrite = roomRightWallMaterial.opacity > 0.65;
 }
 
+function updateBumbleLogo(time, delta) {
+  if (currentArea !== 'bedroom') return;
+  const isPulsing = time < bumbleLogoPulseUntil;
+  bumbleLogo.rotation.y += delta * (isPulsing ? 5.2 : 1.25);
+  bumbleLogo.position.y = bumbleLogoBasePosition.y + Math.sin(time * 2.6) * 0.055;
+  const pulseScale = isPulsing ? 1.12 + Math.sin(time * 18) * 0.06 : 1;
+  bumbleLogo.scale.lerp(new THREE.Vector3(pulseScale, pulseScale, pulseScale), 0.18);
+  bumbleLogoGlowMaterial.emissiveIntensity = THREE.MathUtils.lerp(
+    bumbleLogoGlowMaterial.emissiveIntensity,
+    isPulsing ? 1.9 : 0.65,
+    0.12,
+  );
+
+  if (!isPulsing && phoneScreenMaterial.emissive.getHex() !== 0x222222) {
+    phoneScreenMaterial.emissive.set(0x222222);
+  }
+}
+
 function unlockDoor() {
   if (doorUnlocked) return;
   doorUnlocked = true;
   doorFalling = true;
   nextDoor.visible = true;
-  nextDoor.position.y = 5.4;
+  nextDoor.position.y = doorDropStartY;
   dogBubble.textContent = "the next door is falling!";
 }
 
@@ -932,10 +1173,15 @@ function resetGameProgress() {
   doorReady = false;
   doorPromptVisible = false;
   roomLoading = false;
+  closeBumbleApp();
   collected = 0;
   memoryCount.textContent = '0';
   root.visible = true;
   room.visible = false;
+  bumbleLogoPulseUntil = 0;
+  bumbleLogo.scale.setScalar(1);
+  bumbleLogo.position.copy(bumbleLogoBasePosition);
+  bumbleLogoGlowMaterial.emissiveIntensity = 0.65;
   dog.visible = true;
   dogBubble.style.display = '';
   loadingScreen.classList.remove('is-visible');
@@ -944,15 +1190,11 @@ function resetGameProgress() {
   phoneScreenMaterial.color.set(0x8fd8ff);
   phoneScreenMaterial.emissive.set(0x4db8ff);
   phoneScreenMaterial.needsUpdate = true;
-  handheldPhoneScreenMaterial.map = null;
-  handheldPhoneScreenMaterial.color.set(0x8fd8ff);
-  handheldPhoneScreenMaterial.emissive.set(0x4db8ff);
-  handheldPhoneScreenMaterial.needsUpdate = true;
   playerPhone.visible = false;
   bedPhoneScreen.scale.set(1, 1, 1);
   bigPhoneScreen.scale.set(1, 1, 1);
   nextDoor.visible = false;
-  nextDoor.position.set(0, 5.4, -5.35);
+  nextDoor.position.set(0, doorDropStartY, -5.35);
   markers.forEach((marker) => {
     marker.userData.collected = false;
     marker.userData.heart.material = glowMaterial;
@@ -982,18 +1224,18 @@ function enterBedroom() {
   player.position.set(-0.2, 0, 1.65);
   player.rotation.y = Math.PI * 0.92;
   yaw = Math.PI;
-  playerPhone.visible = true;
+  playerPhone.visible = false;
   cameraDistance = 5.4;
+  bumbleLogoPulseUntil = 0;
+  bumbleLogo.scale.setScalar(1);
+  bumbleLogo.position.copy(bumbleLogoBasePosition);
+  bumbleLogoGlowMaterial.emissiveIntensity = 0.65;
   stopMovementInput();
   setTimeout(() => {
     phoneScreenMaterial.map = phoneLogoTexture;
     phoneScreenMaterial.color.set(0xffffff);
     phoneScreenMaterial.emissive.set(0x222222);
     phoneScreenMaterial.needsUpdate = true;
-    handheldPhoneScreenMaterial.map = phoneLogoTexture;
-    handheldPhoneScreenMaterial.color.set(0xffffff);
-    handheldPhoneScreenMaterial.emissive.set(0x222222);
-    handheldPhoneScreenMaterial.needsUpdate = true;
     bedPhoneScreen.scale.set(1.05, 1.12, 1.05);
     bigPhoneScreen.scale.set(1.06, 1.06, 1.06);
   }, 650);
@@ -1013,23 +1255,23 @@ function startRoomLoading() {
 function updateDoor(delta, time) {
   if (!doorUnlocked) return;
   doorHeart.rotation.y += 0.05;
-  doorHeart.position.y = 0.9 + Math.sin(time * 2.8) * 0.04;
+  doorHeart.position.y = 1.35 + Math.sin(time * 2.8) * 0.06;
 
   if (doorFalling) {
-    nextDoor.position.y = Math.max(0.02, nextDoor.position.y - delta * 7.5);
-    if (nextDoor.position.y <= 0.021) {
+    nextDoor.position.y = Math.max(doorGroundY, nextDoor.position.y - delta * 7.5);
+    if (nextDoor.position.y <= doorGroundY + 0.001) {
       doorFalling = false;
       doorReady = true;
       dogBubble.textContent = "go through the door!";
     }
   }
 
-  const nearDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.35;
+  const nearDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
   doorPromptVisible = nearDoor && !roomLoading;
   doorButton.classList.toggle('is-visible', doorPromptVisible);
 
   if (doorPromptVisible) {
-    doorScreenPosition.set(nextDoor.position.x, nextDoor.position.y + 1.8, nextDoor.position.z);
+    doorScreenPosition.set(nextDoor.position.x, nextDoor.position.y + 2.55, nextDoor.position.z);
     doorScreenPosition.project(camera);
     const width = window.visualViewport?.width || window.innerWidth;
     const height = window.visualViewport?.height || window.innerHeight;
@@ -1149,6 +1391,7 @@ function tick() {
   updatePlayer(delta);
   updateCamera();
   updateRoomWalls();
+  updateBumbleLogo(time, delta);
   updateMarkers(time);
   updateDoor(delta, time);
   updateDog(time, delta);

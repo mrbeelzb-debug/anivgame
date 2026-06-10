@@ -110,6 +110,43 @@
         </div>
       </div>
 
+      <div class="bumble-app" id="bumble-app" aria-hidden="true">
+        <div class="bumble-phone" role="dialog" aria-modal="true" aria-label="Bumble memory app">
+          <div class="bumble-status">
+            <span>Bumble</span>
+            <button class="bumble-close" id="bumble-close" type="button" aria-label="Close Bumble app">x</button>
+          </div>
+          <div class="bumble-card-stack" id="bumble-card-stack">
+            <article class="bumble-card is-active" data-card="0" data-can-like="false">
+              <div class="bumble-photo bumble-photo-a"></div>
+              <div class="bumble-card-copy">
+                <strong>Memory Preview</strong>
+                <span>Picture placeholder 1</span>
+              </div>
+            </article>
+            <article class="bumble-card" data-card="1" data-can-like="false">
+              <div class="bumble-photo bumble-photo-b"></div>
+              <div class="bumble-card-copy">
+                <strong>Memory Preview</strong>
+                <span>Picture placeholder 2</span>
+              </div>
+            </article>
+            <article class="bumble-card" data-card="2" data-can-like="true">
+              <div class="bumble-photo bumble-photo-maker"></div>
+              <div class="bumble-card-copy">
+                <strong>The Maker</strong>
+                <span>Swipe right on me</span>
+              </div>
+            </article>
+          </div>
+          <p class="bumble-instruction" id="bumble-instruction">Swipe left or right</p>
+          <div class="bumble-actions">
+            <button class="bumble-swipe bumble-left" id="bumble-left" type="button" aria-label="Swipe left">←</button>
+            <button class="bumble-swipe bumble-right" id="bumble-right" type="button" aria-label="Swipe right">→</button>
+          </div>
+        </div>
+      </div>
+
       <div class="rotate-device" aria-hidden="true">
         <div>
           <span></span>
