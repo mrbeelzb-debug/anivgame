@@ -528,6 +528,8 @@ const pointer = {
 };
 const pinchPointers = new Map();
 let lastPinchDistance = 0;
+let touchLookId = null;
+let touchLookLastX = 0;
 let collected = 0;
 let yaw = 0;
 let draggingLook = false;
@@ -551,6 +553,7 @@ const doorScreenPosition = new THREE.Vector3();
 const tutorialSteps = [
   "Hi hi, I'm mot mot. I'll help you walk around Memory Garden.",
   "On phone or tablet, drag the glowing circle on the left to move. On PC, use WASD or the arrow keys.",
+  "Drag on the right side of the screen to move the camera. On PC, drag with the mouse.",
   "Pinch with two fingers to zoom in or out. On PC, use the mouse wheel.",
   "The spinning hearts are memory keys. Walk close to collect all 5 hearts on this island.",
   "Later, hearts can open pictures, little puzzles, messages, and other surprises. For now, collect them and explore.",
@@ -563,6 +566,8 @@ function stopMovementInput() {
   pointer.id = null;
   pinchPointers.clear();
   lastPinchDistance = 0;
+  touchLookId = null;
+  touchLookLastX = 0;
   draggingLook = false;
   knob.style.transform = 'translate(-50%, -50%)';
   cuddleButton.classList.remove('is-visible');
@@ -672,6 +677,10 @@ canvas.addEventListener('pointerdown', (event) => {
     pinchPointers.set(event.pointerId, new THREE.Vector2(event.clientX, event.clientY));
     if (pinchPointers.size === 2) {
       lastPinchDistance = getPinchDistance();
+      touchLookId = null;
+    } else if (pinchPointers.size === 1 && event.clientX > (window.visualViewport?.width || window.innerWidth) * 0.45) {
+      touchLookId = event.pointerId;
+      touchLookLastX = event.clientX;
     }
     canvas.setPointerCapture(event.pointerId);
     return;
@@ -698,6 +707,9 @@ canvas.addEventListener('pointermove', (event) => {
         cameraDistance = THREE.MathUtils.clamp(cameraDistance - (pinchDistance - lastPinchDistance) * 0.018, 3.4, 10);
       }
       lastPinchDistance = pinchDistance;
+    } else if (touchLookId === event.pointerId) {
+      yaw -= (event.clientX - touchLookLastX) * 0.006;
+      touchLookLastX = event.clientX;
     }
     return;
   }
@@ -711,6 +723,9 @@ function endCanvasPointer(event) {
   if (event.pointerType === 'touch') {
     pinchPointers.delete(event.pointerId);
     lastPinchDistance = pinchPointers.size >= 2 ? getPinchDistance() : 0;
+    if (touchLookId === event.pointerId) {
+      touchLookId = null;
+    }
     return;
   }
   draggingLook = false;
