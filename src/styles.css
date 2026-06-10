@@ -27,6 +27,14 @@ body:not(.game-started) .touch-stick {
   pointer-events: none;
 }
 
+body.tutorial-active .hud,
+body.tutorial-active .touch-stick,
+body.tutorial-active .dog-bubble,
+body.tutorial-active .cuddle-button {
+  opacity: 0;
+  pointer-events: none;
+}
+
 #game {
   display: block;
   width: 100%;
@@ -872,7 +880,7 @@ body.game-started .dog-bubble {
   display: none;
   align-items: end;
   gap: 12px;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .tutorial.is-visible {
@@ -1081,7 +1089,10 @@ body.game-started .dog-bubble {
   .tutorial {
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
-    bottom: max(12px, env(safe-area-inset-bottom));
+    top: max(12px, env(safe-area-inset-top));
+    bottom: auto;
+    align-items: start;
+    justify-content: center;
     gap: 8px;
   }
 
@@ -1102,7 +1113,7 @@ body.game-started .dog-bubble {
   }
 
   .tutorial-card {
-    width: min(500px, calc(100vw - 96px));
+    width: min(560px, calc(100vw - 96px));
     padding: 12px;
   }
 

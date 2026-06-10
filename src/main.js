@@ -17,8 +17,8 @@ const dogBubble = document.querySelector('#dog-bubble');
 const cuddleButton = document.querySelector('#cuddle-button');
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x101417);
-scene.fog = new THREE.Fog(0x101417, 16, 42);
+scene.background = new THREE.Color(0x8ed8ff);
+scene.fog = new THREE.Fog(0x8ed8ff, 18, 46);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 4.2, 9);
@@ -71,6 +71,8 @@ scene.add(root);
 const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x4d8a62, roughness: 0.85 });
 const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0x7f6850, roughness: 0.9 });
 const pathMaterial = new THREE.MeshStandardMaterial({ color: 0xd9caa0, roughness: 0.95 });
+const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x9c5a3c, roughness: 0.78 });
+const doorTrimMaterial = new THREE.MeshStandardMaterial({ color: 0xffe1a8, roughness: 0.62 });
 const glowMaterial = new THREE.MeshStandardMaterial({
   color: 0xffb7c8,
   emissive: 0xff6f9d,
@@ -413,6 +415,46 @@ function isPointerOnDog(event) {
   return raycaster.intersectObjects(dog.children, true).length > 0;
 }
 
+const nextDoor = new THREE.Group();
+addPart(nextDoor, new THREE.BoxGeometry(0.85, 1.35, 0.12), doorMaterial, [0, 0.78, 0]);
+addPart(nextDoor, new THREE.BoxGeometry(1.05, 0.12, 0.16), doorTrimMaterial, [0, 1.5, 0.01]);
+addPart(nextDoor, new THREE.BoxGeometry(0.12, 1.48, 0.16), doorTrimMaterial, [-0.52, 0.8, 0.01]);
+addPart(nextDoor, new THREE.BoxGeometry(0.12, 1.48, 0.16), doorTrimMaterial, [0.52, 0.8, 0.01]);
+const doorHeart = new THREE.Mesh(createHeartGeometry(), glowMaterial);
+doorHeart.position.set(0, 0.88, 0.09);
+doorHeart.scale.setScalar(0.28);
+nextDoor.add(doorHeart);
+nextDoor.position.set(0, 5.4, -5.35);
+nextDoor.rotation.y = Math.PI;
+nextDoor.visible = false;
+root.add(nextDoor);
+
+const room = new THREE.Group();
+room.visible = false;
+scene.add(room);
+
+const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf0d8bb, roughness: 0.86 });
+const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xf4c9d7, roughness: 0.8 });
+const bedMaterial = new THREE.MeshStandardMaterial({ color: 0xffb7c8, roughness: 0.74 });
+const blanketMaterial = new THREE.MeshStandardMaterial({ color: 0x8fb8ff, roughness: 0.78 });
+const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xfff4e8, roughness: 0.7 });
+const phoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
+const phoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
+
+addPart(room, new THREE.BoxGeometry(9, 0.12, 7), roomFloorMaterial, [0, -0.02, 0]);
+addPart(room, new THREE.BoxGeometry(9, 3, 0.12), roomWallMaterial, [0, 1.45, -3.5]);
+addPart(room, new THREE.BoxGeometry(0.12, 3, 7), roomWallMaterial, [-4.5, 1.45, 0]);
+addPart(room, new THREE.BoxGeometry(0.12, 3, 7), roomWallMaterial, [4.5, 1.45, 0]);
+addPart(room, new THREE.BoxGeometry(2.9, 0.38, 1.55), bedMaterial, [-1.2, 0.22, -1.4]);
+addPart(room, new THREE.BoxGeometry(2.9, 0.18, 1.55), blanketMaterial, [-1.2, 0.62, -1.4]);
+addPart(room, new THREE.BoxGeometry(0.84, 0.18, 1.18), pillowMaterial, [-2.28, 0.72, -1.4]);
+addPart(room, new THREE.SphereGeometry(0.22, 20, 16), skinMaterial, [-2.15, 0.94, -1.4], [1, 0.9, 0.9]);
+addPart(room, new THREE.SphereGeometry(0.27, 20, 16), hairMaterial, [-2.19, 0.98, -1.4], [1.05, 0.65, 0.9]);
+addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-0.92, 1.02, -1.4], [1, 1, 1], [0, 0, 0.2]);
+addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-0.92, 1.08, -1.4], [1, 1, 1], [0, 0, 0.2]);
+addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [1.9, 1.15, -2.45], [1, 1, 1], [0.12, 0, 0]);
+addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [1.9, 1.15, -2.36], [1, 1, 1], [0.12, 0, 0]);
+
 const markers = [];
 const heartGeometry = createHeartGeometry();
 for (let i = 0; i < 5; i += 1) {
@@ -484,13 +526,18 @@ let cameraDistance = 6.2;
 const avatarGroundOffset = 0.14;
 let tutorialActive = false;
 let tutorialIndex = 0;
+let currentArea = 'tutorial-island';
+let doorUnlocked = false;
+let doorFalling = false;
+let doorReady = false;
 
 const tutorialSteps = [
   "Hi hi, I'm mot mot. I'll help you walk around Memory Garden.",
   "On phone or tablet, drag the glowing circle on the left to move. On PC, use WASD or the arrow keys.",
   "Pinch with two fingers to zoom in or out. On PC, use the mouse wheel.",
-  "The spinning heart is a memory key. Walk close to collect it.",
-  "Later, you can press hearts to open pictures, little puzzles, messages, and other surprises. For now, collect them and explore.",
+  "The spinning hearts are memory keys. Collect all 5 hearts on this tutorial island.",
+  "After the 5 hearts are collected, a door will fall from the sky. Walk into it to go to the next part.",
+  "Later, hearts can open pictures, little puzzles, messages, and other surprises. For now, collect them and explore.",
 ];
 
 function stopMovementInput() {
@@ -520,6 +567,7 @@ function startTutorial() {
   tutorialActive = true;
   tutorialIndex = 0;
   stopMovementInput();
+  document.body.classList.add('tutorial-active');
   showTutorialStep();
   tutorial.classList.add('is-visible');
 }
@@ -527,6 +575,7 @@ function startTutorial() {
 function finishTutorial() {
   tutorialActive = false;
   tutorial.classList.remove('is-visible');
+  document.body.classList.remove('tutorial-active');
   stopMovementInput();
 }
 
@@ -567,6 +616,7 @@ mainMenu.addEventListener('pointerdown', (event) => {
 
 startButton.addEventListener('click', () => {
   requestFullscreen();
+  resetGameProgress();
   mainMenu.classList.add('is-hidden');
   startTransition.classList.add('is-active');
   stopMovementInput();
@@ -582,6 +632,7 @@ menuButton.addEventListener('click', () => {
   gameStarted = false;
   tutorialActive = false;
   tutorial.classList.remove('is-visible');
+  document.body.classList.remove('tutorial-active');
   stopMovementInput();
   document.body.classList.remove('game-started');
   mainMenu.classList.remove('is-hidden');
@@ -756,12 +807,17 @@ function updatePlayer(delta) {
     bang.position.y = 0.49 - Math.abs(index - 4) * 0.008;
   });
 
-  const maxRadius = 6.7;
-  const flat = new THREE.Vector2(player.position.x, player.position.z);
-  if (flat.length() > maxRadius) {
-    flat.setLength(maxRadius);
-    player.position.x = flat.x;
-    player.position.z = flat.y;
+  if (currentArea === 'bedroom') {
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -3.8, 3.8);
+    player.position.z = THREE.MathUtils.clamp(player.position.z, -2.7, 2.7);
+  } else {
+    const maxRadius = 6.7;
+    const flat = new THREE.Vector2(player.position.x, player.position.z);
+    if (flat.length() > maxRadius) {
+      flat.setLength(maxRadius);
+      player.position.x = flat.x;
+      player.position.z = flat.y;
+    }
   }
 }
 
@@ -773,7 +829,81 @@ function updateCamera() {
   camera.lookAt(player.position.x, player.position.y + 0.75, player.position.z);
 }
 
+function unlockDoor() {
+  if (doorUnlocked) return;
+  doorUnlocked = true;
+  doorFalling = true;
+  nextDoor.visible = true;
+  nextDoor.position.y = 5.4;
+  dogBubble.textContent = "the next door is falling!";
+}
+
+function resetGameProgress() {
+  currentArea = 'tutorial-island';
+  doorUnlocked = false;
+  doorFalling = false;
+  doorReady = false;
+  collected = 0;
+  memoryCount.textContent = '0';
+  root.visible = true;
+  room.visible = false;
+  dog.visible = true;
+  dogBubble.style.display = '';
+  nextDoor.visible = false;
+  nextDoor.position.set(0, 5.4, -5.35);
+  markers.forEach((marker) => {
+    marker.userData.collected = false;
+    marker.userData.heart.material = glowMaterial;
+    marker.userData.heart.material.color.set(0xffb7c8);
+    marker.userData.heart.material.emissive.set(0xff6f9d);
+  });
+  scene.background.set(0x8ed8ff);
+  scene.fog.color.set(0x8ed8ff);
+  player.position.set(0, 0, 0);
+  player.rotation.y = 0;
+  dog.position.set(1.8, 0.03, 2.2);
+  pickDogTarget();
+  cameraDistance = 6.2;
+  yaw = 0;
+}
+
+function enterBedroom() {
+  currentArea = 'bedroom';
+  root.visible = false;
+  dog.visible = false;
+  dogBubble.style.display = 'none';
+  cuddleButton.classList.remove('is-visible');
+  room.visible = true;
+  scene.background.set(0x2b2645);
+  scene.fog.color.set(0x2b2645);
+  player.position.set(1.4, 0, 1.6);
+  player.rotation.y = Math.PI;
+  yaw = Math.PI;
+  cameraDistance = 5.4;
+  stopMovementInput();
+}
+
+function updateDoor(delta, time) {
+  if (!doorUnlocked) return;
+  doorHeart.rotation.y += 0.05;
+  doorHeart.position.y = 0.9 + Math.sin(time * 2.8) * 0.04;
+
+  if (doorFalling) {
+    nextDoor.position.y = Math.max(0.02, nextDoor.position.y - delta * 7.5);
+    if (nextDoor.position.y <= 0.021) {
+      doorFalling = false;
+      doorReady = true;
+      dogBubble.textContent = "go through the door!";
+    }
+  }
+
+  if (doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 0.9) {
+    enterBedroom();
+  }
+}
+
 function updateMarkers(time) {
+  if (tutorialActive || currentArea !== 'tutorial-island') return;
   markers.forEach((marker, index) => {
     marker.userData.heart.rotation.y += 0.045;
     marker.userData.heart.position.y = 0.52 + Math.sin(time * 2.2 + index) * 0.06;
@@ -785,11 +915,19 @@ function updateMarkers(time) {
       marker.userData.heart.material.emissive.set(0x52ff88);
       collected += 1;
       memoryCount.textContent = String(collected);
+      if (collected >= markers.length) {
+        unlockDoor();
+      }
     }
   });
 }
 
 function updateDog(time, delta) {
+  if (currentArea !== 'tutorial-island') {
+    dogBubble.style.display = 'none';
+    return;
+  }
+  dogBubble.style.display = '';
   const distanceToPlayer = dog.position.distanceTo(player.position);
   dogPlayful = gameStarted && !tutorialActive && distanceToPlayer < 1.7;
   const isCuddling = time < cuddleUntil;
@@ -875,6 +1013,7 @@ function tick() {
   updatePlayer(delta);
   updateCamera();
   updateMarkers(time);
+  updateDoor(delta, time);
   updateDog(time, delta);
   updateFace(time);
 
