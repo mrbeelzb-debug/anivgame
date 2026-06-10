@@ -447,27 +447,61 @@ const room = new THREE.Group();
 room.visible = false;
 scene.add(room);
 
-const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf0d8bb, roughness: 0.86 });
-const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xf4c9d7, roughness: 0.8 });
+const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf3d0bd, roughness: 0.86 });
+const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xffc8dd, roughness: 0.8, transparent: true, opacity: 1 });
+const roomBackWallMaterial = roomWallMaterial.clone();
+const roomLeftWallMaterial = roomWallMaterial.clone();
+const roomRightWallMaterial = roomWallMaterial.clone();
 const bedMaterial = new THREE.MeshStandardMaterial({ color: 0xffb7c8, roughness: 0.74 });
 const blanketMaterial = new THREE.MeshStandardMaterial({ color: 0x8fb8ff, roughness: 0.78 });
 const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xfff4e8, roughness: 0.7 });
+const cabinetMaterial = new THREE.MeshStandardMaterial({ color: 0xffdf9e, roughness: 0.78 });
+const shelfMaterial = new THREE.MeshStandardMaterial({ color: 0xd88f6c, roughness: 0.8 });
+const rugMaterial = new THREE.MeshStandardMaterial({ color: 0xaedff7, roughness: 0.84 });
+const clothesMaterials = [
+  new THREE.MeshStandardMaterial({ color: 0xff8fab, roughness: 0.78 }),
+  new THREE.MeshStandardMaterial({ color: 0xb8f2e6, roughness: 0.78 }),
+  new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.78 }),
+  new THREE.MeshStandardMaterial({ color: 0xcdb4db, roughness: 0.78 }),
+];
 const phoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
 const phoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
 
-addPart(room, new THREE.BoxGeometry(9, 0.12, 7), roomFloorMaterial, [0, -0.02, 0]);
-addPart(room, new THREE.BoxGeometry(9, 3, 0.12), roomWallMaterial, [0, 1.45, -3.5]);
-addPart(room, new THREE.BoxGeometry(0.12, 3, 7), roomWallMaterial, [-4.5, 1.45, 0]);
-addPart(room, new THREE.BoxGeometry(0.12, 3, 7), roomWallMaterial, [4.5, 1.45, 0]);
-addPart(room, new THREE.BoxGeometry(2.9, 0.38, 1.55), bedMaterial, [-1.2, 0.22, -1.4]);
-addPart(room, new THREE.BoxGeometry(2.9, 0.18, 1.55), blanketMaterial, [-1.2, 0.62, -1.4]);
-addPart(room, new THREE.BoxGeometry(0.84, 0.18, 1.18), pillowMaterial, [-2.28, 0.72, -1.4]);
-addPart(room, new THREE.SphereGeometry(0.22, 20, 16), skinMaterial, [-2.15, 0.94, -1.4], [1, 0.9, 0.9]);
-addPart(room, new THREE.SphereGeometry(0.27, 20, 16), hairMaterial, [-2.19, 0.98, -1.4], [1.05, 0.65, 0.9]);
-addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-0.92, 1.02, -1.4], [1, 1, 1], [0, 0, 0.2]);
-const bedPhoneScreen = addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-0.92, 1.08, -1.4], [1, 1, 1], [0, 0, 0.2]);
-addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [1.9, 1.15, -2.45], [1, 1, 1], [0.12, 0, 0]);
-const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [1.9, 1.15, -2.36], [1, 1, 1], [0.12, 0, 0]);
+addPart(room, new THREE.BoxGeometry(12, 0.12, 9), roomFloorMaterial, [0, -0.02, 0]);
+const roomBackWall = addPart(room, new THREE.BoxGeometry(12, 3.6, 0.12), roomBackWallMaterial, [0, 1.72, -4.5]);
+const roomLeftWall = addPart(room, new THREE.BoxGeometry(0.12, 3.6, 9), roomLeftWallMaterial, [-6, 1.72, 0]);
+const roomRightWall = addPart(room, new THREE.BoxGeometry(0.12, 3.6, 9), roomRightWallMaterial, [6, 1.72, 0]);
+const roomWalls = [roomBackWall, roomLeftWall, roomRightWall];
+
+addPart(room, new THREE.CylinderGeometry(1.45, 1.45, 0.035, 48), rugMaterial, [0.2, 0.05, 0.85], [1.45, 1, 1]);
+addPart(room, new THREE.BoxGeometry(3.3, 0.42, 1.75), bedMaterial, [-2.4, 0.22, -2.25]);
+addPart(room, new THREE.BoxGeometry(3.3, 0.2, 1.75), blanketMaterial, [-2.4, 0.66, -2.25]);
+addPart(room, new THREE.BoxGeometry(0.9, 0.2, 1.22), pillowMaterial, [-3.62, 0.78, -2.25]);
+addPart(room, new THREE.SphereGeometry(0.23, 20, 16), skinMaterial, [-3.44, 1.02, -2.25], [1, 0.9, 0.9]);
+addPart(room, new THREE.SphereGeometry(0.29, 20, 16), hairMaterial, [-3.48, 1.06, -2.25], [1.05, 0.65, 0.9]);
+addPart(room, new THREE.BoxGeometry(1.25, 0.1, 0.6), phoneMaterial, [-2.18, 1.1, -2.25], [1, 1, 1], [0, 0, 0.2]);
+const bedPhoneScreen = addPart(room, new THREE.BoxGeometry(1.05, 0.108, 0.44), phoneScreenMaterial, [-2.18, 1.16, -2.25], [1, 1, 1], [0, 0, 0.2]);
+
+addPart(room, new THREE.BoxGeometry(1.25, 2.45, 0.58), cabinetMaterial, [4.95, 1.23, -3.92]);
+addPart(room, new THREE.BoxGeometry(1.18, 0.055, 0.62), shelfMaterial, [4.95, 2.06, -3.56]);
+addPart(room, new THREE.BoxGeometry(1.18, 0.055, 0.62), shelfMaterial, [4.95, 1.38, -3.56]);
+addPart(room, new THREE.BoxGeometry(0.05, 2.1, 0.64), shelfMaterial, [4.95, 1.25, -3.54]);
+for (let i = 0; i < 4; i += 1) {
+  addPart(room, new THREE.BoxGeometry(0.22, 0.52, 0.08), clothesMaterials[i], [4.45 + i * 0.34, 1.75, -3.18], [1, 1, 1], [0, 0, -0.08 + i * 0.05]);
+}
+
+addPart(room, new THREE.BoxGeometry(2.1, 0.12, 0.34), shelfMaterial, [-4.35, 1.85, -4.08]);
+addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[0], [-5.05, 2.05, -4.0]);
+addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[2], [-4.58, 2.05, -4.0]);
+addPart(room, new THREE.BoxGeometry(0.56, 0.42, 0.08), clothesMaterials[3], [-3.8, 2.08, -4.0]);
+
+addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [2.55, 1.18, -3.45], [1, 1, 1], [0.12, 0, 0]);
+const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [2.55, 1.18, -3.36], [1, 1, 1], [0.12, 0, 0]);
+
+addPart(room, new THREE.BoxGeometry(1.3, 0.12, 0.55), shelfMaterial, [2.65, 0.62, 1.85]);
+addPart(room, new THREE.CylinderGeometry(0.18, 0.16, 0.44, 20), clothesMaterials[1], [2.26, 0.92, 1.85]);
+addPart(room, new THREE.SphereGeometry(0.18, 16, 12), clothesMaterials[0], [2.75, 0.92, 1.85]);
+addPart(room, new THREE.BoxGeometry(0.58, 0.75, 0.08), new THREE.MeshStandardMaterial({ color: 0xfff0f7, roughness: 0.72 }), [-5.92, 1.76, -1.4], [1, 1, 1], [0, Math.PI / 2, 0]);
 
 const markers = [];
 const heartGeometry = createHeartGeometry();
@@ -841,8 +875,8 @@ function updatePlayer(delta) {
   });
 
   if (currentArea === 'bedroom') {
-    player.position.x = THREE.MathUtils.clamp(player.position.x, -3.8, 3.8);
-    player.position.z = THREE.MathUtils.clamp(player.position.z, -2.7, 2.7);
+    player.position.x = THREE.MathUtils.clamp(player.position.x, -5.35, 5.35);
+    player.position.z = THREE.MathUtils.clamp(player.position.z, -3.85, 3.85);
   } else {
     const maxRadius = 6.7;
     const flat = new THREE.Vector2(player.position.x, player.position.z);
@@ -860,6 +894,26 @@ function updateCamera() {
   const targetPosition = player.position.clone().add(cameraOffset);
   camera.position.lerp(targetPosition, 0.08);
   camera.lookAt(player.position.x, player.position.y + 0.75, player.position.z);
+}
+
+function updateRoomWalls() {
+  if (currentArea !== 'bedroom') {
+    roomBackWallMaterial.opacity = 1;
+    roomLeftWallMaterial.opacity = 1;
+    roomRightWallMaterial.opacity = 1;
+    return;
+  }
+
+  const backTarget = camera.position.z < -4.25 && player.position.z > -4.5 ? 0.18 : 1;
+  const leftTarget = camera.position.x < -5.65 && player.position.x > -6 ? 0.18 : 1;
+  const rightTarget = camera.position.x > 5.65 && player.position.x < 6 ? 0.18 : 1;
+
+  roomBackWallMaterial.opacity = THREE.MathUtils.lerp(roomBackWallMaterial.opacity, backTarget, 0.16);
+  roomLeftWallMaterial.opacity = THREE.MathUtils.lerp(roomLeftWallMaterial.opacity, leftTarget, 0.16);
+  roomRightWallMaterial.opacity = THREE.MathUtils.lerp(roomRightWallMaterial.opacity, rightTarget, 0.16);
+  roomBackWallMaterial.depthWrite = roomBackWallMaterial.opacity > 0.65;
+  roomLeftWallMaterial.depthWrite = roomLeftWallMaterial.opacity > 0.65;
+  roomRightWallMaterial.depthWrite = roomRightWallMaterial.opacity > 0.65;
 }
 
 function unlockDoor() {
@@ -1094,6 +1148,7 @@ function tick() {
   updateInput();
   updatePlayer(delta);
   updateCamera();
+  updateRoomWalls();
   updateMarkers(time);
   updateDoor(delta, time);
   updateDog(time, delta);
