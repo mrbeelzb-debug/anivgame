@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { ColladaLoader } from 'three/addons/loaders/ColladaLoader.js';
 import './styles.css';
 
 const canvas = document.querySelector('#game');
@@ -16,7 +21,24 @@ const tutorialSkip = document.querySelector('#tutorial-skip');
 const dogBubble = document.querySelector('#dog-bubble');
 const cuddleButton = document.querySelector('#cuddle-button');
 const doorButton = document.querySelector('#door-button');
+const phoneButton = document.querySelector('#phone-button');
 const loadingScreen = document.querySelector('#loading-screen');
+const roomEditor = document.querySelector('#room-editor');
+const editorToggle = document.querySelector('#editor-toggle');
+const editorSave = document.querySelector('#editor-save');
+const editorFinish = document.querySelector('#editor-finish');
+const editorAdd = document.querySelector('#editor-add');
+const editorAddModel = document.querySelector('#editor-add-model');
+const editorAddTexture = document.querySelector('#editor-add-texture');
+const editorModelInput = document.querySelector('#editor-model-input');
+const editorTextureInput = document.querySelector('#editor-texture-input');
+const assetPalette = document.querySelector('#asset-palette');
+const editorRotate = document.querySelector('#editor-rotate');
+const editorSmaller = document.querySelector('#editor-smaller');
+const editorBigger = document.querySelector('#editor-bigger');
+const editorUp = document.querySelector('#editor-up');
+const editorDown = document.querySelector('#editor-down');
+const editorDelete = document.querySelector('#editor-delete');
 const bumbleApp = document.querySelector('#bumble-app');
 const bumbleClose = document.querySelector('#bumble-close');
 const bumbleCardStack = document.querySelector('#bumble-card-stack');
@@ -24,6 +46,13 @@ const bumbleCards = Array.from(document.querySelectorAll('.bumble-card'));
 const bumbleInstruction = document.querySelector('#bumble-instruction');
 const bumbleLeft = document.querySelector('#bumble-left');
 const bumbleRight = document.querySelector('#bumble-right');
+const mediaViewer = document.querySelector('#media-viewer');
+const mediaStage = document.querySelector('#media-stage');
+const mediaTitle = document.querySelector('#media-title');
+const mediaCounter = document.querySelector('#media-counter');
+const mediaClose = document.querySelector('#media-close');
+const mediaPrev = document.querySelector('#media-prev');
+const mediaNext = document.querySelector('#media-next');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x8ed8ff);
@@ -45,8 +74,18 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 const textureLoader = new THREE.TextureLoader();
+const gltfLoader = new GLTFLoader();
+const fbxLoader = new FBXLoader();
+const objLoader = new OBJLoader();
+const stlLoader = new STLLoader();
+const colladaLoader = new ColladaLoader();
 const phoneLogoTexture = textureLoader.load('/bumble-1.svg');
 const bumbleWordmarkTexture = textureLoader.load('/bumble.png');
+const bigPhoneTexture = textureLoader.load('/bumble-slide/phone.png');
+bigPhoneTexture.colorSpace = THREE.SRGBColorSpace;
+bigPhoneTexture.anisotropy = 8;
+const roomFocusMode = true;
+const blankRoomMode = true;
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -107,6 +146,32 @@ function createHeartGeometry() {
     bevelSize: 0.035,
     bevelSegments: 5,
     curveSegments: 18,
+  });
+  geometry.center();
+  return geometry;
+}
+
+function createRoundedRectGeometry(width, height, depth, radius) {
+  const x = -width / 2;
+  const y = -height / 2;
+  const shape = new THREE.Shape();
+  shape.moveTo(x + radius, y);
+  shape.lineTo(x + width - radius, y);
+  shape.quadraticCurveTo(x + width, y, x + width, y + radius);
+  shape.lineTo(x + width, y + height - radius);
+  shape.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  shape.lineTo(x + radius, y + height);
+  shape.quadraticCurveTo(x, y + height, x, y + height - radius);
+  shape.lineTo(x, y + radius);
+  shape.quadraticCurveTo(x, y, x + radius, y);
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth,
+    bevelEnabled: true,
+    bevelThickness: 0.015,
+    bevelSize: 0.018,
+    bevelSegments: 6,
+    curveSegments: 12,
   });
   geometry.center();
   return geometry;
@@ -456,10 +521,31 @@ function isPlayerNearBumbleLogo() {
   return logoFlat.distanceTo(playerFlat) < 2.3;
 }
 
+function isPlayerNearBigPhone() {
+  const phoneFlat = new THREE.Vector2(bigPhone.position.x, bigPhone.position.z);
+  const playerFlat = new THREE.Vector2(player.position.x, player.position.z);
+  return phoneFlat.distanceTo(playerFlat) < 2.45;
+}
+
+function isPointerOnBigPhone(event) {
+  if (currentArea !== 'bedroom' || !bigPhone.visible) return false;
+  setPointerRay(event);
+  return raycaster.intersectObjects([bigPhone.userData.hitBox], true).length > 0;
+}
+
+function activateBigPhone() {
+  if (currentArea !== 'bedroom' || !isPlayerNearBigPhone()) return;
+  bigPhoneLight.intensity = 4.2;
+  openMediaViewer(0);
+}
+
 function activateBumbleLogo() {
   if (currentArea !== 'bedroom' || !isPlayerNearBumbleLogo()) return;
   bumbleLogoPulseUntil = clock.elapsedTime + 1.4;
-  phoneScreenMaterial.emissive.set(0xffc82e);
+  bigPhoneScreenMaterial.emissive.set(0xffffff);
+  bigPhoneScreenMaterial.emissiveIntensity = 1.25;
+  bigPhoneGlowMaterial.emissiveIntensity = 1.55;
+  bigPhoneLight.intensity = 4.4;
   openBumbleApp();
 }
 
@@ -492,6 +578,12 @@ const bumbleLogoBasePosition = new THREE.Vector3(4.7, 2.55, -5.38);
 
 const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf3d0bd, roughness: 0.86 });
 const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xffc8dd, roughness: 0.8, transparent: true, opacity: 1 });
+const roomCeilingMaterial = new THREE.MeshStandardMaterial({
+  color: 0xf7d8ff,
+  roughness: 0.82,
+  transparent: true,
+  opacity: 0.94,
+});
 const roomBackWallMaterial = roomWallMaterial.clone();
 const roomLeftWallMaterial = roomWallMaterial.clone();
 const roomRightWallMaterial = roomWallMaterial.clone();
@@ -509,6 +601,23 @@ const clothesMaterials = [
 ];
 const phoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
 const phoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
+const bigPhoneGlowMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  emissive: 0xfff4d8,
+  emissiveIntensity: 1.05,
+  roughness: 0.22,
+});
+const bigPhoneScreenMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  emissive: 0xffffff,
+  emissiveIntensity: 0.72,
+  roughness: 0.18,
+});
+const bigPhoneImageMaterial = new THREE.MeshBasicMaterial({
+  map: bigPhoneTexture,
+  transparent: true,
+  toneMapped: false,
+});
 const bumbleLogoMaterial = new THREE.MeshBasicMaterial({
   map: bumbleWordmarkTexture,
   transparent: true,
@@ -521,11 +630,41 @@ const bumbleLogoGlowMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.35,
 });
 
-addPart(room, new THREE.BoxGeometry(roomWidth, 0.12, roomDepth), roomFloorMaterial, [0, -0.02, 0]);
+const roomFloor = addPart(room, new THREE.BoxGeometry(roomWidth, 0.12, roomDepth), roomFloorMaterial, [0, -0.02, 0]);
+roomFloor.receiveShadow = false;
+roomFloor.castShadow = false;
 const roomBackWall = addPart(room, new THREE.BoxGeometry(roomWidth, roomWallHeight, 0.12), roomBackWallMaterial, [0, roomWallHeight / 2 - 0.08, -roomHalfDepth]);
 const roomLeftWall = addPart(room, new THREE.BoxGeometry(0.12, roomWallHeight, roomDepth), roomLeftWallMaterial, [-roomHalfWidth, roomWallHeight / 2 - 0.08, 0]);
 const roomRightWall = addPart(room, new THREE.BoxGeometry(0.12, roomWallHeight, roomDepth), roomRightWallMaterial, [roomHalfWidth, roomWallHeight / 2 - 0.08, 0]);
-const roomWalls = [roomBackWall, roomLeftWall, roomRightWall];
+const roomCeiling = addPart(room, new THREE.BoxGeometry(roomWidth, 0.12, roomDepth), roomCeilingMaterial, [0, roomWallHeight, 0]);
+roomCeiling.castShadow = false;
+roomCeiling.receiveShadow = false;
+const roomWalls = [roomBackWall, roomLeftWall, roomRightWall, roomCeiling];
+roomWalls.forEach((wall) => {
+  wall.castShadow = false;
+});
+
+const roomFillLight = new THREE.PointLight(0xffedf7, 1.55, 18, 1.9);
+roomFillLight.position.set(0, roomWallHeight - 0.55, 0.4);
+roomFillLight.castShadow = false;
+room.add(roomFillLight);
+
+const editorFloorTarget = new THREE.Mesh(
+  new THREE.PlaneGeometry(roomWidth, roomDepth),
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+);
+editorFloorTarget.rotation.x = -Math.PI / 2;
+editorFloorTarget.position.y = 0.08;
+room.add(editorFloorTarget);
+
+const editorBackWallTarget = new THREE.Mesh(
+  new THREE.PlaneGeometry(roomWidth - 0.5, roomWallHeight - 0.7),
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+);
+editorBackWallTarget.position.set(0, 2, -roomHalfDepth + 0.08);
+room.add(editorBackWallTarget);
+
+const defaultRoomDecorStartIndex = room.children.length;
 
 addPart(room, new THREE.CylinderGeometry(1.45, 1.45, 0.035, 48), rugMaterial, [0.15, 0.05, 1.1], [1.9, 1, 1.25]);
 addPart(room, new THREE.BoxGeometry(3.7, 0.42, 2), bedMaterial, [-4.6, 0.22, -4.55]);
@@ -547,8 +686,48 @@ addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[0], [-7.2
 addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[2], [-6.6, 2.15, -6.42]);
 addPart(room, new THREE.BoxGeometry(0.56, 0.42, 0.08), clothesMaterials[3], [-5.55, 2.18, -6.42]);
 
-addPart(room, new THREE.BoxGeometry(1.15, 1.85, 0.12), phoneMaterial, [4.7, 1.18, -5.75], [1, 1, 1], [0.12, 0, 0]);
-const bigPhoneScreen = addPart(room, new THREE.BoxGeometry(0.94, 1.55, 0.13), phoneScreenMaterial, [4.7, 1.18, -5.66], [1, 1, 1], [0.12, 0, 0]);
+const bigPhone = new THREE.Group();
+bigPhone.position.set(4.7, 1.23, -5.72);
+bigPhone.rotation.x = 0.12;
+room.add(bigPhone);
+
+const bigPhoneHitBox = new THREE.Mesh(
+  new THREE.BoxGeometry(1.55, 2.3, 0.36),
+  new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+);
+bigPhone.userData.hitBox = bigPhoneHitBox;
+bigPhone.add(bigPhoneHitBox);
+
+addPart(
+  bigPhone,
+  createRoundedRectGeometry(1.28, 2.08, 0.16, 0.14),
+  phoneMaterial,
+  [0, 0, 0],
+);
+addPart(
+  bigPhone,
+  createRoundedRectGeometry(1.08, 1.76, 0.05, 0.095),
+  bigPhoneGlowMaterial,
+  [0, -0.02, 0.095],
+);
+const bigPhoneScreen = addPart(
+  bigPhone,
+  createRoundedRectGeometry(1.0, 1.62, 0.035, 0.08),
+  bigPhoneScreenMaterial,
+  [0, -0.03, 0.128],
+);
+const bigPhoneImage = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 1.68), bigPhoneImageMaterial);
+bigPhoneImage.position.set(0, -0.03, 0.151);
+bigPhoneImage.castShadow = false;
+bigPhoneImage.receiveShadow = false;
+bigPhone.add(bigPhoneImage);
+addPart(bigPhone, new THREE.CapsuleGeometry(0.04, 0.2, 8, 16), phoneMaterial, [0, 0.86, 0.16], [1, 0.42, 1], [0, 0, Math.PI / 2]);
+addPart(bigPhone, new THREE.SphereGeometry(0.035, 14, 10), new THREE.MeshStandardMaterial({ color: 0x111116, roughness: 0.42 }), [0.28, 0.86, 0.158]);
+addPart(bigPhone, new THREE.BoxGeometry(0.025, 0.32, 0.05), phoneMaterial, [-0.66, 0.26, 0.01], [1, 1, 1]);
+addPart(bigPhone, new THREE.BoxGeometry(0.025, 0.24, 0.05), phoneMaterial, [0.66, 0.08, 0.01], [1, 1, 1]);
+const bigPhoneLight = new THREE.PointLight(0xffd447, 2.6, 5.2);
+bigPhoneLight.position.set(0, -0.12, 0.55);
+bigPhone.add(bigPhoneLight);
 
 addPart(room, new THREE.BoxGeometry(1.8, 0.14, 0.72), shelfMaterial, [3.85, 0.62, 2.85]);
 for (const x of [3.12, 4.58]) {
@@ -580,6 +759,13 @@ bumbleLogo.position.copy(bumbleLogoBasePosition);
 bumbleLogo.rotation.y = 0;
 bumbleLogo.userData.hitBox = bumbleLogoHitBox;
 room.add(bumbleLogo);
+
+if (blankRoomMode) {
+  const keepInBlankRoom = new Set([bigPhone, bumbleLogo]);
+  room.children.slice(defaultRoomDecorStartIndex).forEach((child) => {
+    if (!keepInBlankRoom.has(child)) child.visible = false;
+  });
+}
 
 const markers = [];
 const heartGeometry = createHeartGeometry();
@@ -616,18 +802,53 @@ for (let i = 0; i < 42; i += 1) {
 }
 
 const clouds = [];
-const cloudMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
-for (let i = 0; i < 7; i += 1) {
+const cloudMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 0.92,
+  transparent: true,
+  opacity: 0.92,
+});
+const cloudShadowMaterial = new THREE.MeshStandardMaterial({
+  color: 0xdbeeff,
+  roughness: 0.95,
+  transparent: true,
+  opacity: 0.52,
+});
+
+function createCloud(index) {
   const cloud = new THREE.Group();
-  for (let j = 0; j < 4; j += 1) {
-    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.35 + Math.random() * 0.35, 12, 12), cloudMaterial);
-    puff.position.set(j * 0.45, Math.random() * 0.2, Math.random() * 0.3);
+  const puffCount = 5 + Math.floor(Math.random() * 5);
+  for (let j = 0; j < puffCount; j += 1) {
+    const puff = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28 + Math.random() * 0.42, 16, 12),
+      j % 4 === 0 ? cloudShadowMaterial : cloudMaterial,
+    );
+    puff.position.set(
+      (j - puffCount / 2) * (0.28 + Math.random() * 0.12),
+      Math.sin(j * 0.8) * 0.08 + Math.random() * 0.22,
+      Math.random() * 0.36,
+    );
+    puff.scale.set(1.35 + Math.random() * 0.55, 0.62 + Math.random() * 0.34, 0.72 + Math.random() * 0.32);
     cloud.add(puff);
   }
-  cloud.position.set(-12 + Math.random() * 24, 6 + Math.random() * 4, -9 - Math.random() * 8);
-  cloud.scale.setScalar(0.85 + Math.random() * 0.8);
+
+  const layer = index % 3;
+  cloud.position.set(
+    -22 + Math.random() * 44,
+    5.6 + layer * 1.25 + Math.random() * 1.4,
+    -12 - layer * 4 - Math.random() * 10,
+  );
+  cloud.scale.setScalar(0.85 + Math.random() * 1.45);
+  cloud.userData.speed = 0.2 + layer * 0.08 + Math.random() * 0.22;
+  cloud.userData.wrapMin = -24 - Math.random() * 8;
+  cloud.userData.wrapMax = 24 + Math.random() * 8;
+  cloud.userData.floatOffset = Math.random() * Math.PI * 2;
   scene.add(cloud);
   clouds.push(cloud);
+}
+
+for (let i = 0; i < 28; i += 1) {
+  createCloud(i);
 }
 
 const keys = new Set();
@@ -659,10 +880,13 @@ let doorUnlocked = false;
 let doorFalling = false;
 let doorReady = false;
 let doorPromptVisible = false;
+let phonePromptVisible = false;
 let roomLoading = false;
 let bumbleLogoPulseUntil = 0;
 let bumbleOpen = false;
 let bumbleCardIndex = 0;
+let mediaOpen = false;
+let mediaIndex = 0;
 const bumbleSwipe = {
   active: false,
   id: null,
@@ -670,6 +894,85 @@ const bumbleSwipe = {
   currentX: 0,
 };
 const doorScreenPosition = new THREE.Vector3();
+const phoneScreenPosition = new THREE.Vector3();
+
+const mediaItems = [
+  { type: 'image', title: 'Phone Preview', src: '/bumble-slide/phone.png' },
+  { type: 'image', title: '365 Days', src: '/bumble-slide/365days.jpg' },
+  { type: 'image', title: 'Bumble Card', src: '/bumble-slide/bumbleK.png' },
+  { type: 'image', title: 'Kim Young-kwang', src: '/bumble-slide/kim-young-kwang.jpg' },
+];
+
+const roomEditorStorageKey = 'memoryGardenRoomLayoutDecoratedV2';
+const defaultRoomScaleBoost = 1.42;
+const newEditorModelScaleBoost = 1.32;
+const featuredEditorAssets = [
+  { id: 'photoCanvas', label: 'Photo', kind: 'photo', placement: 'wall' },
+  { id: 'bedDouble', label: 'Bed', src: '/room-assets/bedDouble.png', modelSrc: '/room-models/bedDouble.glb', scale: 1.25 },
+  { id: 'bookcaseOpen', label: 'Shelf', src: '/room-assets/bookcaseOpen.png', modelSrc: '/room-models/bookcaseOpen.glb', scale: 1.15 },
+  { id: 'desk', label: 'Desk', src: '/room-assets/desk.png', modelSrc: '/room-models/desk.glb', scale: 1.15 },
+  { id: 'chairDesk', label: 'Chair', src: '/room-assets/chairDesk.png', modelSrc: '/room-models/chairDesk.glb', scale: 1.05 },
+  { id: 'pottedPlant', label: 'Plant', src: '/room-assets/pottedPlant.png', modelSrc: '/room-models/pottedPlant.glb', scale: 0.9 },
+  { id: 'rugRound', label: 'Rug', src: '/room-assets/rugRound.png', modelSrc: '/room-models/rugRound.glb', scale: 1.55, placement: 'floor' },
+  { id: 'lampRoundFloor', label: 'Lamp', src: '/room-assets/lampRoundFloor.png', modelSrc: '/room-models/lampRoundFloor.glb', scale: 1.15 },
+  { id: 'tableRound', label: 'Table', src: '/room-assets/tableRound.png', modelSrc: '/room-models/tableRound.glb', scale: 1.0 },
+  { id: 'bear', label: 'Bear', src: '/room-assets/bear.png', modelSrc: '/room-models/bear.glb', scale: 0.82 },
+  { id: 'computerScreen', label: 'Screen', src: '/room-assets/computerScreen.png', modelSrc: '/room-models/computerScreen.glb', scale: 0.9 },
+];
+const defaultRoomLayout = [
+  { id: 'rugRound', x: -0.4, z: 1.55, s: 2.35 },
+  { id: 'bedDouble', x: -6.25, z: -4.75, ry: Math.PI / 2, s: 1.3 },
+  { id: 'cabinetBedDrawerTable', x: -7.55, z: -2.7, ry: Math.PI / 2, s: 1.05 },
+  { id: 'lampRoundFloor', x: -7.8, z: -5.9, s: 1.2 },
+  { id: 'pillowBlueLong', x: -6.85, z: -4.25, ry: Math.PI / 2, s: 1.15, vo: 0.64 },
+  { id: 'pillow', x: -6.85, z: -5.25, ry: Math.PI / 2, s: 1.1, vo: 0.64 },
+  { id: 'benchCushionLow', x: -4.55, z: -1.95, ry: Math.PI / 2, s: 1.15 },
+
+  { id: 'desk', x: 4.8, z: -3.45, ry: Math.PI, s: 1.3 },
+  { id: 'chairDesk', x: 4.05, z: -2.05, ry: Math.PI, s: 1.05 },
+  { id: 'laptop', x: 4.7, z: -3.45, ry: Math.PI, s: 0.95, vo: 0.78 },
+  { id: 'computerKeyboard', x: 4.15, z: -3.28, ry: Math.PI, s: 0.9, vo: 0.78 },
+  { id: 'computerMouse', x: 5.35, z: -3.18, ry: Math.PI, s: 0.85, vo: 0.78 },
+  { id: 'lampSquareTable', x: 5.75, z: -3.75, ry: Math.PI, s: 0.9, vo: 0.8 },
+
+  { id: 'bookcaseOpen', x: 7.65, z: -5.75, ry: Math.PI, s: 1.35 },
+  { id: 'books', x: 7.35, z: -5.72, ry: Math.PI, s: 1.0, vo: 1.18 },
+  { id: 'books', x: 7.75, z: -5.72, ry: Math.PI, s: 0.9, vo: 1.62 },
+  { id: 'plantSmall2', x: 8.05, z: -5.7, s: 0.9, vo: 0.78 },
+  { id: 'cabinetTelevisionDoors', x: 6.65, z: 1.0, ry: -Math.PI / 2, s: 1.15 },
+  { id: 'televisionModern', x: 6.62, z: 1.0, ry: -Math.PI / 2, s: 0.95, vo: 0.78 },
+
+  { id: 'tableRound', x: 1.9, z: 3.85, s: 1.2 },
+  { id: 'bear', x: 1.9, z: 3.86, s: 0.9, vo: 0.68 },
+  { id: 'radio', x: 1.25, z: 3.55, ry: -0.35, s: 0.85, vo: 0.68 },
+  { id: 'plantSmall1', x: 2.45, z: 3.55, s: 0.8, vo: 0.68 },
+  { id: 'sideTableDrawers', x: -1.95, z: 4.75, ry: Math.PI, s: 1.05 },
+  { id: 'lampRoundTable', x: -1.95, z: 4.75, s: 0.8, vo: 0.75 },
+
+  { id: 'pottedPlant', x: -7.85, z: 5.65, s: 1.05 },
+  { id: 'pottedPlant', x: 7.9, z: 5.55, s: 1.0 },
+  { id: 'coatRackStanding', x: -8.05, z: 0.75, ry: Math.PI / 2, s: 1.0 },
+  { id: 'cardboardBoxOpen', x: -5.0, z: 5.3, ry: 0.35, s: 1.0 },
+  { id: 'cardboardBoxClosed', x: -5.75, z: 5.55, ry: -0.25, s: 0.9 },
+  { id: 'trashcan', x: 7.85, z: -1.5, s: 0.85 },
+
+  { id: 'photoCanvas', x: -2.25, y: 2.45, z: -roomHalfDepth + 0.12, s: 1.25 },
+  { id: 'wallWindowSlide', x: -5.8, y: 2.55, z: -roomHalfDepth + 0.12, s: 1.2 },
+  { id: 'wallWindow', x: 0.85, y: 2.58, z: -roomHalfDepth + 0.12, s: 1.05 },
+  { id: 'photoCanvas', x: 2.85, y: 2.18, z: -roomHalfDepth + 0.12, s: 0.95 },
+];
+let editorAssets = [...featuredEditorAssets];
+let roomEditorActive = true;
+let selectedEditorAsset = editorAssets[0];
+let selectedEditorObject = null;
+const placedEditorObjects = [];
+const editorDrag = {
+  active: false,
+  pointerId: null,
+  object: null,
+  placement: 'floor',
+  verticalOffset: 0,
+};
 
 const tutorialSteps = [
   "Hi hi, I'm mot mot. I'll help you walk around Memory Garden.",
@@ -693,6 +996,7 @@ function stopMovementInput() {
   knob.style.transform = 'translate(-50%, -50%)';
   cuddleButton.classList.remove('is-visible');
   doorButton.classList.remove('is-visible');
+  phoneButton.classList.remove('is-visible');
 }
 
 function updateBumbleCards() {
@@ -759,6 +1063,457 @@ function swipeBumbleRight() {
   activeCard.classList.remove('is-active');
   bumbleInstruction.textContent = "Matched with the maker.";
   bumbleLogoPulseUntil = clock.elapsedTime + 2.2;
+  openMediaViewer(2);
+}
+
+function renderMediaViewer() {
+  const item = mediaItems[mediaIndex];
+  mediaStage.replaceChildren();
+  if (!item) return;
+
+  let element;
+  if (item.type === 'video') {
+    element = document.createElement('video');
+    element.src = item.src;
+    element.controls = true;
+    element.playsInline = true;
+    element.autoplay = true;
+  } else {
+    element = document.createElement('img');
+    element.src = item.src;
+    element.alt = item.title;
+    element.decoding = 'async';
+  }
+
+  mediaTitle.textContent = item.title;
+  mediaCounter.textContent = `${mediaIndex + 1} / ${mediaItems.length}`;
+  mediaStage.append(element);
+}
+
+function openMediaViewer(index = 0) {
+  mediaIndex = THREE.MathUtils.clamp(index, 0, mediaItems.length - 1);
+  mediaOpen = true;
+  renderMediaViewer();
+  stopMovementInput();
+  closeBumbleApp(false);
+  mediaViewer.classList.add('is-visible');
+  mediaViewer.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('media-open');
+}
+
+function closeMediaViewer() {
+  mediaOpen = false;
+  mediaViewer.classList.remove('is-visible');
+  mediaViewer.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('media-open');
+  mediaStage.replaceChildren();
+  stopMovementInput();
+}
+
+function showNextMedia(step) {
+  if (!mediaOpen) return;
+  mediaIndex = (mediaIndex + step + mediaItems.length) % mediaItems.length;
+  renderMediaViewer();
+}
+
+function createPhotoCanvasTexture() {
+  const canvasTexture = document.createElement('canvas');
+  canvasTexture.width = 512;
+  canvasTexture.height = 360;
+  const context = canvasTexture.getContext('2d');
+  context.fillStyle = '#fff8ed';
+  context.fillRect(0, 0, canvasTexture.width, canvasTexture.height);
+  context.fillStyle = '#ffd044';
+  context.fillRect(24, 24, canvasTexture.width - 48, canvasTexture.height - 48);
+  context.fillStyle = '#ff9fb2';
+  context.beginPath();
+  context.arc(176, 150, 64, 0, Math.PI * 2);
+  context.arc(310, 150, 64, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = '#fff8ed';
+  context.font = '900 46px Arial, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText('PHOTO', canvasTexture.width / 2, 270);
+  const texture = new THREE.CanvasTexture(canvasTexture);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function mergeEditorAssetCatalog(catalog) {
+  if (!Array.isArray(catalog)) return;
+  const featuredById = new Map(featuredEditorAssets.map((asset) => [asset.id, asset]));
+  const catalogAssets = catalog
+    .filter((asset) => asset?.id)
+    .map((asset) => ({
+      placement: 'floor',
+      scale: 1,
+      ...asset,
+    }));
+  editorAssets = [
+    featuredEditorAssets[0],
+    ...catalogAssets.map((asset) => ({ ...asset, ...(featuredById.get(asset.id) || {}) })),
+  ];
+  selectedEditorAsset = editorAssets.find((asset) => asset.id === selectedEditorAsset?.id) || editorAssets[0];
+}
+
+async function loadEditorAssetCatalog() {
+  try {
+    const response = await fetch('/room-models/catalog.json');
+    if (!response.ok) throw new Error(`Catalog ${response.status}`);
+    const catalog = await response.json();
+    mergeEditorAssetCatalog(catalog);
+  } catch {
+    editorAssets = [...featuredEditorAssets];
+  }
+  renderAssetPalette();
+  loadRoomLayout();
+}
+
+function getDefaultRoomLayout() {
+  return defaultRoomLayout.map((item) => ({
+    ...item,
+    s: Number(((item.s ?? 1) * defaultRoomScaleBoost).toFixed(3)),
+    vo: item.vo === undefined ? undefined : Number((item.vo * defaultRoomScaleBoost).toFixed(3)),
+  }));
+}
+
+function applyTextureToEditorObject(object, textureSrc) {
+  if (!object || !textureSrc) return;
+  textureLoader.load(textureSrc, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.flipY = false;
+    texture.anisotropy = 8;
+    object.traverse((child) => {
+      if (!child.isMesh || !child.material) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      const updatedMaterials = materials.map((material) => {
+        const nextMaterial = material.clone();
+        nextMaterial.map = texture;
+        nextMaterial.color?.set(0xffffff);
+        nextMaterial.needsUpdate = true;
+        return nextMaterial;
+      });
+      child.material = Array.isArray(child.material) ? updatedMaterials : updatedMaterials[0];
+    });
+    object.userData.editorTextureSrc = textureSrc;
+  });
+}
+
+function getModelFormat(src = '') {
+  const cleanSrc = src.split('?')[0].split('#')[0];
+  return cleanSrc.slice(cleanSrc.lastIndexOf('.') + 1).toLowerCase();
+}
+
+function loadEditorModel(asset, onLoad) {
+  const format = (asset.format || getModelFormat(asset.modelSrc)).toLowerCase();
+  if (format === 'glb' || format === 'gltf') {
+    gltfLoader.load(asset.modelSrc, (gltf) => onLoad(gltf.scene));
+    return;
+  }
+  if (format === 'fbx') {
+    fbxLoader.load(asset.modelSrc, onLoad);
+    return;
+  }
+  if (format === 'obj') {
+    objLoader.load(asset.modelSrc, onLoad);
+    return;
+  }
+  if (format === 'stl') {
+    stlLoader.load(asset.modelSrc, (geometry) => {
+      const material = new THREE.MeshStandardMaterial({ color: 0xf4c28e, roughness: 0.72, metalness: 0.04 });
+      onLoad(new THREE.Mesh(geometry, material));
+    });
+    return;
+  }
+  if (format === 'dae') {
+    colladaLoader.load(asset.modelSrc, (collada) => onLoad(collada.scene));
+  }
+}
+
+function getEditorGroundY(object) {
+  const placement = object.userData.editorPlacement;
+  if (placement === 'wall') return object.position.y;
+  if (placement === 'floor') return 0.11;
+  return 0.75;
+}
+
+function groundEditorObject(object) {
+  if (!object || object.userData.editorPlacement === 'wall') return;
+  const box = new THREE.Box3().setFromObject(object);
+  if (!Number.isFinite(box.min.y)) return;
+  const targetY = getEditorGroundY(object) + (object.userData.verticalOffset || 0);
+  object.position.y += targetY - box.min.y;
+}
+
+function moveSelectedEditorObject(deltaY) {
+  if (!selectedEditorObject) return;
+  selectedEditorObject.userData.verticalOffset = (selectedEditorObject.userData.verticalOffset || 0) + deltaY;
+  selectedEditorObject.position.y += deltaY;
+}
+
+function setEditorObjectFromPointer(object, event) {
+  const target = object.userData.editorPlacement === 'wall' ? editorBackWallTarget : editorFloorTarget;
+  setPointerRay(event);
+  const hit = raycaster.intersectObject(target, false)[0];
+  if (!hit) return false;
+  object.position.x = hit.point.x;
+  object.position.z = object.userData.editorPlacement === 'wall' ? -roomHalfDepth + 0.12 : hit.point.z;
+  if (object.userData.editorPlacement === 'wall') {
+    object.position.y = hit.point.y;
+  } else {
+    object.position.y = getEditorGroundY(object) + (object.userData.verticalOffset || 0);
+    groundEditorObject(object);
+  }
+  return true;
+}
+
+function createEditorObject(asset, saved = {}) {
+  const object = new THREE.Group();
+  object.userData.editorAssetId = asset.id;
+  object.userData.editorPlacement = asset.placement || 'floor';
+  object.userData.isEditorRoot = true;
+  let material;
+  let mesh;
+  let width = asset.kind === 'photo' ? 1.35 : 1;
+  let height = asset.kind === 'photo' ? 0.95 : 1;
+
+  if (asset.modelSrc) {
+    const placeholder = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 0.7, 0.7),
+      new THREE.MeshStandardMaterial({ color: 0xffd044, transparent: true, opacity: 0.28 }),
+    );
+    placeholder.userData.editorRoot = object;
+    object.add(placeholder);
+    object.userData.editorMesh = placeholder;
+    loadEditorModel(asset, (loadedModel) => {
+      object.remove(placeholder);
+      const model = loadedModel;
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.userData.editorRoot = object;
+        }
+      });
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+      const groundedBox = new THREE.Box3().setFromObject(model);
+      model.position.y -= groundedBox.min.y;
+      object.add(model);
+      object.userData.editorMesh = model;
+      if (saved.textureSrc) applyTextureToEditorObject(object, saved.textureSrc);
+      groundEditorObject(object);
+    });
+  } else if (asset.kind === 'photo') {
+    material = new THREE.MeshBasicMaterial({
+      map: saved.textureSrc ? textureLoader.load(saved.textureSrc) : createPhotoCanvasTexture(),
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+    material.map.colorSpace = THREE.SRGBColorSpace;
+  } else {
+    const texture = textureLoader.load(asset.src, (loaded) => {
+      const aspect = loaded.image.width / loaded.image.height;
+      if (mesh) mesh.scale.set(aspect * (asset.scale || 1), asset.scale || 1, 1);
+    });
+    texture.colorSpace = THREE.SRGBColorSpace;
+    material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    });
+  }
+
+  if (material) {
+    mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+    mesh.userData.editorRoot = object;
+    object.add(mesh);
+    object.userData.editorMesh = mesh;
+  }
+
+  if (asset.placement === 'floor') {
+    if (mesh) mesh.rotation.x = -Math.PI / 2;
+    object.position.set(saved.x ?? 0, 0.11, saved.z ?? 0);
+  } else if (asset.placement === 'wall') {
+    object.position.set(saved.x ?? 0, saved.y ?? 2, saved.z ?? -roomHalfDepth + 0.12);
+  } else {
+    object.position.set(saved.x ?? 0, saved.y ?? 0.75, saved.z ?? 0);
+  }
+
+  object.rotation.y = saved.ry ?? 0;
+  object.userData.verticalOffset = saved.vo ?? 0;
+  object.userData.editorTextureSrc = saved.textureSrc || '';
+  const baseScale = saved.s ?? ((asset.scale ?? 1) * (asset.modelSrc ? newEditorModelScaleBoost : 1));
+  object.scale.setScalar(baseScale);
+  room.add(object);
+  placedEditorObjects.push(object);
+  if (!asset.modelSrc && saved.textureSrc && asset.kind !== 'photo') applyTextureToEditorObject(object, saved.textureSrc);
+  return object;
+}
+
+function selectEditorObject(object) {
+  selectedEditorObject = object;
+  placedEditorObjects.forEach((placed) => {
+    placed.traverse((child) => {
+      if (!child.isMesh || !child.material) return;
+      const materials = Array.isArray(child.material) ? child.material : [child.material];
+      materials.forEach((item) => {
+        item.transparent = placed === object || item.transparent;
+        item.opacity = placed === object ? 0.72 : 1;
+        item.needsUpdate = true;
+      });
+    });
+  });
+}
+
+function saveRoomLayout() {
+  const layout = placedEditorObjects.map((object) => ({
+    id: object.userData.editorAssetId,
+    x: Number(object.position.x.toFixed(3)),
+    y: Number(object.position.y.toFixed(3)),
+    z: Number(object.position.z.toFixed(3)),
+    ry: Number(object.rotation.y.toFixed(3)),
+    s: Number(object.scale.x.toFixed(3)),
+    vo: Number((object.userData.verticalOffset || 0).toFixed(3)),
+    textureSrc: object.userData.editorTextureSrc || '',
+  }));
+  localStorage.setItem(roomEditorStorageKey, JSON.stringify(layout));
+}
+
+function loadRoomLayout() {
+  const raw = localStorage.getItem(roomEditorStorageKey);
+  try {
+    const layout = raw ? JSON.parse(raw) : getDefaultRoomLayout();
+    layout.forEach((item) => {
+      const asset = editorAssets.find((candidate) => candidate.id === item.id);
+      if (asset) createEditorObject(asset, item);
+    });
+  } catch {
+    localStorage.removeItem(roomEditorStorageKey);
+    getDefaultRoomLayout().forEach((item) => {
+      const asset = editorAssets.find((candidate) => candidate.id === item.id);
+      if (asset) createEditorObject(asset, item);
+    });
+  }
+}
+
+function renderAssetPalette() {
+  assetPalette.replaceChildren();
+  const picker = document.createElement('div');
+  picker.className = 'asset-picker';
+
+  const preview = document.createElement('div');
+  preview.className = 'asset-preview';
+
+  const previewImage = document.createElement('div');
+  previewImage.className = 'asset-preview-image';
+  if (selectedEditorAsset.src) {
+    const img = document.createElement('img');
+    img.src = selectedEditorAsset.src;
+    img.alt = selectedEditorAsset.label;
+    img.addEventListener('error', () => {
+      img.remove();
+      previewImage.textContent = selectedEditorAsset.label.slice(0, 2).toUpperCase();
+    });
+    previewImage.append(img);
+  } else {
+    previewImage.textContent = selectedEditorAsset.label.slice(0, 2).toUpperCase();
+  }
+
+  const previewText = document.createElement('div');
+  previewText.className = 'asset-preview-text';
+  const previewLabel = document.createElement('strong');
+  previewLabel.textContent = selectedEditorAsset.label;
+  const previewMeta = document.createElement('span');
+  previewMeta.textContent = selectedEditorAsset.kind === 'photo'
+    ? 'Photo canvas'
+    : `${selectedEditorAsset.format?.toUpperCase() || 'MODEL'} / ${selectedEditorAsset.placement || 'floor'}`;
+  previewText.append(previewLabel, previewMeta);
+  preview.append(previewImage, previewText);
+
+  const select = document.createElement('select');
+  select.className = 'asset-select';
+  select.setAttribute('aria-label', 'Choose room asset');
+  editorAssets.forEach((asset) => {
+    const option = document.createElement('option');
+    option.value = asset.id;
+    option.textContent = asset.label;
+    option.selected = asset.id === selectedEditorAsset.id;
+    select.append(option);
+  });
+  select.addEventListener('change', () => {
+    selectedEditorAsset = editorAssets.find((asset) => asset.id === select.value) || selectedEditorAsset;
+    selectedEditorObject = null;
+    renderAssetPalette();
+  });
+
+  picker.append(preview, select);
+  assetPalette.append(picker);
+}
+
+function placeEditorAsset(event) {
+  if (!roomEditorActive || currentArea !== 'bedroom') return false;
+  setPointerRay(event);
+  const picked = raycaster.intersectObjects(placedEditorObjects, true)[0];
+  if (picked?.object?.userData.editorRoot) {
+    const object = picked.object.userData.editorRoot;
+    selectEditorObject(object);
+    return object;
+  }
+  const target = selectedEditorAsset.placement === 'wall' ? editorBackWallTarget : editorFloorTarget;
+  const hit = raycaster.intersectObject(target, false)[0];
+  if (!hit) return null;
+
+  const object = createEditorObject(selectedEditorAsset);
+  object.position.copy(hit.point);
+  if (selectedEditorAsset.placement === 'wall') {
+    object.position.z = -roomHalfDepth + 0.12;
+    object.rotation.y = 0;
+  } else if (selectedEditorAsset.placement === 'floor') {
+    object.position.y = 0.11;
+  } else {
+    object.position.y = 0.75;
+    object.rotation.y = yaw + Math.PI;
+  }
+  object.userData.verticalOffset = 0;
+  groundEditorObject(object);
+  selectEditorObject(object);
+  return object;
+}
+
+function startEditorDrag(object, event) {
+  if (!object) return;
+  editorDrag.active = true;
+  editorDrag.pointerId = event.pointerId;
+  editorDrag.object = object;
+  editorDrag.placement = object.userData.editorPlacement || 'floor';
+  editorDrag.verticalOffset = object.userData.verticalOffset || 0;
+  canvas.setPointerCapture(event.pointerId);
+}
+
+function moveEditorDrag(event) {
+  if (!editorDrag.active || editorDrag.pointerId !== event.pointerId || !editorDrag.object) return false;
+  setEditorObjectFromPointer(editorDrag.object, event);
+  return true;
+}
+
+function endEditorDrag(event) {
+  if (!editorDrag.active || editorDrag.pointerId !== event.pointerId) return false;
+  editorDrag.active = false;
+  editorDrag.pointerId = null;
+  editorDrag.object = null;
+  draggingLook = false;
+  return true;
+}
+
+function setRoomEditorActive(active) {
+  roomEditorActive = active;
+  if (active && currentArea === 'bedroom') stopMovementInput();
+  document.body.classList.toggle('room-editor-mode', active && currentArea === 'bedroom');
+  editorToggle.classList.toggle('is-active', roomEditorActive);
 }
 
 function getActiveBumbleCard() {
@@ -858,10 +1613,20 @@ function updateFace(time) {
 }
 
 window.addEventListener('keydown', (event) => {
+  if (mediaOpen) {
+    if (event.key === 'Escape') closeMediaViewer();
+    if (event.key === 'ArrowLeft') showNextMedia(-1);
+    if (event.key === 'ArrowRight') showNextMedia(1);
+    return;
+  }
   if (bumbleOpen) {
     if (event.key === 'Escape') closeBumbleApp();
     if (event.key === 'ArrowLeft') swipeBumbleLeft();
     if (event.key === 'ArrowRight') swipeBumbleRight();
+    return;
+  }
+  if (roomEditorActive && currentArea === 'bedroom' && event.key === 'Escape') {
+    setRoomEditorActive(false);
     return;
   }
   keys.add(event.key.toLowerCase());
@@ -884,6 +1649,13 @@ startButton.addEventListener('click', () => {
     gameStarted = true;
     document.body.classList.add('game-started');
     startTransition.classList.remove('is-active');
+    if (roomFocusMode) {
+      tutorialActive = false;
+      tutorial.classList.remove('is-visible');
+      document.body.classList.remove('tutorial-active');
+      enterBedroom();
+      return;
+    }
     startTutorial();
   }, 850);
 });
@@ -910,8 +1682,25 @@ tutorialNext.addEventListener('click', () => {
 tutorialSkip.addEventListener('click', finishTutorial);
 
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen) return;
+  if (roomEditorActive && currentArea === 'bedroom') {
+    if (event.pointerType !== 'touch' && event.button === 2) {
+      draggingLook = true;
+      lastX = event.clientX;
+      canvas.setPointerCapture(event.pointerId);
+      return;
+    }
+    if (event.pointerType === 'touch' || event.button === 0) {
+      const object = placeEditorAsset(event);
+      if (object) startEditorDrag(object, event);
+      return;
+    }
+  }
   if (event.pointerType === 'touch') {
+    if (isPointerOnBigPhone(event)) {
+      activateBigPhone();
+      return;
+    }
     if (isPointerOnBumbleLogo(event)) {
       activateBumbleLogo();
       return;
@@ -931,6 +1720,10 @@ canvas.addEventListener('pointerdown', (event) => {
     activateBumbleLogo();
     return;
   }
+  if (event.button === 0 && isPointerOnBigPhone(event)) {
+    activateBigPhone();
+    return;
+  }
   if (event.button === 0 && isPointerOnDog(event)) {
     startDogCuddle();
     return;
@@ -942,6 +1735,7 @@ canvas.addEventListener('pointerdown', (event) => {
 
 cuddleButton.addEventListener('click', startDogCuddle);
 doorButton.addEventListener('click', startRoomLoading);
+phoneButton.addEventListener('click', activateBigPhone);
 bumbleClose.addEventListener('click', closeBumbleApp);
 bumbleLeft.addEventListener('click', swipeBumbleLeft);
 bumbleRight.addEventListener('click', swipeBumbleRight);
@@ -952,9 +1746,107 @@ bumbleCardStack.addEventListener('pointerdown', startBumbleSwipe);
 bumbleCardStack.addEventListener('pointermove', moveBumbleSwipe);
 bumbleCardStack.addEventListener('pointerup', finishBumbleSwipe);
 bumbleCardStack.addEventListener('pointercancel', resetBumbleCardDrag);
+mediaClose.addEventListener('click', closeMediaViewer);
+mediaPrev.addEventListener('click', () => showNextMedia(-1));
+mediaNext.addEventListener('click', () => showNextMedia(1));
+mediaViewer.addEventListener('pointerdown', (event) => {
+  if (event.target === mediaViewer) closeMediaViewer();
+});
+editorToggle.addEventListener('click', () => setRoomEditorActive(!roomEditorActive));
+editorSave.addEventListener('click', saveRoomLayout);
+editorFinish.addEventListener('click', () => {
+  saveRoomLayout();
+  setRoomEditorActive(false);
+});
+editorAdd.addEventListener('click', () => {
+  roomEditor.classList.toggle('is-adding');
+});
+editorAddModel.addEventListener('click', () => {
+  editorModelInput.click();
+});
+editorAddTexture.addEventListener('click', () => {
+  if (!selectedEditorObject) {
+    window.alert('Select an object in the room first, then choose Texture.');
+    return;
+  }
+  editorTextureInput.click();
+});
+editorModelInput.addEventListener('change', () => {
+  const files = [...(editorModelInput.files || [])];
+  editorModelInput.value = '';
+  if (!files.length) return;
+
+  const supportedFormats = new Set(['glb', 'gltf', 'fbx', 'obj', 'stl', 'dae']);
+  const uploadedAssets = files
+    .filter((file) => supportedFormats.has(getModelFormat(file.name)))
+    .map((file, index) => {
+      const format = getModelFormat(file.name);
+      const label = file.name.replace(/\.(glb|gltf|fbx|obj|stl|dae)$/i, '') || 'Custom Model';
+      return {
+        id: `customModel-${Date.now()}-${index}`,
+        label,
+        modelSrc: URL.createObjectURL(file),
+        format,
+        scale: 1,
+        placement: 'floor',
+        isCustom: true,
+      };
+    });
+
+  if (!uploadedAssets.length) {
+    window.alert('Choose model files: GLB, GLTF, FBX, OBJ, STL, or DAE.');
+    return;
+  }
+
+  editorAssets.splice(1, 0, ...uploadedAssets);
+  selectedEditorAsset = uploadedAssets[0];
+  selectedEditorObject = null;
+  roomEditor.classList.remove('is-adding');
+  renderAssetPalette();
+});
+editorTextureInput.addEventListener('change', () => {
+  const file = editorTextureInput.files?.[0];
+  editorTextureInput.value = '';
+  if (!file || !selectedEditorObject) return;
+  const reader = new FileReader();
+  reader.addEventListener('load', () => {
+    applyTextureToEditorObject(selectedEditorObject, reader.result);
+    selectEditorObject(selectedEditorObject);
+  });
+  reader.readAsDataURL(file);
+  roomEditor.classList.remove('is-adding');
+});
+editorRotate.addEventListener('click', () => {
+  if (!selectedEditorObject) return;
+  selectedEditorObject.rotation.y += Math.PI / 4;
+});
+editorSmaller.addEventListener('click', () => {
+  if (!selectedEditorObject) return;
+  selectedEditorObject.scale.multiplyScalar(0.9);
+  groundEditorObject(selectedEditorObject);
+});
+editorBigger.addEventListener('click', () => {
+  if (!selectedEditorObject) return;
+  selectedEditorObject.scale.multiplyScalar(1.1);
+  groundEditorObject(selectedEditorObject);
+});
+editorUp.addEventListener('click', () => {
+  moveSelectedEditorObject(0.12);
+});
+editorDown.addEventListener('click', () => {
+  moveSelectedEditorObject(-0.12);
+});
+editorDelete.addEventListener('click', () => {
+  if (!selectedEditorObject) return;
+  room.remove(selectedEditorObject);
+  const index = placedEditorObjects.indexOf(selectedEditorObject);
+  if (index >= 0) placedEditorObjects.splice(index, 1);
+  selectedEditorObject = null;
+});
 
 canvas.addEventListener('pointermove', (event) => {
-  if (bumbleOpen) return;
+  if (bumbleOpen || mediaOpen) return;
+  if (moveEditorDrag(event)) return;
   if (event.pointerType === 'touch') {
     if (!pinchPointers.has(event.pointerId)) return;
     pinchPointers.get(event.pointerId).set(event.clientX, event.clientY);
@@ -977,6 +1869,7 @@ canvas.addEventListener('pointermove', (event) => {
 });
 
 function endCanvasPointer(event) {
+  if (endEditorDrag(event)) return;
   if (event.pointerType === 'touch') {
     pinchPointers.delete(event.pointerId);
     lastPinchDistance = pinchPointers.size >= 2 ? getPinchDistance() : 0;
@@ -990,6 +1883,7 @@ function endCanvasPointer(event) {
 
 canvas.addEventListener('pointerup', endCanvasPointer);
 canvas.addEventListener('pointercancel', endCanvasPointer);
+canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 canvas.addEventListener(
   'wheel',
@@ -1024,7 +1918,12 @@ stick.addEventListener('pointerup', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive || bumbleOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen) {
+    pointer.active = false;
+    pointer.id = null;
+    knob.style.transform = 'translate(-50%, -50%)';
+    return;
+  }
   if (keys.has('w') || keys.has('arrowup')) move.y += 1;
   if (keys.has('s') || keys.has('arrowdown')) move.y -= 1;
   if (keys.has('a') || keys.has('arrowleft')) move.x -= 1;
@@ -1124,19 +2023,23 @@ function updateRoomWalls() {
     roomBackWallMaterial.opacity = 1;
     roomLeftWallMaterial.opacity = 1;
     roomRightWallMaterial.opacity = 1;
+    roomCeilingMaterial.opacity = 0.94;
     return;
   }
 
   const backTarget = camera.position.z < -roomHalfDepth + 0.35 && player.position.z > -roomHalfDepth ? 0.18 : 1;
   const leftTarget = camera.position.x < -roomHalfWidth + 0.35 && player.position.x > -roomHalfWidth ? 0.18 : 1;
   const rightTarget = camera.position.x > roomHalfWidth - 0.35 && player.position.x < roomHalfWidth ? 0.18 : 1;
+  const ceilingTarget = camera.position.y > roomWallHeight - 0.2 ? 0.2 : 0.94;
 
   roomBackWallMaterial.opacity = THREE.MathUtils.lerp(roomBackWallMaterial.opacity, backTarget, 0.16);
   roomLeftWallMaterial.opacity = THREE.MathUtils.lerp(roomLeftWallMaterial.opacity, leftTarget, 0.16);
   roomRightWallMaterial.opacity = THREE.MathUtils.lerp(roomRightWallMaterial.opacity, rightTarget, 0.16);
+  roomCeilingMaterial.opacity = THREE.MathUtils.lerp(roomCeilingMaterial.opacity, ceilingTarget, 0.16);
   roomBackWallMaterial.depthWrite = roomBackWallMaterial.opacity > 0.65;
   roomLeftWallMaterial.depthWrite = roomLeftWallMaterial.opacity > 0.65;
   roomRightWallMaterial.depthWrite = roomRightWallMaterial.opacity > 0.65;
+  roomCeilingMaterial.depthWrite = roomCeilingMaterial.opacity > 0.65;
 }
 
 function updateBumbleLogo(time, delta) {
@@ -1151,10 +2054,25 @@ function updateBumbleLogo(time, delta) {
     isPulsing ? 1.9 : 0.65,
     0.12,
   );
+  bigPhoneLight.intensity = THREE.MathUtils.lerp(
+    bigPhoneLight.intensity,
+    isPulsing ? 4.8 : 2.6 + Math.sin(time * 3.4) * 0.35,
+    0.08,
+  );
 
   if (!isPulsing && phoneScreenMaterial.emissive.getHex() !== 0x222222) {
     phoneScreenMaterial.emissive.set(0x222222);
   }
+  bigPhoneScreenMaterial.emissiveIntensity = THREE.MathUtils.lerp(
+    bigPhoneScreenMaterial.emissiveIntensity,
+    isPulsing ? 1.25 : 0.72,
+    0.08,
+  );
+  bigPhoneGlowMaterial.emissiveIntensity = THREE.MathUtils.lerp(
+    bigPhoneGlowMaterial.emissiveIntensity,
+    isPulsing ? 1.55 : 1.05,
+    0.08,
+  );
 }
 
 function unlockDoor() {
@@ -1172,20 +2090,32 @@ function resetGameProgress() {
   doorFalling = false;
   doorReady = false;
   doorPromptVisible = false;
+  phonePromptVisible = false;
   roomLoading = false;
   closeBumbleApp();
+  closeMediaViewer();
   collected = 0;
   memoryCount.textContent = '0';
   root.visible = true;
   room.visible = false;
+  document.body.classList.remove('room-editor-mode');
   bumbleLogoPulseUntil = 0;
   bumbleLogo.scale.setScalar(1);
   bumbleLogo.position.copy(bumbleLogoBasePosition);
   bumbleLogoGlowMaterial.emissiveIntensity = 0.65;
+  bigPhoneLight.intensity = 2.6;
+  bigPhoneScreenMaterial.color.set(0xffffff);
+  bigPhoneScreenMaterial.emissive.set(0xffffff);
+  bigPhoneScreenMaterial.emissiveIntensity = 0.72;
+  bigPhoneScreenMaterial.needsUpdate = true;
+  bigPhoneGlowMaterial.color.set(0xffffff);
+  bigPhoneGlowMaterial.emissive.set(0xfff4d8);
+  bigPhoneGlowMaterial.emissiveIntensity = 1.05;
   dog.visible = true;
   dogBubble.style.display = '';
   loadingScreen.classList.remove('is-visible');
   doorButton.classList.remove('is-visible');
+  phoneButton.classList.remove('is-visible');
   phoneScreenMaterial.map = null;
   phoneScreenMaterial.color.set(0x8fd8ff);
   phoneScreenMaterial.emissive.set(0x4db8ff);
@@ -1219,8 +2149,9 @@ function enterBedroom() {
   dogBubble.style.display = 'none';
   cuddleButton.classList.remove('is-visible');
   room.visible = true;
-  scene.background.set(0x2b2645);
-  scene.fog.color.set(0x2b2645);
+  setRoomEditorActive(roomEditorActive);
+  scene.background.set(0x8ed8ff);
+  scene.fog.color.set(0x8ed8ff);
   player.position.set(-0.2, 0, 1.65);
   player.rotation.y = Math.PI * 0.92;
   yaw = Math.PI;
@@ -1230,6 +2161,14 @@ function enterBedroom() {
   bumbleLogo.scale.setScalar(1);
   bumbleLogo.position.copy(bumbleLogoBasePosition);
   bumbleLogoGlowMaterial.emissiveIntensity = 0.65;
+  bigPhoneLight.intensity = 2.6;
+  bigPhoneScreenMaterial.color.set(0xffffff);
+  bigPhoneScreenMaterial.emissive.set(0xffffff);
+  bigPhoneScreenMaterial.emissiveIntensity = 0.72;
+  bigPhoneScreenMaterial.needsUpdate = true;
+  bigPhoneGlowMaterial.color.set(0xffffff);
+  bigPhoneGlowMaterial.emissive.set(0xfff4d8);
+  bigPhoneGlowMaterial.emissiveIntensity = 1.05;
   stopMovementInput();
   setTimeout(() => {
     phoneScreenMaterial.map = phoneLogoTexture;
@@ -1277,6 +2216,21 @@ function updateDoor(delta, time) {
     const height = window.visualViewport?.height || window.innerHeight;
     doorButton.style.left = `${(doorScreenPosition.x * 0.5 + 0.5) * width}px`;
     doorButton.style.top = `${(-doorScreenPosition.y * 0.5 + 0.5) * height}px`;
+  }
+}
+
+function updatePhonePrompt() {
+  const nearPhone = currentArea === 'bedroom' && !bumbleOpen && !mediaOpen && isPlayerNearBigPhone();
+  phonePromptVisible = nearPhone;
+  phoneButton.classList.toggle('is-visible', phonePromptVisible);
+
+  if (phonePromptVisible) {
+    phoneScreenPosition.set(bigPhone.position.x, bigPhone.position.y + 1.45, bigPhone.position.z + 0.28);
+    phoneScreenPosition.project(camera);
+    const width = window.visualViewport?.width || window.innerWidth;
+    const height = window.visualViewport?.height || window.innerHeight;
+    phoneButton.style.left = `${(phoneScreenPosition.x * 0.5 + 0.5) * width}px`;
+    phoneButton.style.top = `${(-phoneScreenPosition.y * 0.5 + 0.5) * height}px`;
   }
 }
 
@@ -1383,6 +2337,8 @@ window.visualViewport?.addEventListener('resize', resize);
 
 const clock = new THREE.Clock();
 
+loadEditorAssetCatalog();
+
 function tick() {
   const delta = Math.min(clock.getDelta(), 0.033);
   const time = clock.elapsedTime;
@@ -1394,13 +2350,18 @@ function tick() {
   updateBumbleLogo(time, delta);
   updateMarkers(time);
   updateDoor(delta, time);
+  updatePhonePrompt();
   updateDog(time, delta);
   updateFace(time);
 
   root.rotation.y = Math.sin(time * 0.15) * 0.025;
-  clouds.forEach((cloud, index) => {
-    cloud.position.x += delta * (0.12 + index * 0.015);
-    if (cloud.position.x > 14) cloud.position.x = -14;
+  clouds.forEach((cloud) => {
+    cloud.position.x += delta * cloud.userData.speed;
+    cloud.position.y += Math.sin(time * 0.35 + cloud.userData.floatOffset) * delta * 0.035;
+    if (cloud.position.x > cloud.userData.wrapMax) {
+      cloud.position.x = cloud.userData.wrapMin;
+      cloud.position.z = -12 - Math.random() * 18;
+    }
   });
 
   renderer.render(scene, camera);

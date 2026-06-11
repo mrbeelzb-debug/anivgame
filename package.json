@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "room:catalog": "node tools/build_room_asset_catalog.js",
+    "prebuild": "node tools/build_room_asset_catalog.js",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },

@@ -31,7 +31,8 @@ body.tutorial-active .hud,
 body.tutorial-active .touch-stick,
 body.tutorial-active .dog-bubble,
 body.tutorial-active .cuddle-button,
-body.tutorial-active .door-button {
+body.tutorial-active .door-button,
+body.tutorial-active .phone-button {
   opacity: 0;
   pointer-events: none;
 }
@@ -857,6 +858,172 @@ body.game-started .dog-bubble {
   display: inline-flex;
 }
 
+.phone-button {
+  position: fixed;
+  z-index: 13;
+  display: none;
+  min-width: 118px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgb(255 248 237 / 42%);
+  border-radius: 999px;
+  color: #201314;
+  background: linear-gradient(135deg, #fff8ed 0%, #ffd044 100%);
+  box-shadow:
+    0 10px 26px rgb(0 0 0 / 18%),
+    0 0 28px rgb(255 208 68 / 46%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  touch-action: manipulation;
+}
+
+.phone-button.is-visible {
+  display: block;
+}
+
+.room-editor {
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  top: max(72px, env(safe-area-inset-top));
+  z-index: 19;
+  display: none;
+  width: min(340px, calc(100vw - 24px));
+  padding: 10px;
+  border: 1px solid rgb(255 248 237 / 18%);
+  border-radius: 8px;
+  color: #fff8ed;
+  background: rgb(16 20 23 / 76%);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 26%);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+body.room-editor-mode .room-editor {
+  display: grid;
+  gap: 8px;
+}
+
+.room-editor-row {
+  display: flex;
+  gap: 8px;
+}
+
+.room-editor button {
+  min-height: 34px;
+  border: 1px solid rgb(255 248 237 / 18%);
+  border-radius: 999px;
+  color: #fff8ed;
+  background: rgb(255 248 237 / 10%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  touch-action: manipulation;
+}
+
+.room-editor-row button {
+  flex: 1;
+}
+
+.room-editor button.is-active {
+  color: #201314;
+  background: linear-gradient(135deg, #fff8ed 0%, #ffd044 100%);
+}
+
+.asset-palette {
+  display: block;
+}
+
+.asset-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.asset-preview {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 66px;
+  padding: 8px;
+  border: 1px solid rgb(255 248 237 / 16%);
+  border-radius: 8px;
+  background: rgb(255 248 237 / 8%);
+}
+
+.asset-preview-image {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 7px;
+  color: #201314;
+  background: linear-gradient(135deg, #fff8ed 0%, #ffd044 100%);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.asset-preview-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.asset-preview-text {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.asset-preview-text strong,
+.asset-preview-text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-preview-text strong {
+  color: #fff8ed;
+  font-size: 0.9rem;
+}
+
+.asset-preview-text span {
+  color: rgb(255 248 237 / 70%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.asset-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 38px 0 12px;
+  border: 1px solid rgb(255 248 237 / 22%);
+  border-radius: 8px;
+  color: #fff8ed;
+  background: rgb(48 48 54 / 96%);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 850;
+  outline: none;
+}
+
+.asset-select:focus {
+  border-color: rgb(255 208 68 / 78%);
+  box-shadow: 0 0 0 3px rgb(255 208 68 / 18%);
+}
+
+.asset-select option {
+  color: #201314;
+  background: #fff8ed;
+}
+
 .door-marker {
   position: relative;
   width: 34px;
@@ -914,6 +1081,108 @@ body.game-started .dog-bubble {
 
 .loading-screen strong {
   font-size: clamp(1.2rem, 4vw, 2rem);
+}
+
+.media-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  opacity: 0;
+  background: rgb(10 11 14 / 86%);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+  transition:
+    opacity 220ms ease,
+    visibility 220ms ease;
+}
+
+.media-viewer.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.media-frame {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(980px, calc(100vw - 32px));
+  height: min(720px, calc(var(--app-height) - 32px));
+  overflow: hidden;
+  border: 1px solid rgb(255 248 237 / 18%);
+  border-radius: 8px;
+  background: #101417;
+  box-shadow: 0 28px 90px rgb(0 0 0 / 52%);
+}
+
+.media-topbar,
+.media-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+  padding: 10px 14px;
+  color: #fff8ed;
+  background: rgb(255 248 237 / 7%);
+}
+
+.media-topbar span,
+.media-controls span {
+  font-weight: 850;
+}
+
+.media-close,
+.media-controls button {
+  min-width: 64px;
+  min-height: 36px;
+  border: 1px solid rgb(255 248 237 / 18%);
+  border-radius: 999px;
+  color: #fff8ed;
+  background: rgb(255 248 237 / 10%);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  touch-action: manipulation;
+}
+
+.media-close {
+  min-width: 36px;
+  width: 36px;
+}
+
+.media-stage {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 14px;
+  background:
+    linear-gradient(45deg, rgb(255 248 237 / 4%) 25%, transparent 25% 75%, rgb(255 248 237 / 4%) 75%),
+    #0b0d10;
+  background-size: 28px 28px;
+}
+
+.media-stage img,
+.media-stage video {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 6px;
+  object-fit: contain;
+  box-shadow: 0 18px 60px rgb(0 0 0 / 42%);
+}
+
+body.media-open .hud,
+body.media-open .touch-stick,
+body.media-open .dog-bubble,
+body.media-open .cuddle-button,
+body.media-open .door-button,
+body.media-open .phone-button {
+  display: none !important;
 }
 
 .bumble-app {
@@ -1119,7 +1388,8 @@ body.bumble-open .hud,
 body.bumble-open .touch-stick,
 body.bumble-open .dog-bubble,
 body.bumble-open .cuddle-button,
-body.bumble-open .door-button {
+body.bumble-open .door-button,
+body.bumble-open .phone-button {
   display: none !important;
 }
 

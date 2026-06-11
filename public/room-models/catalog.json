@@ -1,0 +1,1262 @@
+[
+  {
+    "id": "bathroomCabinet",
+    "label": "Bathroom Cabinet",
+    "src": "/room-assets/bathroomCabinet.png",
+    "modelSrc": "/room-models/gltf-format/bathroomCabinet.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bathroomCabinetDrawer",
+    "label": "Bathroom Cabinet Drawer",
+    "src": "/room-assets/bathroomCabinetDrawer.png",
+    "modelSrc": "/room-models/gltf-format/bathroomCabinetDrawer.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bathroomMirror",
+    "label": "Bathroom Mirror",
+    "src": "/room-assets/bathroomMirror.png",
+    "modelSrc": "/room-models/gltf-format/bathroomMirror.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "bathroomSink",
+    "label": "Bathroom Sink",
+    "src": "/room-assets/bathroomSink.png",
+    "modelSrc": "/room-models/gltf-format/bathroomSink.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bathroomSinkSquare",
+    "label": "Bathroom Sink Square",
+    "src": "/room-assets/bathroomSinkSquare.png",
+    "modelSrc": "/room-models/gltf-format/bathroomSinkSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bathtub",
+    "label": "Bathtub",
+    "src": "/room-assets/bathtub.png",
+    "modelSrc": "/room-models/gltf-format/bathtub.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bear",
+    "label": "Bear",
+    "src": "/room-assets/bear.png",
+    "modelSrc": "/room-models/gltf-format/bear.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 0.82
+  },
+  {
+    "id": "bedBunk",
+    "label": "Bed Bunk",
+    "src": "/room-assets/bedBunk.png",
+    "modelSrc": "/room-models/gltf-format/bedBunk.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bedDouble",
+    "label": "Bed Double",
+    "src": "/room-assets/bedDouble.png",
+    "modelSrc": "/room-models/gltf-format/bedDouble.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bedSingle",
+    "label": "Bed Single",
+    "src": "/room-assets/bedSingle.png",
+    "modelSrc": "/room-models/gltf-format/bedSingle.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bench",
+    "label": "Bench",
+    "src": "/room-assets/bench.png",
+    "modelSrc": "/room-models/gltf-format/bench.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "benchCushion",
+    "label": "Bench Cushion",
+    "src": "/room-assets/benchCushion.png",
+    "modelSrc": "/room-models/gltf-format/benchCushion.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "benchCushionLow",
+    "label": "Bench Cushion Low",
+    "src": "/room-assets/benchCushionLow.png",
+    "modelSrc": "/room-models/gltf-format/benchCushionLow.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bookcaseClosed",
+    "label": "Bookcase Closed",
+    "src": "/room-assets/bookcaseClosed.png",
+    "modelSrc": "/room-models/gltf-format/bookcaseClosed.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bookcaseClosedDoors",
+    "label": "Bookcase Closed Doors",
+    "src": "/room-assets/bookcaseClosedDoors.png",
+    "modelSrc": "/room-models/gltf-format/bookcaseClosedDoors.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bookcaseClosedWide",
+    "label": "Bookcase Closed Wide",
+    "src": "/room-assets/bookcaseClosedWide.png",
+    "modelSrc": "/room-models/gltf-format/bookcaseClosedWide.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bookcaseOpen",
+    "label": "Bookcase Open",
+    "src": "/room-assets/bookcaseOpen.png",
+    "modelSrc": "/room-models/gltf-format/bookcaseOpen.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "bookcaseOpenLow",
+    "label": "Bookcase Open Low",
+    "src": "/room-assets/bookcaseOpenLow.png",
+    "modelSrc": "/room-models/gltf-format/bookcaseOpenLow.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "books",
+    "label": "Books",
+    "src": "/room-assets/books.png",
+    "modelSrc": "/room-models/gltf-format/books.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cabinetBed",
+    "label": "Cabinet Bed",
+    "src": "/room-assets/cabinetBed.png",
+    "modelSrc": "/room-models/gltf-format/cabinetBed.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cabinetBedDrawer",
+    "label": "Cabinet Bed Drawer",
+    "src": "/room-assets/cabinetBedDrawer.png",
+    "modelSrc": "/room-models/gltf-format/cabinetBedDrawer.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cabinetBedDrawerTable",
+    "label": "Cabinet Bed Drawer Table",
+    "src": "/room-assets/cabinetBedDrawerTable.png",
+    "modelSrc": "/room-models/gltf-format/cabinetBedDrawerTable.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cabinetTelevision",
+    "label": "Cabinet Television",
+    "src": "/room-assets/cabinetTelevision.png",
+    "modelSrc": "/room-models/gltf-format/cabinetTelevision.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cabinetTelevisionDoors",
+    "label": "Cabinet Television Doors",
+    "src": "/room-assets/cabinetTelevisionDoors.png",
+    "modelSrc": "/room-models/gltf-format/cabinetTelevisionDoors.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cardboardBoxClosed",
+    "label": "Cardboard Box Closed",
+    "src": "/room-assets/cardboardBoxClosed.png",
+    "modelSrc": "/room-models/gltf-format/cardboardBoxClosed.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "cardboardBoxOpen",
+    "label": "Cardboard Box Open",
+    "src": "/room-assets/cardboardBoxOpen.png",
+    "modelSrc": "/room-models/gltf-format/cardboardBoxOpen.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "ceilingFan",
+    "label": "Ceiling Fan",
+    "src": "/room-assets/ceilingFan.png",
+    "modelSrc": "/room-models/gltf-format/ceilingFan.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "chair",
+    "label": "Chair",
+    "src": "/room-assets/chair.png",
+    "modelSrc": "/room-models/gltf-format/chair.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "chairCushion",
+    "label": "Chair Cushion",
+    "src": "/room-assets/chairCushion.png",
+    "modelSrc": "/room-models/gltf-format/chairCushion.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "chairDesk",
+    "label": "Chair Desk",
+    "src": "/room-assets/chairDesk.png",
+    "modelSrc": "/room-models/gltf-format/chairDesk.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "chairModernCushion",
+    "label": "Chair Modern Cushion",
+    "src": "/room-assets/chairModernCushion.png",
+    "modelSrc": "/room-models/gltf-format/chairModernCushion.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "chairModernFrameCushion",
+    "label": "Chair Modern Frame Cushion",
+    "src": "/room-assets/chairModernFrameCushion.png",
+    "modelSrc": "/room-models/gltf-format/chairModernFrameCushion.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "chairRounded",
+    "label": "Chair Rounded",
+    "src": "/room-assets/chairRounded.png",
+    "modelSrc": "/room-models/gltf-format/chairRounded.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "coatRack",
+    "label": "Coat Rack",
+    "src": "/room-assets/coatRack.png",
+    "modelSrc": "/room-models/gltf-format/coatRack.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "coatRackStanding",
+    "label": "Coat Rack Standing",
+    "src": "/room-assets/coatRackStanding.png",
+    "modelSrc": "/room-models/gltf-format/coatRackStanding.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "computerKeyboard",
+    "label": "Computer Keyboard",
+    "src": "/room-assets/computerKeyboard.png",
+    "modelSrc": "/room-models/gltf-format/computerKeyboard.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "computerMouse",
+    "label": "Computer Mouse",
+    "src": "/room-assets/computerMouse.png",
+    "modelSrc": "/room-models/gltf-format/computerMouse.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "computerScreen",
+    "label": "Computer Screen",
+    "src": "/room-assets/computerScreen.png",
+    "modelSrc": "/room-models/gltf-format/computerScreen.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "desk",
+    "label": "Desk",
+    "src": "/room-assets/desk.png",
+    "modelSrc": "/room-models/gltf-format/desk.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "deskCorner",
+    "label": "Desk Corner",
+    "src": "/room-assets/deskCorner.png",
+    "modelSrc": "/room-models/gltf-format/deskCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "doorway",
+    "label": "Doorway",
+    "src": "/room-assets/doorway.png",
+    "modelSrc": "/room-models/gltf-format/doorway.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "doorwayFront",
+    "label": "Doorway Front",
+    "src": "/room-assets/doorwayFront.png",
+    "modelSrc": "/room-models/gltf-format/doorwayFront.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "doorwayOpen",
+    "label": "Doorway Open",
+    "src": "/room-assets/doorwayOpen.png",
+    "modelSrc": "/room-models/gltf-format/doorwayOpen.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "dryer",
+    "label": "Dryer",
+    "src": "/room-assets/dryer.png",
+    "modelSrc": "/room-models/gltf-format/dryer.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "floorCorner",
+    "label": "Floor Corner",
+    "src": "/room-assets/floorCorner.png",
+    "modelSrc": "/room-models/gltf-format/floorCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "floorCornerRound",
+    "label": "Floor Corner Round",
+    "src": "/room-assets/floorCornerRound.png",
+    "modelSrc": "/room-models/gltf-format/floorCornerRound.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "floorFull",
+    "label": "Floor Full",
+    "src": "/room-assets/floorFull.png",
+    "modelSrc": "/room-models/gltf-format/floorFull.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "floorHalf",
+    "label": "Floor Half",
+    "src": "/room-assets/floorHalf.png",
+    "modelSrc": "/room-models/gltf-format/floorHalf.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "hoodLarge",
+    "label": "Hood Large",
+    "src": "/room-assets/hoodLarge.png",
+    "modelSrc": "/room-models/gltf-format/hoodLarge.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "hoodModern",
+    "label": "Hood Modern",
+    "src": "/room-assets/hoodModern.png",
+    "modelSrc": "/room-models/gltf-format/hoodModern.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenBar",
+    "label": "Kitchen Bar",
+    "src": "/room-assets/kitchenBar.png",
+    "modelSrc": "/room-models/gltf-format/kitchenBar.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenBarEnd",
+    "label": "Kitchen Bar End",
+    "src": "/room-assets/kitchenBarEnd.png",
+    "modelSrc": "/room-models/gltf-format/kitchenBarEnd.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenBlender",
+    "label": "Kitchen Blender",
+    "src": "/room-assets/kitchenBlender.png",
+    "modelSrc": "/room-models/gltf-format/kitchenBlender.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinet",
+    "label": "Kitchen Cabinet",
+    "src": "/room-assets/kitchenCabinet.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinet.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetCornerInner",
+    "label": "Kitchen Cabinet Corner Inner",
+    "src": "/room-assets/kitchenCabinetCornerInner.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetCornerInner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetCornerRound",
+    "label": "Kitchen Cabinet Corner Round",
+    "src": "/room-assets/kitchenCabinetCornerRound.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetCornerRound.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetDrawer",
+    "label": "Kitchen Cabinet Drawer",
+    "src": "/room-assets/kitchenCabinetDrawer.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetDrawer.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetUpper",
+    "label": "Kitchen Cabinet Upper",
+    "src": "/room-assets/kitchenCabinetUpper.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetUpper.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetUpperCorner",
+    "label": "Kitchen Cabinet Upper Corner",
+    "src": "/room-assets/kitchenCabinetUpperCorner.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetUpperCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetUpperDouble",
+    "label": "Kitchen Cabinet Upper Double",
+    "src": "/room-assets/kitchenCabinetUpperDouble.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetUpperDouble.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCabinetUpperLow",
+    "label": "Kitchen Cabinet Upper Low",
+    "src": "/room-assets/kitchenCabinetUpperLow.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCabinetUpperLow.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenCoffeeMachine",
+    "label": "Kitchen Coffee Machine",
+    "src": "/room-assets/kitchenCoffeeMachine.png",
+    "modelSrc": "/room-models/gltf-format/kitchenCoffeeMachine.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenFridge",
+    "label": "Kitchen Fridge",
+    "src": "/room-assets/kitchenFridge.png",
+    "modelSrc": "/room-models/gltf-format/kitchenFridge.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenFridgeBuiltIn",
+    "label": "Kitchen Fridge Built In",
+    "src": "/room-assets/kitchenFridgeBuiltIn.png",
+    "modelSrc": "/room-models/gltf-format/kitchenFridgeBuiltIn.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenFridgeLarge",
+    "label": "Kitchen Fridge Large",
+    "src": "/room-assets/kitchenFridgeLarge.png",
+    "modelSrc": "/room-models/gltf-format/kitchenFridgeLarge.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenFridgeSmall",
+    "label": "Kitchen Fridge Small",
+    "src": "/room-assets/kitchenFridgeSmall.png",
+    "modelSrc": "/room-models/gltf-format/kitchenFridgeSmall.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenMicrowave",
+    "label": "Kitchen Microwave",
+    "src": "/room-assets/kitchenMicrowave.png",
+    "modelSrc": "/room-models/gltf-format/kitchenMicrowave.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenSink",
+    "label": "Kitchen Sink",
+    "src": "/room-assets/kitchenSink.png",
+    "modelSrc": "/room-models/gltf-format/kitchenSink.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenStove",
+    "label": "Kitchen Stove",
+    "src": "/room-assets/kitchenStove.png",
+    "modelSrc": "/room-models/gltf-format/kitchenStove.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "kitchenStoveElectric",
+    "label": "Kitchen Stove Electric",
+    "src": "/room-assets/kitchenStoveElectric.png",
+    "modelSrc": "/room-models/gltf-format/kitchenStoveElectric.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "lampRoundFloor",
+    "label": "Lamp Round Floor",
+    "src": "/room-assets/lampRoundFloor.png",
+    "modelSrc": "/room-models/gltf-format/lampRoundFloor.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "lampRoundTable",
+    "label": "Lamp Round Table",
+    "src": "/room-assets/lampRoundTable.png",
+    "modelSrc": "/room-models/gltf-format/lampRoundTable.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "lampSquareCeiling",
+    "label": "Lamp Square Ceiling",
+    "src": "/room-assets/lampSquareCeiling.png",
+    "modelSrc": "/room-models/gltf-format/lampSquareCeiling.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "lampSquareFloor",
+    "label": "Lamp Square Floor",
+    "src": "/room-assets/lampSquareFloor.png",
+    "modelSrc": "/room-models/gltf-format/lampSquareFloor.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "lampSquareTable",
+    "label": "Lamp Square Table",
+    "src": "/room-assets/lampSquareTable.png",
+    "modelSrc": "/room-models/gltf-format/lampSquareTable.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "lampWall",
+    "label": "Lamp Wall",
+    "src": "/room-assets/lampWall.png",
+    "modelSrc": "/room-models/gltf-format/lampWall.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.15
+  },
+  {
+    "id": "laptop",
+    "label": "Laptop",
+    "src": "/room-assets/laptop.png",
+    "modelSrc": "/room-models/gltf-format/laptop.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeChair",
+    "label": "Lounge Chair",
+    "src": "/room-assets/loungeChair.png",
+    "modelSrc": "/room-models/gltf-format/loungeChair.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeChairRelax",
+    "label": "Lounge Chair Relax",
+    "src": "/room-assets/loungeChairRelax.png",
+    "modelSrc": "/room-models/gltf-format/loungeChairRelax.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeDesignChair",
+    "label": "Lounge Design Chair",
+    "src": "/room-assets/loungeDesignChair.png",
+    "modelSrc": "/room-models/gltf-format/loungeDesignChair.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeDesignSofa",
+    "label": "Lounge Design Sofa",
+    "src": "/room-assets/loungeDesignSofa.png",
+    "modelSrc": "/room-models/gltf-format/loungeDesignSofa.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeDesignSofaCorner",
+    "label": "Lounge Design Sofa Corner",
+    "src": "/room-assets/loungeDesignSofaCorner.png",
+    "modelSrc": "/room-models/gltf-format/loungeDesignSofaCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeSofa",
+    "label": "Lounge Sofa",
+    "src": "/room-assets/loungeSofa.png",
+    "modelSrc": "/room-models/gltf-format/loungeSofa.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeSofaCorner",
+    "label": "Lounge Sofa Corner",
+    "src": "/room-assets/loungeSofaCorner.png",
+    "modelSrc": "/room-models/gltf-format/loungeSofaCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeSofaLong",
+    "label": "Lounge Sofa Long",
+    "src": "/room-assets/loungeSofaLong.png",
+    "modelSrc": "/room-models/gltf-format/loungeSofaLong.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "loungeSofaOttoman",
+    "label": "Lounge Sofa Ottoman",
+    "src": "/room-assets/loungeSofaOttoman.png",
+    "modelSrc": "/room-models/gltf-format/loungeSofaOttoman.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "paneling",
+    "label": "Paneling",
+    "src": "/room-assets/paneling.png",
+    "modelSrc": "/room-models/gltf-format/paneling.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "pillow",
+    "label": "Pillow",
+    "src": "/room-assets/pillow.png",
+    "modelSrc": "/room-models/gltf-format/pillow.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "pillowBlue",
+    "label": "Pillow Blue",
+    "src": "/room-assets/pillowBlue.png",
+    "modelSrc": "/room-models/gltf-format/pillowBlue.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "pillowBlueLong",
+    "label": "Pillow Blue Long",
+    "src": "/room-assets/pillowBlueLong.png",
+    "modelSrc": "/room-models/gltf-format/pillowBlueLong.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "pillowLong",
+    "label": "Pillow Long",
+    "src": "/room-assets/pillowLong.png",
+    "modelSrc": "/room-models/gltf-format/pillowLong.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "plantSmall1",
+    "label": "Plant Small1",
+    "src": "/room-assets/plantSmall1.png",
+    "modelSrc": "/room-models/gltf-format/plantSmall1.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 0.9
+  },
+  {
+    "id": "plantSmall2",
+    "label": "Plant Small2",
+    "src": "/room-assets/plantSmall2.png",
+    "modelSrc": "/room-models/gltf-format/plantSmall2.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 0.9
+  },
+  {
+    "id": "plantSmall3",
+    "label": "Plant Small3",
+    "src": "/room-assets/plantSmall3.png",
+    "modelSrc": "/room-models/gltf-format/plantSmall3.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 0.9
+  },
+  {
+    "id": "pottedPlant",
+    "label": "Potted Plant",
+    "src": "/room-assets/pottedPlant.png",
+    "modelSrc": "/room-models/gltf-format/pottedPlant.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "radio",
+    "label": "Radio",
+    "src": "/room-assets/radio.png",
+    "modelSrc": "/room-models/gltf-format/radio.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "rugDoormat",
+    "label": "Rug Doormat",
+    "src": "/room-assets/rugDoormat.png",
+    "modelSrc": "/room-models/gltf-format/rugDoormat.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.55
+  },
+  {
+    "id": "rugRectangle",
+    "label": "Rug Rectangle",
+    "src": "/room-assets/rugRectangle.png",
+    "modelSrc": "/room-models/gltf-format/rugRectangle.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.55
+  },
+  {
+    "id": "rugRound",
+    "label": "Rug Round",
+    "src": "/room-assets/rugRound.png",
+    "modelSrc": "/room-models/gltf-format/rugRound.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.55
+  },
+  {
+    "id": "rugRounded",
+    "label": "Rug Rounded",
+    "src": "/room-assets/rugRounded.png",
+    "modelSrc": "/room-models/gltf-format/rugRounded.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.55
+  },
+  {
+    "id": "rugSquare",
+    "label": "Rug Square",
+    "src": "/room-assets/rugSquare.png",
+    "modelSrc": "/room-models/gltf-format/rugSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1.55
+  },
+  {
+    "id": "shower",
+    "label": "Shower",
+    "src": "/room-assets/shower.png",
+    "modelSrc": "/room-models/gltf-format/shower.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "showerRound",
+    "label": "Shower Round",
+    "src": "/room-assets/showerRound.png",
+    "modelSrc": "/room-models/gltf-format/showerRound.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "sideTable",
+    "label": "Side Table",
+    "src": "/room-assets/sideTable.png",
+    "modelSrc": "/room-models/gltf-format/sideTable.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "sideTableDrawers",
+    "label": "Side Table Drawers",
+    "src": "/room-assets/sideTableDrawers.png",
+    "modelSrc": "/room-models/gltf-format/sideTableDrawers.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "speaker",
+    "label": "Speaker",
+    "src": "/room-assets/speaker.png",
+    "modelSrc": "/room-models/gltf-format/speaker.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "speakerSmall",
+    "label": "Speaker Small",
+    "src": "/room-assets/speakerSmall.png",
+    "modelSrc": "/room-models/gltf-format/speakerSmall.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stairs",
+    "label": "Stairs",
+    "src": "/room-assets/stairs.png",
+    "modelSrc": "/room-models/gltf-format/stairs.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stairsCorner",
+    "label": "Stairs Corner",
+    "src": "/room-assets/stairsCorner.png",
+    "modelSrc": "/room-models/gltf-format/stairsCorner.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stairsOpen",
+    "label": "Stairs Open",
+    "src": "/room-assets/stairsOpen.png",
+    "modelSrc": "/room-models/gltf-format/stairsOpen.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stairsOpenSingle",
+    "label": "Stairs Open Single",
+    "src": "/room-assets/stairsOpenSingle.png",
+    "modelSrc": "/room-models/gltf-format/stairsOpenSingle.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stoolBar",
+    "label": "Stool Bar",
+    "src": "/room-assets/stoolBar.png",
+    "modelSrc": "/room-models/gltf-format/stoolBar.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "stoolBarSquare",
+    "label": "Stool Bar Square",
+    "src": "/room-assets/stoolBarSquare.png",
+    "modelSrc": "/room-models/gltf-format/stoolBarSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "table",
+    "label": "Table",
+    "src": "/room-assets/table.png",
+    "modelSrc": "/room-models/gltf-format/table.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCloth",
+    "label": "Table Cloth",
+    "src": "/room-assets/tableCloth.png",
+    "modelSrc": "/room-models/gltf-format/tableCloth.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCoffee",
+    "label": "Table Coffee",
+    "src": "/room-assets/tableCoffee.png",
+    "modelSrc": "/room-models/gltf-format/tableCoffee.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCoffeeGlass",
+    "label": "Table Coffee Glass",
+    "src": "/room-assets/tableCoffeeGlass.png",
+    "modelSrc": "/room-models/gltf-format/tableCoffeeGlass.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCoffeeGlassSquare",
+    "label": "Table Coffee Glass Square",
+    "src": "/room-assets/tableCoffeeGlassSquare.png",
+    "modelSrc": "/room-models/gltf-format/tableCoffeeGlassSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCoffeeSquare",
+    "label": "Table Coffee Square",
+    "src": "/room-assets/tableCoffeeSquare.png",
+    "modelSrc": "/room-models/gltf-format/tableCoffeeSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCross",
+    "label": "Table Cross",
+    "src": "/room-assets/tableCross.png",
+    "modelSrc": "/room-models/gltf-format/tableCross.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableCrossCloth",
+    "label": "Table Cross Cloth",
+    "src": "/room-assets/tableCrossCloth.png",
+    "modelSrc": "/room-models/gltf-format/tableCrossCloth.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableGlass",
+    "label": "Table Glass",
+    "src": "/room-assets/tableGlass.png",
+    "modelSrc": "/room-models/gltf-format/tableGlass.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "tableRound",
+    "label": "Table Round",
+    "src": "/room-assets/tableRound.png",
+    "modelSrc": "/room-models/gltf-format/tableRound.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "televisionAntenna",
+    "label": "Television Antenna",
+    "src": "/room-assets/televisionAntenna.png",
+    "modelSrc": "/room-models/gltf-format/televisionAntenna.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "televisionModern",
+    "label": "Television Modern",
+    "src": "/room-assets/televisionModern.png",
+    "modelSrc": "/room-models/gltf-format/televisionModern.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "televisionVintage",
+    "label": "Television Vintage",
+    "src": "/room-assets/televisionVintage.png",
+    "modelSrc": "/room-models/gltf-format/televisionVintage.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "toaster",
+    "label": "Toaster",
+    "src": "/room-assets/toaster.png",
+    "modelSrc": "/room-models/gltf-format/toaster.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "toilet",
+    "label": "Toilet",
+    "src": "/room-assets/toilet.png",
+    "modelSrc": "/room-models/gltf-format/toilet.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "toiletSquare",
+    "label": "Toilet Square",
+    "src": "/room-assets/toiletSquare.png",
+    "modelSrc": "/room-models/gltf-format/toiletSquare.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "trashcan",
+    "label": "Trashcan",
+    "src": "/room-assets/trashcan.png",
+    "modelSrc": "/room-models/gltf-format/trashcan.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "wall",
+    "label": "Wall",
+    "src": "/room-assets/wall.png",
+    "modelSrc": "/room-models/gltf-format/wall.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallCorner",
+    "label": "Wall Corner",
+    "src": "/room-assets/wallCorner.png",
+    "modelSrc": "/room-models/gltf-format/wallCorner.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallCornerRond",
+    "label": "Wall Corner Rond",
+    "src": "/room-assets/wallCornerRond.png",
+    "modelSrc": "/room-models/gltf-format/wallCornerRond.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallDoorway",
+    "label": "Wall Doorway",
+    "src": "/room-assets/wallDoorway.png",
+    "modelSrc": "/room-models/gltf-format/wallDoorway.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallDoorwayWide",
+    "label": "Wall Doorway Wide",
+    "src": "/room-assets/wallDoorwayWide.png",
+    "modelSrc": "/room-models/gltf-format/wallDoorwayWide.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallHalf",
+    "label": "Wall Half",
+    "src": "/room-assets/wallHalf.png",
+    "modelSrc": "/room-models/gltf-format/wallHalf.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallWindow",
+    "label": "Wall Window",
+    "src": "/room-assets/wallWindow.png",
+    "modelSrc": "/room-models/gltf-format/wallWindow.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "wallWindowSlide",
+    "label": "Wall Window Slide",
+    "src": "/room-assets/wallWindowSlide.png",
+    "modelSrc": "/room-models/gltf-format/wallWindowSlide.glb",
+    "format": "glb",
+    "placement": "wall",
+    "scale": 1
+  },
+  {
+    "id": "washer",
+    "label": "Washer",
+    "src": "/room-assets/washer.png",
+    "modelSrc": "/room-models/gltf-format/washer.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  },
+  {
+    "id": "washerDryerStacked",
+    "label": "Washer Dryer Stacked",
+    "src": "/room-assets/washerDryerStacked.png",
+    "modelSrc": "/room-models/gltf-format/washerDryerStacked.glb",
+    "format": "glb",
+    "placement": "floor",
+    "scale": 1
+  }
+]

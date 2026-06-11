@@ -103,10 +103,56 @@
         <span class="door-marker" aria-hidden="true"></span>
         <span>Click me</span>
       </button>
+      <button class="phone-button" id="phone-button" type="button">View phone</button>
+
+      <div class="room-editor" id="room-editor" aria-label="Room editor">
+        <div class="room-editor-row">
+          <button class="editor-toggle is-active" id="editor-toggle" type="button">Editor</button>
+          <button class="editor-save" id="editor-save" type="button">Save</button>
+          <button class="editor-finish" id="editor-finish" type="button">Finish</button>
+        </div>
+        <div class="room-editor-row room-import-row">
+          <button class="editor-add" id="editor-add" type="button" aria-label="Add model or texture">+</button>
+          <button id="editor-add-model" type="button">Model</button>
+          <button id="editor-add-texture" type="button">Texture</button>
+          <input
+            id="editor-model-input"
+            type="file"
+            accept=".glb,.gltf,.fbx,.obj,.stl,.dae,model/gltf-binary,model/gltf+json"
+            multiple
+            hidden
+          />
+          <input id="editor-texture-input" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+        </div>
+        <div class="asset-palette" id="asset-palette" aria-label="Choose room asset"></div>
+        <div class="room-editor-row">
+          <button id="editor-rotate" type="button">Rotate</button>
+          <button id="editor-smaller" type="button">-</button>
+          <button id="editor-bigger" type="button">+</button>
+          <button id="editor-up" type="button">Up</button>
+          <button id="editor-down" type="button">Down</button>
+          <button id="editor-delete" type="button">Delete</button>
+        </div>
+      </div>
 
       <div class="loading-screen" id="loading-screen" aria-hidden="true">
         <div>
           <strong>Opening the next memory...</strong>
+        </div>
+      </div>
+
+      <div class="media-viewer" id="media-viewer" aria-hidden="true">
+        <div class="media-frame" role="dialog" aria-modal="true" aria-label="Memory viewer">
+          <div class="media-topbar">
+            <span id="media-title">Memory</span>
+            <button class="media-close" id="media-close" type="button" aria-label="Close media viewer">x</button>
+          </div>
+          <div class="media-stage" id="media-stage"></div>
+          <div class="media-controls">
+            <button id="media-prev" type="button">Prev</button>
+            <span id="media-counter">1 / 1</span>
+            <button id="media-next" type="button">Next</button>
+          </div>
         </div>
       </div>
 
