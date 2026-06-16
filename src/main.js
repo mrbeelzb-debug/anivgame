@@ -85,7 +85,7 @@ const bigPhoneTexture = textureLoader.load('/bumble-slide/phone.png');
 bigPhoneTexture.colorSpace = THREE.SRGBColorSpace;
 bigPhoneTexture.anisotropy = 8;
 const roomFocusMode = true;
-const blankRoomMode = true;
+const blankRoomMode = false;
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -433,9 +433,24 @@ avatar.add(rig.skirt);
 
 const playerPhone = new THREE.Group();
 const handheldPhoneMaterial = new THREE.MeshStandardMaterial({ color: 0x202027, roughness: 0.46 });
-const handheldPhoneScreenMaterial = new THREE.MeshStandardMaterial({ color: 0x8fd8ff, emissive: 0x4db8ff, emissiveIntensity: 0.75, roughness: 0.36 });
+const handheldPhoneScreenMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  emissive: 0xfff4d8,
+  emissiveIntensity: 0.75,
+  roughness: 0.28,
+});
+const handheldPhoneImageMaterial = new THREE.MeshBasicMaterial({
+  map: bigPhoneTexture,
+  transparent: true,
+  toneMapped: false,
+});
 addPart(playerPhone, new THREE.BoxGeometry(0.32, 0.46, 0.035), handheldPhoneMaterial, [0, 0, 0]);
-addPart(playerPhone, new THREE.BoxGeometry(0.26, 0.36, 0.04), handheldPhoneScreenMaterial, [0, 0, 0.024]);
+addPart(playerPhone, new THREE.BoxGeometry(0.26, 0.36, 0.012), handheldPhoneScreenMaterial, [0, 0, 0.024]);
+const handheldPhoneImage = new THREE.Mesh(new THREE.PlaneGeometry(0.205, 0.34), handheldPhoneImageMaterial);
+handheldPhoneImage.position.set(0, 0, 0.033);
+handheldPhoneImage.castShadow = false;
+handheldPhoneImage.receiveShadow = false;
+playerPhone.add(handheldPhoneImage);
 playerPhone.position.set(0, 1.02, 0.26);
 playerPhone.rotation.x = -0.22;
 playerPhone.visible = false;
@@ -574,7 +589,7 @@ const roomDepth = 14;
 const roomHalfWidth = roomWidth / 2;
 const roomHalfDepth = roomDepth / 2;
 const roomWallHeight = 4.2;
-const bumbleLogoBasePosition = new THREE.Vector3(4.7, 2.55, -5.38);
+const bumbleLogoBasePosition = new THREE.Vector3(5.95, 2.86, -2.36);
 
 const roomFloorMaterial = new THREE.MeshStandardMaterial({ color: 0xf3d0bd, roughness: 0.86 });
 const roomWallMaterial = new THREE.MeshStandardMaterial({ color: 0xffc8dd, roughness: 0.8, transparent: true, opacity: 1 });
@@ -593,6 +608,11 @@ const pillowMaterial = new THREE.MeshStandardMaterial({ color: 0xfff4e8, roughne
 const cabinetMaterial = new THREE.MeshStandardMaterial({ color: 0xffdf9e, roughness: 0.78 });
 const shelfMaterial = new THREE.MeshStandardMaterial({ color: 0xd88f6c, roughness: 0.8 });
 const rugMaterial = new THREE.MeshStandardMaterial({ color: 0xaedff7, roughness: 0.84 });
+const vanityMaterial = new THREE.MeshStandardMaterial({ color: 0xffd7e8, roughness: 0.76 });
+const mirrorMaterial = new THREE.MeshStandardMaterial({ color: 0xd9f7ff, metalness: 0.12, roughness: 0.2 });
+const goldAccentMaterial = new THREE.MeshStandardMaterial({ color: 0xffd166, metalness: 0.18, roughness: 0.48 });
+const heartPinkMaterial = new THREE.MeshStandardMaterial({ color: 0xff8fab, emissive: 0xff5f94, emissiveIntensity: 0.22, roughness: 0.54 });
+const softLilacMaterial = new THREE.MeshStandardMaterial({ color: 0xd8c7ff, roughness: 0.76 });
 const clothesMaterials = [
   new THREE.MeshStandardMaterial({ color: 0xff8fab, roughness: 0.78 }),
   new THREE.MeshStandardMaterial({ color: 0xb8f2e6, roughness: 0.78 }),
@@ -615,8 +635,12 @@ const bigPhoneScreenMaterial = new THREE.MeshStandardMaterial({
 });
 const bigPhoneImageMaterial = new THREE.MeshBasicMaterial({
   map: bigPhoneTexture,
-  transparent: true,
+  transparent: false,
   toneMapped: false,
+  depthWrite: false,
+  polygonOffset: true,
+  polygonOffsetFactor: -4,
+  polygonOffsetUnits: -4,
 });
 const bumbleLogoMaterial = new THREE.MeshBasicMaterial({
   map: bumbleWordmarkTexture,
@@ -687,8 +711,9 @@ addPart(room, new THREE.SphereGeometry(0.13, 16, 12), clothesMaterials[2], [-6.6
 addPart(room, new THREE.BoxGeometry(0.56, 0.42, 0.08), clothesMaterials[3], [-5.55, 2.18, -6.42]);
 
 const bigPhone = new THREE.Group();
-bigPhone.position.set(4.7, 1.23, -5.72);
-bigPhone.rotation.x = 0.12;
+bigPhone.position.set(5.95, 1.34, -2.72);
+bigPhone.rotation.x = 0.08;
+bigPhone.rotation.y = -0.42;
 room.add(bigPhone);
 
 const bigPhoneHitBox = new THREE.Mesh(
@@ -717,7 +742,7 @@ const bigPhoneScreen = addPart(
   [0, -0.03, 0.128],
 );
 const bigPhoneImage = new THREE.Mesh(new THREE.PlaneGeometry(0.78, 1.68), bigPhoneImageMaterial);
-bigPhoneImage.position.set(0, -0.03, 0.151);
+bigPhoneImage.position.set(0, -0.03, 0.185);
 bigPhoneImage.castShadow = false;
 bigPhoneImage.receiveShadow = false;
 bigPhone.add(bigPhoneImage);
@@ -741,9 +766,44 @@ addPart(room, new THREE.BoxGeometry(0.58, 0.75, 0.08), new THREE.MeshStandardMat
 
 addPart(room, new THREE.BoxGeometry(1.7, 0.1, 0.42), shelfMaterial, [-7.25, 0.82, 3.75]);
 addPart(room, new THREE.BoxGeometry(0.9, 1.15, 0.44), cabinetMaterial, [-7.3, 0.57, 4.35]);
-addPart(room, new THREE.CylinderGeometry(0.72, 0.72, 0.04, 36), new THREE.MeshStandardMaterial({ color: 0xfff3ba, roughness: 0.82 }), [-3.2, 0.055, 3.9], [1.4, 1, 0.82]);
+addPart(room, new THREE.CylinderGeometry(0.72, 0.72, 0.04, 36), new THREE.MeshStandardMaterial({ color: 0xfff3ba, roughness: 0.82 }), [-3.2, 0.055, 3.9], [1.8, 1, 1.12]);
 addPart(room, new THREE.BoxGeometry(1.05, 1.05, 0.08), new THREE.MeshStandardMaterial({ color: 0xffd9eb, roughness: 0.7 }), [0.1, 1.76, -6.86]);
 addPart(room, new THREE.BoxGeometry(1.05, 1.05, 0.08), new THREE.MeshStandardMaterial({ color: 0xd7f4ff, roughness: 0.7 }), [1.45, 1.76, -6.86]);
+
+addPart(room, new THREE.BoxGeometry(2.55, 0.16, 0.78), vanityMaterial, [3.15, 0.78, -6.25]);
+addPart(room, new THREE.BoxGeometry(0.18, 0.76, 0.18), vanityMaterial, [2.0, 0.36, -5.92]);
+addPart(room, new THREE.BoxGeometry(0.18, 0.76, 0.18), vanityMaterial, [4.3, 0.36, -5.92]);
+addPart(room, new THREE.BoxGeometry(0.18, 0.76, 0.18), vanityMaterial, [2.0, 0.36, -6.58]);
+addPart(room, new THREE.BoxGeometry(0.18, 0.76, 0.18), vanityMaterial, [4.3, 0.36, -6.58]);
+addPart(room, new THREE.BoxGeometry(1.55, 0.58, 0.16), vanityMaterial, [3.15, 0.48, -5.82]);
+addPart(room, new THREE.CylinderGeometry(0.52, 0.52, 0.16, 40), softLilacMaterial, [3.15, 0.18, -5.15], [1.0, 1, 0.82]);
+addPart(room, new THREE.CylinderGeometry(0.12, 0.16, 0.42, 20), goldAccentMaterial, [3.15, 0.45, -5.15]);
+addPart(room, new THREE.BoxGeometry(1.25, 1.0, 0.055), mirrorMaterial, [3.15, 2.05, -6.88]);
+addPart(room, new THREE.BoxGeometry(1.42, 1.16, 0.045), goldAccentMaterial, [3.15, 2.05, -6.9]);
+addPart(room, new THREE.BoxGeometry(1.16, 0.9, 0.06), mirrorMaterial, [3.15, 2.05, -6.86]);
+addPart(room, new THREE.SphereGeometry(0.12, 16, 12), heartPinkMaterial, [2.3, 0.98, -5.85]);
+addPart(room, new THREE.SphereGeometry(0.11, 16, 12), clothesMaterials[2], [3.82, 0.98, -5.86]);
+addPart(room, new THREE.BoxGeometry(0.38, 0.14, 0.28), goldAccentMaterial, [3.48, 0.93, -5.82]);
+
+addPart(room, new THREE.BoxGeometry(2.7, 2.25, 0.58), softLilacMaterial, [-7.48, 1.14, 0.6]);
+addPart(room, new THREE.BoxGeometry(0.08, 2.12, 0.62), goldAccentMaterial, [-7.48, 1.16, 0.92]);
+addPart(room, new THREE.CapsuleGeometry(0.06, 0.78, 8, 12), clothesMaterials[0], [-7.9, 1.55, 1.02], [1, 1, 0.72], [0, 0, 0.18]);
+addPart(room, new THREE.CapsuleGeometry(0.06, 0.74, 8, 12), clothesMaterials[1], [-7.45, 1.55, 1.02], [1, 1, 0.72], [0, 0, -0.08]);
+addPart(room, new THREE.CapsuleGeometry(0.06, 0.7, 8, 12), clothesMaterials[3], [-7.0, 1.55, 1.02], [1, 1, 0.72], [0, 0, 0.1]);
+
+for (let i = 0; i < 9; i += 1) {
+  const x = -3.6 + i * 0.86;
+  const y = 3.24 + Math.sin(i * 0.9) * 0.08;
+  addPart(room, new THREE.SphereGeometry(0.075, 12, 10), i % 2 ? heartPinkMaterial : goldAccentMaterial, [x, y, -6.88]);
+}
+for (const [x, y, scale] of [[-2.0, 2.82, 0.34], [-1.35, 2.35, 0.24], [2.35, 2.82, 0.3], [3.0, 2.28, 0.22]]) {
+  const wallHeart = new THREE.Mesh(createHeartGeometry(), heartPinkMaterial);
+  wallHeart.position.set(x, y, -6.88);
+  wallHeart.scale.setScalar(scale);
+  wallHeart.rotation.x = 0;
+  wallHeart.castShadow = false;
+  room.add(wallHeart);
+}
 
 const bumbleLogo = new THREE.Group();
 const bumbleLogoPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.65, 0.46), bumbleLogoMaterial);
@@ -751,8 +811,9 @@ const bumbleLogoHitBox = new THREE.Mesh(
   new THREE.BoxGeometry(1.85, 0.62, 0.16),
   new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
 );
-addPart(bumbleLogo, new THREE.TorusGeometry(0.48, 0.025, 8, 48), bumbleLogoGlowMaterial, [0, 0, -0.03], [1.95, 0.32, 1], [0, 0, 0]);
+addPart(bumbleLogo, new THREE.TorusGeometry(0.48, 0.025, 8, 48), bumbleLogoGlowMaterial, [0, -0.13, -0.03], [1.72, 0.2, 1], [0, 0, 0]);
 bumbleLogoPlane.position.z = 0.045;
+bumbleLogoPlane.position.y = 0.18;
 bumbleLogoHitBox.position.z = 0.035;
 bumbleLogo.add(bumbleLogoPlane, bumbleLogoHitBox);
 bumbleLogo.position.copy(bumbleLogoBasePosition);
@@ -814,14 +875,37 @@ const cloudShadowMaterial = new THREE.MeshStandardMaterial({
   transparent: true,
   opacity: 0.52,
 });
+const overheadCloudMaterial = new THREE.MeshStandardMaterial({
+  color: 0xffffff,
+  roughness: 0.94,
+  transparent: true,
+  opacity: 0.38,
+  depthWrite: false,
+});
+const overheadCloudShadowMaterial = new THREE.MeshStandardMaterial({
+  color: 0xd7f2ff,
+  roughness: 0.96,
+  transparent: true,
+  opacity: 0.2,
+  depthWrite: false,
+});
+const birdMaterial = new THREE.MeshBasicMaterial({
+  color: 0x355d72,
+  transparent: true,
+  opacity: 0.72,
+  side: THREE.DoubleSide,
+  depthWrite: false,
+});
 
-function createCloud(index) {
+function createCloud(index, overhead = false) {
   const cloud = new THREE.Group();
-  const puffCount = 5 + Math.floor(Math.random() * 5);
+  const puffCount = overhead ? 4 + Math.floor(Math.random() * 4) : 5 + Math.floor(Math.random() * 5);
   for (let j = 0; j < puffCount; j += 1) {
     const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(0.28 + Math.random() * 0.42, 16, 12),
-      j % 4 === 0 ? cloudShadowMaterial : cloudMaterial,
+      new THREE.SphereGeometry(0.28 + Math.random() * (overhead ? 0.28 : 0.42), 16, 12),
+      overhead
+        ? (j % 4 === 0 ? overheadCloudShadowMaterial : overheadCloudMaterial)
+        : (j % 4 === 0 ? cloudShadowMaterial : cloudMaterial),
     );
     puff.position.set(
       (j - puffCount / 2) * (0.28 + Math.random() * 0.12),
@@ -833,26 +917,69 @@ function createCloud(index) {
   }
 
   const layer = index % 3;
-  cloud.position.set(
-    -22 + Math.random() * 44,
-    5.6 + layer * 1.25 + Math.random() * 1.4,
-    -12 - layer * 4 - Math.random() * 10,
-  );
-  cloud.scale.setScalar(0.85 + Math.random() * 1.45);
-  cloud.userData.speed = 0.2 + layer * 0.08 + Math.random() * 0.22;
+  if (overhead) {
+    cloud.position.set(
+      -18 + Math.random() * 36,
+      4.75 + Math.random() * 1.3,
+      -5 + Math.random() * 14,
+    );
+  } else {
+    cloud.position.set(
+      -22 + Math.random() * 44,
+      5.6 + layer * 1.25 + Math.random() * 1.4,
+      -12 - layer * 4 - Math.random() * 10,
+    );
+  }
+  cloud.scale.setScalar(overhead ? 0.72 + Math.random() * 1.05 : 0.85 + Math.random() * 1.45);
+  cloud.userData.speed = (overhead ? 0.34 : 0.2) + layer * 0.08 + Math.random() * 0.22;
   cloud.userData.wrapMin = -24 - Math.random() * 8;
   cloud.userData.wrapMax = 24 + Math.random() * 8;
   cloud.userData.floatOffset = Math.random() * Math.PI * 2;
+  cloud.userData.overhead = overhead;
   scene.add(cloud);
   clouds.push(cloud);
 }
 
-for (let i = 0; i < 28; i += 1) {
+for (let i = 0; i < 20; i += 1) {
   createCloud(i);
 }
+for (let i = 0; i < 16; i += 1) {
+  createCloud(i, true);
+}
+
+function createBird(index) {
+  const bird = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), birdMaterial);
+  body.scale.set(1.25, 0.62, 0.62);
+  const wingGeometry = new THREE.BufferGeometry();
+  wingGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0, 0,
+    -0.34, 0.06, 0,
+    -0.06, -0.045, 0,
+  ], 3));
+  wingGeometry.computeVertexNormals();
+  const leftWing = new THREE.Mesh(wingGeometry, birdMaterial);
+  const rightWing = new THREE.Mesh(wingGeometry.clone(), birdMaterial);
+  rightWing.scale.x = -1;
+  bird.add(body, leftWing, rightWing);
+  bird.position.set(-20 + Math.random() * 40, 5.3 + Math.random() * 2.1, -8 - Math.random() * 14);
+  bird.scale.setScalar(0.85 + Math.random() * 0.55);
+  bird.rotation.y = Math.PI / 2;
+  bird.userData.speed = 0.7 + Math.random() * 0.55;
+  bird.userData.wrapMin = -24 - Math.random() * 8;
+  bird.userData.wrapMax = 24 + Math.random() * 8;
+  bird.userData.floatOffset = Math.random() * Math.PI * 2;
+  bird.userData.leftWing = leftWing;
+  bird.userData.rightWing = rightWing;
+  scene.add(bird);
+  return bird;
+}
+
+const birds = Array.from({ length: 9 }, (_, index) => createBird(index));
 
 const keys = new Set();
 const move = new THREE.Vector2();
+const movementKeys = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
 const pointer = {
   active: false,
   id: null,
@@ -903,7 +1030,7 @@ const mediaItems = [
   { type: 'image', title: 'Kim Young-kwang', src: '/bumble-slide/kim-young-kwang.jpg' },
 ];
 
-const roomEditorStorageKey = 'memoryGardenRoomLayoutDecoratedV2';
+const roomEditorStorageKey = 'memoryGardenRoomLayoutGirlyBuiltRoomV1';
 const defaultRoomScaleBoost = 1.42;
 const newEditorModelScaleBoost = 1.32;
 const featuredEditorAssets = [
@@ -986,14 +1113,24 @@ const tutorialSteps = [
 function stopMovementInput() {
   keys.clear();
   move.set(0, 0);
+  resetTouchStick();
+  resetCanvasPointerState();
+}
+
+function resetTouchStick() {
   pointer.active = false;
   pointer.id = null;
+  pointer.origin.set(0, 0);
+  pointer.current.set(0, 0);
+  knob.style.transform = 'translate(-50%, -50%)';
+}
+
+function resetCanvasPointerState() {
   pinchPointers.clear();
   lastPinchDistance = 0;
   touchLookId = null;
   touchLookLastX = 0;
   draggingLook = false;
-  knob.style.transform = 'translate(-50%, -50%)';
   cuddleButton.classList.remove('is-visible');
   doorButton.classList.remove('is-visible');
   phoneButton.classList.remove('is-visible');
@@ -1171,11 +1308,7 @@ async function loadEditorAssetCatalog() {
 }
 
 function getDefaultRoomLayout() {
-  return defaultRoomLayout.map((item) => ({
-    ...item,
-    s: Number(((item.s ?? 1) * defaultRoomScaleBoost).toFixed(3)),
-    vo: item.vo === undefined ? undefined : Number((item.vo * defaultRoomScaleBoost).toFixed(3)),
-  }));
+  return [];
 }
 
 function applyTextureToEditorObject(object, textureSrc) {
@@ -1613,6 +1746,7 @@ function updateFace(time) {
 }
 
 window.addEventListener('keydown', (event) => {
+  const key = event.key.toLowerCase();
   if (mediaOpen) {
     if (event.key === 'Escape') closeMediaViewer();
     if (event.key === 'ArrowLeft') showNextMedia(-1);
@@ -1629,9 +1763,18 @@ window.addEventListener('keydown', (event) => {
     setRoomEditorActive(false);
     return;
   }
-  keys.add(event.key.toLowerCase());
+  if (movementKeys.has(key)) {
+    event.preventDefault();
+    keys.add(key);
+  }
 });
-window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
+window.addEventListener('keyup', (event) => {
+  keys.delete(event.key.toLowerCase());
+});
+window.addEventListener('blur', stopMovementInput);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopMovementInput();
+});
 
 mainMenu.addEventListener('pointerdown', (event) => {
   if (event.pointerType === 'touch') {
@@ -1883,6 +2026,7 @@ function endCanvasPointer(event) {
 
 canvas.addEventListener('pointerup', endCanvasPointer);
 canvas.addEventListener('pointercancel', endCanvasPointer);
+canvas.addEventListener('lostpointercapture', endCanvasPointer);
 canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 canvas.addEventListener(
@@ -1911,9 +2055,15 @@ stick.addEventListener('pointermove', (event) => {
 
 stick.addEventListener('pointerup', (event) => {
   if (pointer.id !== event.pointerId) return;
-  pointer.active = false;
-  pointer.id = null;
-  knob.style.transform = 'translate(-50%, -50%)';
+  resetTouchStick();
+});
+stick.addEventListener('pointercancel', (event) => {
+  if (pointer.id !== event.pointerId) return;
+  resetTouchStick();
+});
+stick.addEventListener('lostpointercapture', (event) => {
+  if (pointer.id !== event.pointerId) return;
+  resetTouchStick();
 });
 
 function updateInput() {
@@ -1932,11 +2082,15 @@ function updateInput() {
   if (pointer.active) {
     const delta = pointer.current.clone().sub(pointer.origin);
     const length = Math.min(delta.length(), 46);
+    if (length < 4) {
+      resetTouchStick();
+    } else {
     const angle = Math.atan2(delta.y, delta.x);
     const x = Math.cos(angle) * length;
     const y = Math.sin(angle) * length;
     knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
     move.set(x / 46, -y / 46);
+    }
   }
 
   if (move.lengthSq() > 1) move.normalize();
@@ -2360,7 +2514,21 @@ function tick() {
     cloud.position.y += Math.sin(time * 0.35 + cloud.userData.floatOffset) * delta * 0.035;
     if (cloud.position.x > cloud.userData.wrapMax) {
       cloud.position.x = cloud.userData.wrapMin;
-      cloud.position.z = -12 - Math.random() * 18;
+      cloud.position.z = cloud.userData.overhead ? -5 + Math.random() * 14 : -12 - Math.random() * 18;
+      cloud.position.y = cloud.userData.overhead ? 4.75 + Math.random() * 1.3 : 5.6 + Math.random() * 3.8;
+    }
+  });
+  birds.forEach((bird) => {
+    bird.position.x += delta * bird.userData.speed;
+    bird.position.y += Math.sin(time * 1.4 + bird.userData.floatOffset) * delta * 0.12;
+    const wingFlap = Math.sin(time * 8.5 + bird.userData.floatOffset) * 0.55;
+    bird.userData.leftWing.rotation.z = wingFlap;
+    bird.userData.rightWing.rotation.z = -wingFlap;
+    if (bird.position.x > bird.userData.wrapMax) {
+      bird.position.x = bird.userData.wrapMin;
+      bird.position.y = 5.25 + Math.random() * 2.2;
+      bird.position.z = -8 - Math.random() * 14;
+      bird.scale.setScalar(0.85 + Math.random() * 0.55);
     }
   });
 
