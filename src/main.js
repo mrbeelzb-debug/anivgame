@@ -40,12 +40,16 @@ const editorUp = document.querySelector('#editor-up');
 const editorDown = document.querySelector('#editor-down');
 const editorDelete = document.querySelector('#editor-delete');
 const bumbleApp = document.querySelector('#bumble-app');
+const bumblePhone = document.querySelector('.bumble-phone');
 const bumbleClose = document.querySelector('#bumble-close');
 const bumbleCardStack = document.querySelector('#bumble-card-stack');
 const bumbleCards = Array.from(document.querySelectorAll('.bumble-card'));
 const bumbleInstruction = document.querySelector('#bumble-instruction');
 const bumbleLeft = document.querySelector('#bumble-left');
 const bumbleRight = document.querySelector('#bumble-right');
+const bumbleReady = document.querySelector('#bumble-ready');
+const bumbleReadyYes = document.querySelector('#bumble-ready-yes');
+const bumbleMessagePop = document.querySelector('#bumble-message-pop');
 const mediaViewer = document.querySelector('#media-viewer');
 const mediaStage = document.querySelector('#media-stage');
 const mediaTitle = document.querySelector('#media-title');
@@ -53,6 +57,9 @@ const mediaCounter = document.querySelector('#media-counter');
 const mediaClose = document.querySelector('#media-close');
 const mediaPrev = document.querySelector('#media-prev');
 const mediaNext = document.querySelector('#media-next');
+const phoneLaunch = document.querySelector('#phone-launch');
+const phoneLaunchClose = document.querySelector('#phone-launch-close');
+const phoneLaunchBumble = document.querySelector('#phone-launch-bumble');
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x8ed8ff);
@@ -551,7 +558,7 @@ function isPointerOnBigPhone(event) {
 function activateBigPhone() {
   if (currentArea !== 'bedroom' || !isPlayerNearBigPhone()) return;
   bigPhoneLight.intensity = 4.2;
-  openMediaViewer(0);
+  openPhoneLaunch();
 }
 
 function activateBumbleLogo() {
@@ -1012,14 +1019,26 @@ let roomLoading = false;
 let bumbleLogoPulseUntil = 0;
 let bumbleOpen = false;
 let bumbleCardIndex = 0;
+let bumbleQuietRightAttempts = 0;
+let bumbleFinalLeftAttempts = 0;
+let bumbleMessageTimer = null;
 let mediaOpen = false;
 let mediaIndex = 0;
+let phoneLaunchOpen = false;
+let phoneLaunchZoomTimer = null;
 const bumbleSwipe = {
   active: false,
   id: null,
   startX: 0,
   currentX: 0,
 };
+const bumbleFinalLeftMessages = [
+  "u cannot swipe left",
+  "u sure u wanna swipe left?",
+  "this guy been lonely for his whole life",
+  "no option to swipe left! swipe RIGHT!",
+  "SWIPE RIGHT RN!",
+];
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
 
@@ -1146,15 +1165,56 @@ function updateBumbleCards() {
 
   const activeCard = bumbleCards[bumbleCardIndex];
   const canLike = activeCard?.dataset.canLike === 'true';
+  const canSkip = activeCard?.dataset.canSkip === 'true';
+  bumbleLeft.classList.toggle('is-disabled', !canSkip);
   bumbleRight.classList.toggle('is-disabled', !canLike);
-  bumbleInstruction.textContent = canLike
-    ? "Swipe right to choose the maker"
-    : "Swipe left to continue. Right swipe is locked.";
+  bumbleInstruction.textContent = activeCard?.dataset.rightAction === 'ready'
+    ? "Swipe right if you are ready."
+    : "";
+}
+
+function showBumbleReady() {
+  bumblePhone.classList.add('is-ready');
+  bumbleReady.classList.add('is-visible');
+  bumbleReady.setAttribute('aria-hidden', 'false');
+  bumbleInstruction.textContent = "";
+}
+
+function hideBumbleMessagePop() {
+  clearTimeout(bumbleMessageTimer);
+  bumbleMessageTimer = null;
+  bumbleMessagePop.classList.remove('is-visible');
+  bumbleMessagePop.setAttribute('aria-hidden', 'true');
+}
+
+function showBumbleMessagePop(message = "u should try better this guy is ugly") {
+  clearTimeout(bumbleMessageTimer);
+  bumbleMessagePop.textContent = message;
+  bumbleMessagePop.classList.add('is-visible');
+  bumbleMessagePop.setAttribute('aria-hidden', 'false');
+  bumbleMessageTimer = window.setTimeout(hideBumbleMessagePop, 10000);
+}
+
+function showPostReadyBumbleCards() {
+  bumbleCardIndex = 2;
+  bumbleQuietRightAttempts = 0;
+  bumbleFinalLeftAttempts = 0;
+  bumblePhone.classList.remove('is-ready');
+  bumbleReady.classList.remove('is-visible');
+  bumbleReady.setAttribute('aria-hidden', 'true');
+  hideBumbleMessagePop();
+  updateBumbleCards();
 }
 
 function openBumbleApp() {
   bumbleOpen = true;
   bumbleCardIndex = 0;
+  bumbleQuietRightAttempts = 0;
+  bumbleFinalLeftAttempts = 0;
+  bumblePhone.classList.remove('is-ready');
+  bumbleReady.classList.remove('is-visible');
+  bumbleReady.setAttribute('aria-hidden', 'true');
+  hideBumbleMessagePop();
   updateBumbleCards();
   stopMovementInput();
   bumbleApp.classList.add('is-visible');
@@ -1164,43 +1224,87 @@ function openBumbleApp() {
 
 function closeBumbleApp() {
   bumbleOpen = false;
+  bumbleQuietRightAttempts = 0;
+  bumbleFinalLeftAttempts = 0;
+  bumblePhone.classList.remove('is-ready');
+  bumbleReady.classList.remove('is-visible');
+  bumbleReady.setAttribute('aria-hidden', 'true');
+  hideBumbleMessagePop();
   bumbleApp.classList.remove('is-visible');
   bumbleApp.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('bumble-open');
   stopMovementInput();
 }
 
-function denyBumbleRightSwipe() {
+function denyBumbleSwipe(direction) {
   const activeCard = bumbleCards[bumbleCardIndex];
   if (!activeCard) return;
   activeCard.classList.remove('is-denied');
+  bumblePhone.classList.remove('is-shaking');
   void activeCard.offsetWidth;
   activeCard.classList.add('is-denied');
-  bumbleInstruction.textContent = "Not this one yet. Swipe left.";
+  void bumblePhone.offsetWidth;
+  bumblePhone.classList.add('is-shaking');
+  if ('vibrate' in navigator) navigator.vibrate([35, 28, 35]);
+  if (direction === 'left' && activeCard.dataset.leftSequence === 'bumbleB') {
+    const index = Math.min(bumbleFinalLeftAttempts, bumbleFinalLeftMessages.length - 1);
+    bumbleFinalLeftAttempts += 1;
+    bumbleInstruction.textContent = "";
+    showBumbleMessagePop(bumbleFinalLeftMessages[index]);
+    return;
+  }
+  if (direction === 'right' && activeCard.dataset.quietRight === 'true') {
+    bumbleQuietRightAttempts += 1;
+    bumbleInstruction.textContent = "";
+    if (bumbleQuietRightAttempts >= 3) {
+      showBumbleMessagePop();
+    }
+    return;
+  }
+  bumbleInstruction.textContent = `You cannot swipe ${direction}.`;
 }
 
 function swipeBumbleLeft() {
   if (!bumbleOpen) return;
+  const activeCard = bumbleCards[bumbleCardIndex];
+  if (activeCard?.dataset.canSkip !== 'true') {
+    denyBumbleSwipe('left');
+    return;
+  }
   if (bumbleCardIndex < bumbleCards.length - 1) {
     bumbleCardIndex += 1;
+    bumbleQuietRightAttempts = 0;
+    bumbleFinalLeftAttempts = 0;
+    hideBumbleMessagePop();
     updateBumbleCards();
     return;
   }
-  bumbleInstruction.textContent = "That is the last card.";
+  activeCard.classList.add('is-left');
+  activeCard.classList.remove('is-active');
+  bumbleInstruction.textContent = "";
+  bumbleLeft.classList.add('is-disabled');
 }
 
 function swipeBumbleRight() {
   if (!bumbleOpen) return;
   const activeCard = bumbleCards[bumbleCardIndex];
   if (activeCard?.dataset.canLike !== 'true') {
-    denyBumbleRightSwipe();
+    denyBumbleSwipe('right');
     return;
   }
   activeCard.classList.add('is-right');
   activeCard.classList.remove('is-active');
-  bumbleInstruction.textContent = "Matched with the maker.";
+  bumbleInstruction.textContent = "";
+  bumbleFinalLeftAttempts = 0;
+  hideBumbleMessagePop();
   bumbleLogoPulseUntil = clock.elapsedTime + 2.2;
-  openMediaViewer(2);
+  if (activeCard.dataset.rightAction === 'finish') {
+    bumbleRight.classList.add('is-disabled');
+    return;
+  }
+  window.setTimeout(() => {
+    if (bumbleOpen) showBumbleReady();
+  }, 260);
 }
 
 function renderMediaViewer() {
@@ -1244,6 +1348,29 @@ function closeMediaViewer() {
   mediaViewer.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('media-open');
   mediaStage.replaceChildren();
+  stopMovementInput();
+}
+
+function openPhoneLaunch() {
+  phoneLaunchOpen = true;
+  stopMovementInput();
+  phoneLaunch.classList.remove('is-zooming');
+  phoneLaunch.classList.add('is-visible');
+  phoneLaunch.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('phone-launch-open');
+  clearTimeout(phoneLaunchZoomTimer);
+  phoneLaunchZoomTimer = setTimeout(() => {
+    if (phoneLaunchOpen) phoneLaunch.classList.add('is-zooming');
+  }, 620);
+}
+
+function closePhoneLaunch() {
+  phoneLaunchOpen = false;
+  clearTimeout(phoneLaunchZoomTimer);
+  phoneLaunchZoomTimer = null;
+  phoneLaunch.classList.remove('is-visible', 'is-zooming');
+  phoneLaunch.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('phone-launch-open');
   stopMovementInput();
 }
 
@@ -1747,6 +1874,10 @@ function updateFace(time) {
 
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
+  if (phoneLaunchOpen) {
+    if (event.key === 'Escape') closePhoneLaunch();
+    return;
+  }
   if (mediaOpen) {
     if (event.key === 'Escape') closeMediaViewer();
     if (event.key === 'ArrowLeft') showNextMedia(-1);
@@ -1825,7 +1956,7 @@ tutorialNext.addEventListener('click', () => {
 tutorialSkip.addEventListener('click', finishTutorial);
 
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) return;
   if (roomEditorActive && currentArea === 'bedroom') {
     if (event.pointerType !== 'touch' && event.button === 2) {
       draggingLook = true;
@@ -1894,6 +2025,22 @@ mediaPrev.addEventListener('click', () => showNextMedia(-1));
 mediaNext.addEventListener('click', () => showNextMedia(1));
 mediaViewer.addEventListener('pointerdown', (event) => {
   if (event.target === mediaViewer) closeMediaViewer();
+});
+phoneLaunchClose.addEventListener('click', closePhoneLaunch);
+phoneLaunch.addEventListener('pointerdown', (event) => {
+  if (event.target === phoneLaunch) closePhoneLaunch();
+});
+phoneLaunchBumble.addEventListener('click', () => {
+  if (!phoneLaunchOpen) return;
+  phoneLaunch.classList.add('is-zooming');
+  window.setTimeout(() => {
+    if (!phoneLaunchOpen) return;
+    closePhoneLaunch();
+    openBumbleApp();
+  }, 520);
+});
+bumbleReadyYes.addEventListener('click', () => {
+  showPostReadyBumbleCards();
 });
 editorToggle.addEventListener('click', () => setRoomEditorActive(!roomEditorActive));
 editorSave.addEventListener('click', saveRoomLayout);
@@ -1988,7 +2135,7 @@ editorDelete.addEventListener('click', () => {
 });
 
 canvas.addEventListener('pointermove', (event) => {
-  if (bumbleOpen || mediaOpen) return;
+  if (bumbleOpen || mediaOpen || phoneLaunchOpen) return;
   if (moveEditorDrag(event)) return;
   if (event.pointerType === 'touch') {
     if (!pinchPointers.has(event.pointerId)) return;
@@ -2068,7 +2215,7 @@ stick.addEventListener('lostpointercapture', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen) {
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) {
     pointer.active = false;
     pointer.id = null;
     knob.style.transform = 'translate(-50%, -50%)';
@@ -2248,6 +2395,7 @@ function resetGameProgress() {
   roomLoading = false;
   closeBumbleApp();
   closeMediaViewer();
+  closePhoneLaunch();
   collected = 0;
   memoryCount.textContent = '0';
   root.visible = true;
@@ -2374,7 +2522,7 @@ function updateDoor(delta, time) {
 }
 
 function updatePhonePrompt() {
-  const nearPhone = currentArea === 'bedroom' && !bumbleOpen && !mediaOpen && isPlayerNearBigPhone();
+  const nearPhone = currentArea === 'bedroom' && !bumbleOpen && !mediaOpen && !phoneLaunchOpen && isPlayerNearBigPhone();
   phonePromptVisible = nearPhone;
   phoneButton.classList.toggle('is-visible', phonePromptVisible);
 

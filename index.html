@@ -156,6 +156,17 @@
         </div>
       </div>
 
+      <div class="phone-launch" id="phone-launch" aria-hidden="true">
+        <div class="phone-launch-shell" role="dialog" aria-modal="true" aria-label="Phone homescreen">
+          <button class="phone-launch-close" id="phone-launch-close" type="button" aria-label="Close phone">x</button>
+          <div class="phone-launch-screen">
+            <img src="/bumble-slide/homescreen.png" alt="Phone homescreen" />
+            <button class="phone-launch-bumble" id="phone-launch-bumble" type="button" aria-label="Open Bumble"></button>
+            <div class="phone-launch-hint" aria-hidden="true">touch me</div>
+          </div>
+        </div>
+      </div>
+
       <div class="bumble-app" id="bumble-app" aria-hidden="true">
         <div class="bumble-phone" role="dialog" aria-modal="true" aria-label="Bumble memory app">
           <div class="bumble-status">
@@ -163,27 +174,28 @@
             <button class="bumble-close" id="bumble-close" type="button" aria-label="Close Bumble app">x</button>
           </div>
           <div class="bumble-card-stack" id="bumble-card-stack">
-            <article class="bumble-card is-active" data-card="0" data-can-like="false">
-              <div class="bumble-photo bumble-photo-a"></div>
-              <div class="bumble-card-copy">
-                <strong>Memory Preview</strong>
-                <span>Picture placeholder 1</span>
-              </div>
+            <article class="bumble-card is-active" data-card="0" data-can-like="false" data-can-skip="true">
+              <img class="bumble-card-image" src="/bumble-slide/bumblet1.png" alt="First Bumble memory" />
             </article>
-            <article class="bumble-card" data-card="1" data-can-like="false">
-              <div class="bumble-photo bumble-photo-b"></div>
-              <div class="bumble-card-copy">
-                <strong>Memory Preview</strong>
-                <span>Picture placeholder 2</span>
-              </div>
+            <article class="bumble-card" data-card="1" data-can-like="true" data-can-skip="false" data-right-action="ready">
+              <img class="bumble-card-image" src="/bumble-slide/bumblet2.png" alt="Second Bumble memory" />
             </article>
-            <article class="bumble-card" data-card="2" data-can-like="true">
-              <div class="bumble-photo bumble-photo-maker"></div>
-              <div class="bumble-card-copy">
-                <strong>The Maker</strong>
-                <span>Swipe right on me</span>
-              </div>
+            <article class="bumble-card" data-card="2" data-can-like="false" data-can-skip="true" data-quiet-right="true">
+              <img class="bumble-card-image" src="/bumble-slide/bumble3.png" alt="Third Bumble option" />
             </article>
+            <article class="bumble-card" data-card="3" data-can-like="false" data-can-skip="true" data-quiet-right="true">
+              <img class="bumble-card-image" src="/bumble-slide/bumbleK.png" alt="Fourth Bumble option" />
+            </article>
+            <article class="bumble-card" data-card="4" data-can-like="true" data-can-skip="false" data-right-action="finish" data-left-sequence="bumbleB">
+              <img class="bumble-card-image" src="/bumble-slide/bumbleB.png" alt="Final Bumble option" />
+            </article>
+          </div>
+          <div class="bumble-ready" id="bumble-ready" aria-hidden="true">
+            <strong>are you ready</strong>
+            <button class="bumble-ready-yes" id="bumble-ready-yes" type="button">YES</button>
+          </div>
+          <div class="bumble-message-pop" id="bumble-message-pop" aria-hidden="true">
+            u should try better this guy is ugly
           </div>
           <p class="bumble-instruction" id="bumble-instruction">Swipe left or right</p>
           <div class="bumble-actions">
