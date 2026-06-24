@@ -1272,7 +1272,8 @@ body.media-open .phone-button {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #101417;
 }
 
 .phone-launch-bumble {
@@ -1393,9 +1394,9 @@ body.phone-launch-open .phone-button {
 
 .bumble-phone {
   position: relative;
-  width: min(330px, calc(100vw - 34px));
+  width: min(330px, calc(100vw - 34px), calc((var(--app-height) - 34px) * 0.56));
   height: min(640px, calc(var(--app-height) - 34px));
-  min-height: 470px;
+  min-height: 0;
   padding: 14px;
   border: 8px solid #17151b;
   border-radius: 32px;
@@ -1439,7 +1440,7 @@ body.phone-launch-open .phone-button {
 .bumble-card-stack {
   position: relative;
   height: calc(100% - 128px);
-  min-height: 300px;
+  min-height: 0;
   margin-top: 8px;
   overflow: hidden;
   border-radius: 22px;
@@ -2023,6 +2024,37 @@ body.bumble-open .phone-button {
 
   .touch-stick {
     display: block;
+  }
+
+  .bumble-app {
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  .bumble-phone {
+    width: min(330px, calc(100vw - 20px), calc((var(--app-height) - 18px) * 0.56));
+    height: min(640px, calc(var(--app-height) - 18px));
+    padding: 10px;
+    border-width: 6px;
+  }
+
+  .bumble-status {
+    height: 32px;
+  }
+
+  .bumble-card-stack {
+    height: calc(100% - 108px);
+    margin-top: 5px;
+  }
+
+  .bumble-instruction {
+    min-height: 18px;
+    margin: 6px 0;
+  }
+
+  .bumble-swipe {
+    width: 50px;
+    height: 50px;
   }
 
   .prompt-panel {
