@@ -2187,7 +2187,8 @@ canvas.addEventListener(
 );
 
 stick.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) return;
+  event.preventDefault();
   pointer.active = true;
   pointer.id = event.pointerId;
   pointer.origin.set(event.clientX, event.clientY);
@@ -2197,15 +2198,18 @@ stick.addEventListener('pointerdown', (event) => {
 
 stick.addEventListener('pointermove', (event) => {
   if (!pointer.active || pointer.id !== event.pointerId) return;
+  event.preventDefault();
   pointer.current.set(event.clientX, event.clientY);
 });
 
 stick.addEventListener('pointerup', (event) => {
   if (pointer.id !== event.pointerId) return;
+  event.preventDefault();
   resetTouchStick();
 });
 stick.addEventListener('pointercancel', (event) => {
   if (pointer.id !== event.pointerId) return;
+  event.preventDefault();
   resetTouchStick();
 });
 stick.addEventListener('lostpointercapture', (event) => {
@@ -2230,13 +2234,14 @@ function updateInput() {
     const delta = pointer.current.clone().sub(pointer.origin);
     const length = Math.min(delta.length(), 46);
     if (length < 4) {
-      resetTouchStick();
+      knob.style.transform = 'translate(-50%, -50%)';
+      move.set(0, 0);
     } else {
-    const angle = Math.atan2(delta.y, delta.x);
-    const x = Math.cos(angle) * length;
-    const y = Math.sin(angle) * length;
-    knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-    move.set(x / 46, -y / 46);
+      const angle = Math.atan2(delta.y, delta.x);
+      const x = Math.cos(angle) * length;
+      const y = Math.sin(angle) * length;
+      knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      move.set(x / 46, -y / 46);
     }
   }
 
