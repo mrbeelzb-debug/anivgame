@@ -1725,6 +1725,107 @@ body.bumble-open .phone-button {
   display: none !important;
 }
 
+.chat-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  opacity: 0;
+  background: #000;
+  pointer-events: none;
+  transition:
+    opacity 320ms ease,
+    visibility 320ms ease;
+}
+
+.chat-scene.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.chat-panel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: min(760px, 100%);
+  height: min(720px, 100%);
+  border: 2px solid rgb(255 212 71 / 68%);
+  border-radius: 18px;
+  overflow: hidden;
+  background: #080808;
+  box-shadow:
+    0 26px 90px rgb(0 0 0 / 72%),
+    0 0 34px rgb(255 212 71 / 18%);
+  animation: chat-panel-in 360ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.chat-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 54px;
+  padding: 0 16px;
+  color: #ffd447;
+  background: #111;
+  border-bottom: 1px solid rgb(255 212 71 / 28%);
+  font-weight: 950;
+}
+
+.chat-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 50%;
+  color: #fff8ed;
+  background: rgb(255 255 255 / 8%);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  touch-action: manipulation;
+}
+
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  overflow: auto;
+}
+
+.chat-bubble {
+  max-width: min(74%, 520px);
+  padding: 13px 15px;
+  border-radius: 18px;
+  font-weight: 850;
+  line-height: 1.35;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 28%);
+}
+
+.chat-bubble-yellow {
+  align-self: flex-end;
+  color: #201314;
+  background: #ffd447;
+}
+
+.chat-bubble-white {
+  align-self: flex-start;
+  color: #201314;
+  background: #fff8ed;
+}
+
+body.chat-open .hud,
+body.chat-open .touch-stick,
+body.chat-open .dog-bubble,
+body.chat-open .cuddle-button,
+body.chat-open .door-button,
+body.chat-open .phone-button {
+  display: none !important;
+}
+
 @keyframes bumble-phone-in {
   from {
     opacity: 0;
@@ -1734,6 +1835,18 @@ body.bumble-open .phone-button {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chat-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

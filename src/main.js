@@ -50,6 +50,8 @@ const bumbleRight = document.querySelector('#bumble-right');
 const bumbleReady = document.querySelector('#bumble-ready');
 const bumbleReadyYes = document.querySelector('#bumble-ready-yes');
 const bumbleMessagePop = document.querySelector('#bumble-message-pop');
+const chatScene = document.querySelector('#chat-scene');
+const chatClose = document.querySelector('#chat-close');
 const mediaViewer = document.querySelector('#media-viewer');
 const mediaStage = document.querySelector('#media-stage');
 const mediaTitle = document.querySelector('#media-title');
@@ -1022,6 +1024,7 @@ let bumbleCardIndex = 0;
 let bumbleQuietRightAttempts = 0;
 let bumbleFinalLeftAttempts = 0;
 let bumbleMessageTimer = null;
+let chatOpen = false;
 let mediaOpen = false;
 let mediaIndex = 0;
 let phoneLaunchOpen = false;
@@ -1236,6 +1239,23 @@ function closeBumbleApp() {
   stopMovementInput();
 }
 
+function openChatScene() {
+  closeBumbleApp();
+  chatOpen = true;
+  stopMovementInput();
+  chatScene.classList.add('is-visible');
+  chatScene.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('chat-open');
+}
+
+function closeChatScene() {
+  chatOpen = false;
+  chatScene.classList.remove('is-visible');
+  chatScene.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('chat-open');
+  stopMovementInput();
+}
+
 function denyBumbleSwipe(direction) {
   const activeCard = bumbleCards[bumbleCardIndex];
   if (!activeCard) return;
@@ -1300,6 +1320,9 @@ function swipeBumbleRight() {
   bumbleLogoPulseUntil = clock.elapsedTime + 2.2;
   if (activeCard.dataset.rightAction === 'finish') {
     bumbleRight.classList.add('is-disabled');
+    window.setTimeout(() => {
+      if (bumbleOpen) openChatScene();
+    }, 320);
     return;
   }
   window.setTimeout(() => {
@@ -1878,6 +1901,10 @@ window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closePhoneLaunch();
     return;
   }
+  if (chatOpen) {
+    if (event.key === 'Escape') closeChatScene();
+    return;
+  }
   if (mediaOpen) {
     if (event.key === 'Escape') closeMediaViewer();
     if (event.key === 'ArrowLeft') showNextMedia(-1);
@@ -1956,7 +1983,7 @@ tutorialNext.addEventListener('click', () => {
 tutorialSkip.addEventListener('click', finishTutorial);
 
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
   if (roomEditorActive && currentArea === 'bedroom') {
     if (event.pointerType !== 'touch' && event.button === 2) {
       draggingLook = true;
@@ -2020,6 +2047,10 @@ bumbleCardStack.addEventListener('pointerdown', startBumbleSwipe);
 bumbleCardStack.addEventListener('pointermove', moveBumbleSwipe);
 bumbleCardStack.addEventListener('pointerup', finishBumbleSwipe);
 bumbleCardStack.addEventListener('pointercancel', resetBumbleCardDrag);
+chatClose.addEventListener('click', closeChatScene);
+chatScene.addEventListener('pointerdown', (event) => {
+  if (event.target === chatScene) closeChatScene();
+});
 mediaClose.addEventListener('click', closeMediaViewer);
 mediaPrev.addEventListener('click', () => showNextMedia(-1));
 mediaNext.addEventListener('click', () => showNextMedia(1));
@@ -2135,7 +2166,7 @@ editorDelete.addEventListener('click', () => {
 });
 
 canvas.addEventListener('pointermove', (event) => {
-  if (bumbleOpen || mediaOpen || phoneLaunchOpen) return;
+  if (bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
   if (moveEditorDrag(event)) return;
   if (event.pointerType === 'touch') {
     if (!pinchPointers.has(event.pointerId)) return;
@@ -2187,7 +2218,7 @@ canvas.addEventListener(
 );
 
 stick.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
   event.preventDefault();
   pointer.active = true;
   pointer.id = event.pointerId;
@@ -2219,7 +2250,7 @@ stick.addEventListener('lostpointercapture', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen) {
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) {
     pointer.active = false;
     pointer.id = null;
     knob.style.transform = 'translate(-50%, -50%)';
