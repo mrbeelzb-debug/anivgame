@@ -1269,6 +1269,28 @@ body.media-open .phone-button {
   transition: transform 900ms cubic-bezier(0.18, 0.86, 0.16, 1), filter 900ms ease;
 }
 
+.phone-launch-screen::after,
+.bumble-phone::after,
+.chat-panel::after {
+  position: absolute;
+  left: 50%;
+  top: max(12px, env(safe-area-inset-top));
+  z-index: 6;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: #201314;
+  background: rgb(255 248 237 / 92%);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 20%);
+  content: "rotate portrait for full view";
+  font-size: 0.78rem;
+  font-weight: 950;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 180ms ease;
+  white-space: nowrap;
+}
+
 .phone-launch-screen > img {
   display: block;
   width: 100%;
@@ -1559,11 +1581,12 @@ body.phone-launch-open .phone-button {
 
 .bumble-ready {
   display: none;
-  height: calc(100% - 88px);
-  min-height: 330px;
+  height: calc(100% - 52px);
+  min-height: 0;
+  padding: 18px 14px;
   place-items: center;
   align-content: center;
-  gap: 26px;
+  gap: 22px;
   margin-top: 8px;
   border-radius: 24px;
   background:
@@ -1579,26 +1602,16 @@ body.phone-launch-open .phone-button {
 }
 
 .bumble-message-pop {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 5;
-  width: min(250px, 78%);
-  padding: 18px 16px;
-  border: 3px solid #ffd447;
-  border-radius: 20px;
-  color: #201314;
-  background: #fff8ed;
-  box-shadow:
-    0 18px 36px rgb(0 0 0 / 24%),
-    0 0 28px rgb(255 212 71 / 42%);
-  font-size: 1rem;
+  min-height: 22px;
+  margin: 8px 8px 2px;
+  color: #7b2231;
+  font-size: 0.88rem;
   font-weight: 950;
-  line-height: 1.2;
+  line-height: 1.25;
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -44%) scale(0.88);
+  transform: translateY(4px);
   transition:
     opacity 180ms ease,
     transform 180ms ease;
@@ -1606,14 +1619,15 @@ body.phone-launch-open .phone-button {
 
 .bumble-message-pop.is-visible {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translateY(0);
 }
 
 .bumble-ready strong {
   color: #f4a900;
-  font-size: clamp(2.1rem, 12vw, 3.6rem);
+  max-width: 7ch;
+  font-size: 3rem;
   font-weight: 950;
-  line-height: 0.95;
+  line-height: 1;
   text-shadow:
     0 3px 0 rgb(118 74 0 / 12%),
     0 12px 24px rgb(244 169 0 / 22%);
@@ -1621,7 +1635,7 @@ body.phone-launch-open .phone-button {
 
 .bumble-ready-yes {
   min-width: 170px;
-  min-height: 70px;
+  min-height: 64px;
   border: 0;
   border-radius: 999px;
   color: #201314;
@@ -1750,6 +1764,7 @@ body.bumble-open .phone-button {
 }
 
 .chat-panel {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
   width: 100%;
@@ -2394,6 +2409,27 @@ body.chat-open .phone-button {
     margin: 6px 0;
   }
 
+  .bumble-ready {
+    height: calc(100% - 42px);
+    gap: 16px;
+    padding: 14px 10px;
+  }
+
+  .bumble-ready strong {
+    font-size: 2.35rem;
+  }
+
+  .bumble-ready-yes {
+    min-width: 150px;
+    min-height: 56px;
+    font-size: 1.25rem;
+  }
+
+  .bumble-message-pop {
+    margin: 6px 6px 0;
+    font-size: 0.78rem;
+  }
+
   .bumble-swipe {
     width: 50px;
     height: 50px;
@@ -2471,6 +2507,20 @@ body.chat-open .phone-button {
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   .rotate-device {
     display: grid;
+  }
+
+  body.phone-launch-open .rotate-device,
+  body.bumble-open .rotate-device,
+  body.chat-open .rotate-device {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) {
+  body.phone-launch-open .phone-launch-screen::after,
+  body.bumble-open .bumble-phone::after,
+  body.chat-open .chat-panel::after {
+    opacity: 1;
   }
 }
 

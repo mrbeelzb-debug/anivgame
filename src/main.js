@@ -1220,7 +1220,7 @@ function showBumbleMessagePop(message = "u should try better this guy is ugly") 
   bumbleMessagePop.textContent = message;
   bumbleMessagePop.classList.add('is-visible');
   bumbleMessagePop.setAttribute('aria-hidden', 'false');
-  bumbleMessageTimer = window.setTimeout(hideBumbleMessagePop, 10000);
+  bumbleMessageTimer = window.setTimeout(hideBumbleMessagePop, 4000);
 }
 
 function showPostReadyBumbleCards() {
