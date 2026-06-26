@@ -1986,6 +1986,63 @@ body.bumble-open .phone-button {
   animation: chat-heart-float 3s ease-out forwards;
 }
 
+.chat-final-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  overflow: hidden;
+  background: #fff;
+  color: #201314;
+  animation: chat-white-in 420ms ease both;
+}
+
+.chat-final-title {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: min(340px, calc(100% - 40px));
+  color: #201314;
+  font-size: clamp(2.3rem, 9vw, 5.2rem);
+  font-weight: 950;
+  line-height: 0.95;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.chat-final-yes,
+.chat-final-no {
+  position: absolute;
+  min-width: 118px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 950;
+  touch-action: manipulation;
+  box-shadow: 0 16px 34px rgb(0 0 0 / 18%);
+}
+
+.chat-final-yes {
+  left: 50%;
+  top: 54%;
+  color: #201314;
+  background: #ffd447;
+  transform: translate(-50%, -50%);
+}
+
+.chat-final-no {
+  left: calc(50% + 90px);
+  top: 54%;
+  color: #fff;
+  background: #201314;
+  transition:
+    left 180ms ease,
+    top 180ms ease,
+    transform 180ms ease;
+}
+
 body.chat-open .hud,
 body.chat-open .touch-stick,
 body.chat-open .dog-bubble,
@@ -2091,6 +2148,12 @@ body.chat-open .phone-button {
   100% {
     opacity: 0;
     transform: translate3d(var(--heart-drift), -112vh, 0) scale(1.25) rotate(14deg);
+  }
+}
+
+@keyframes chat-white-in {
+  from {
+    opacity: 0;
   }
 }
 

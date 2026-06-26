@@ -57,6 +57,7 @@ const chatThread = document.querySelector('#chat-thread');
 const chatChoices = document.querySelector('#chat-choices');
 const chatFeedback = document.querySelector('#chat-feedback');
 const chatHearts = document.querySelector('#chat-hearts');
+const chatBody = document.querySelector('.chat-body');
 const mediaViewer = document.querySelector('#media-viewer');
 const mediaStage = document.querySelector('#media-stage');
 const mediaTitle = document.querySelector('#media-title');
@@ -1066,6 +1067,28 @@ const chatChoiceSets = {
     },
     { text: "ih gajelas banget gamau mulai dari awal lagi", correct: false },
   ],
+  third: [
+    { text: "ya iyalah, aku chindo akut, harus sesama chindo", correct: false },
+    { text: "hmm this guy kinda cute", correct: false },
+    { text: "well for me i dont think bout this anymore", correct: true },
+  ],
+  fourth: [
+    { text: "wtf? i'm nott!", correct: true },
+    { text: "yes i can be wild for you 👄", correct: false },
+    { text: "ewhhhh this guy disgustingg", correct: false },
+  ],
+  final: [
+    {
+      text: "because i like you and i think you are gonna stick with me more than years and we can go all the way facing every problem?",
+      correct: false,
+    },
+    { text: "hmm maybe because i just wanna use you?", correct: false },
+    {
+      text: "kaya, the way u text me it's affect my feelings",
+      hint: "iihh maluu maluuu",
+      correct: true,
+    },
+  ],
 };
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
@@ -1344,6 +1367,10 @@ function speedUpChatTyping() {
   if (chatTyping) chatTyping.fast = true;
 }
 
+function hideChatFinalScreen() {
+  chatBody.querySelector('.chat-final-screen')?.remove();
+}
+
 function showChatChoices() {
   chatChoices.replaceChildren();
   chatChoices.classList.add('is-visible');
@@ -1406,11 +1433,19 @@ function chooseChatAnswer(option, button) {
   const completedStep = chatChoiceStep;
   typeChatBubble(answerBubble, option.sendText || option.text, () => {
     burstChatHearts();
-    if (completedStep === 'first') {
-      addChatTimer(startReferenceChatScript, 950);
-      return;
+    const nextStep = {
+      first: startReferenceChatScript,
+      second: startThirdQuestionScript,
+      third: startFourthQuestionScript,
+      fourth: startFinalQuestionScript,
+      final: startMoveSomewhereScript,
+    }[completedStep];
+
+    if (nextStep) {
+      addChatTimer(nextStep, 950);
+    } else {
+      chatSolved = true;
     }
-    chatSolved = true;
   });
 }
 
@@ -1444,6 +1479,104 @@ function startReferenceChatScript() {
   );
 }
 
+function startThirdQuestionScript() {
+  chatChoiceStep = 'third';
+  typeChatSequence(
+    [
+      { side: 'guy', text: "kdg udah ketemu yang tepat, tapi kepisah sama agama" },
+      { side: 'girl', text: "3rd question" },
+    ],
+    () => addChatTimer(showChatChoices, 320),
+  );
+}
+
+function startFourthQuestionScript() {
+  chatChoiceStep = 'fourth';
+  typeChatSequence(
+    [
+      {
+        side: 'girl',
+        text: "Even kaya yag penting cm yaudahlah, risk it, karna uda ktemu sama yang seagama pun bisa bubar2 juga, So let it be aja gausa jadi pikiran",
+      },
+      { side: 'guy', text: "ur cute, also funny 🤣" },
+      { side: 'girl', text: "aaaa :\")" },
+      {
+        side: 'guy',
+        text: "i thought u were the hypebeast sexy girl kiddo, who like doing some high stuff",
+      },
+    ],
+    () => addChatTimer(showChatChoices, 320),
+  );
+}
+
+function startFinalQuestionScript() {
+  chatChoiceStep = 'final';
+  typeChatSequence(
+    [
+      { side: 'guy', text: "hahaha chill you can be honest with ur self." },
+      { side: 'guy', text: "why in the start you tap me on?" },
+    ],
+    () => addChatTimer(showChatChoices, 320),
+  );
+}
+
+function moveNoButton(button, screen) {
+  const maxX = Math.max(40, screen.clientWidth - button.offsetWidth - 20);
+  const maxY = Math.max(40, screen.clientHeight - button.offsetHeight - 20);
+  button.style.left = `${20 + Math.random() * (maxX - 20)}px`;
+  button.style.top = `${110 + Math.random() * Math.max(20, maxY - 120)}px`;
+}
+
+function showMoveSomewhereChoice() {
+  hideChatFinalScreen();
+  const screen = document.createElement('div');
+  screen.className = 'chat-final-screen';
+
+  const title = document.createElement('div');
+  title.className = 'chat-final-title';
+  title.textContent = "yes?";
+
+  const yesButton = document.createElement('button');
+  yesButton.type = 'button';
+  yesButton.className = 'chat-final-yes';
+  yesButton.textContent = "YES";
+  yesButton.addEventListener('click', () => {
+    title.textContent = "yesss :\")";
+    burstChatHearts();
+  });
+
+  const noButton = document.createElement('button');
+  noButton.type = 'button';
+  noButton.className = 'chat-final-no';
+  noButton.textContent = "NO";
+  noButton.addEventListener('pointerenter', () => moveNoButton(noButton, screen));
+  noButton.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    moveNoButton(noButton, screen);
+  });
+  noButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    moveNoButton(noButton, screen);
+  });
+
+  screen.append(title, yesButton, noButton);
+  chatBody.append(screen);
+  addChatTimer(() => moveNoButton(noButton, screen), 80);
+}
+
+function startMoveSomewhereScript() {
+  chatSolved = true;
+  typeChatSequence(
+    [
+      {
+        side: 'guy',
+        text: "should we move to somewhere else? start something or texting somewhere else or maybe call?",
+      },
+    ],
+    () => addChatTimer(showMoveSomewhereChoice, 520),
+  );
+}
+
 function startChatScript() {
   clearChatTimers();
   chatSolved = false;
@@ -1452,6 +1585,7 @@ function startChatScript() {
   chatChoices.replaceChildren();
   chatFeedback.textContent = "";
   chatHearts.replaceChildren();
+  hideChatFinalScreen();
   chatChoices.classList.remove('is-visible', 'is-shaking');
   chatPanel.classList.remove('is-shaking');
 
@@ -1484,6 +1618,7 @@ function openChatScene() {
 function closeChatScene() {
   chatOpen = false;
   clearChatTimers();
+  hideChatFinalScreen();
   chatScene.classList.remove('is-visible');
   chatScene.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('chat-open');
