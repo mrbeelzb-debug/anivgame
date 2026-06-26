@@ -51,7 +51,12 @@ const bumbleReady = document.querySelector('#bumble-ready');
 const bumbleReadyYes = document.querySelector('#bumble-ready-yes');
 const bumbleMessagePop = document.querySelector('#bumble-message-pop');
 const chatScene = document.querySelector('#chat-scene');
+const chatPanel = document.querySelector('.chat-panel');
 const chatClose = document.querySelector('#chat-close');
+const chatThread = document.querySelector('#chat-thread');
+const chatChoices = document.querySelector('#chat-choices');
+const chatFeedback = document.querySelector('#chat-feedback');
+const chatHearts = document.querySelector('#chat-hearts');
 const mediaViewer = document.querySelector('#media-viewer');
 const mediaStage = document.querySelector('#media-stage');
 const mediaTitle = document.querySelector('#media-title');
@@ -1025,6 +1030,10 @@ let bumbleQuietRightAttempts = 0;
 let bumbleFinalLeftAttempts = 0;
 let bumbleMessageTimer = null;
 let chatOpen = false;
+let chatSolved = false;
+const chatTimers = [];
+let chatTyping = null;
+let chatChoiceStep = 'first';
 let mediaOpen = false;
 let mediaIndex = 0;
 let phoneLaunchOpen = false;
@@ -1042,6 +1051,22 @@ const bumbleFinalLeftMessages = [
   "no option to swipe left! swipe RIGHT!",
   "SWIPE RIGHT RN!",
 ];
+const chatChoiceSets = {
+  first: [
+    { text: "No were not", correct: true },
+    { text: "f*ck this guy hot.", correct: false },
+    { text: "ewh Weird guy.", correct: false },
+  ],
+  second: [
+    { text: "ih ni orang lucu", correct: false },
+    {
+      text: "karena belum ketemu orang yang tepat ga sih",
+      hint: "this guy kinda cute and handsome",
+      correct: true,
+    },
+    { text: "ih gajelas banget gamau mulai dari awal lagi", correct: false },
+  ],
+};
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
 
@@ -1239,10 +1264,218 @@ function closeBumbleApp() {
   stopMovementInput();
 }
 
+function clearChatTimers() {
+  while (chatTimers.length) {
+    clearTimeout(chatTimers.pop());
+  }
+  chatTyping = null;
+}
+
+function addChatTimer(callback, delay) {
+  const timer = window.setTimeout(() => {
+    const index = chatTimers.indexOf(timer);
+    if (index >= 0) chatTimers.splice(index, 1);
+    callback();
+  }, delay);
+  chatTimers.push(timer);
+  return timer;
+}
+
+function scrollChatToBottom() {
+  chatThread.scrollTop = chatThread.scrollHeight;
+}
+
+function createChatBubble(side, text = "") {
+  const row = document.createElement('div');
+  row.className = `chat-row chat-row-${side}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `chat-avatar chat-avatar-${side}`;
+  avatar.setAttribute('aria-hidden', 'true');
+  avatar.textContent = side === 'girl' ? 'M' : '?';
+
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble chat-bubble-${side}`;
+  bubble.textContent = text;
+
+  if (side === 'girl') {
+    row.append(bubble, avatar);
+  } else {
+    row.append(avatar, bubble);
+  }
+
+  chatThread.append(row);
+  scrollChatToBottom();
+  return bubble;
+}
+
+function typeChatBubble(bubble, text, onDone) {
+  const letters = [...text];
+  const state = {
+    bubble,
+    letters,
+    index: 0,
+    fast: false,
+  };
+  chatTyping = state;
+  bubble.classList.add('is-typing');
+  bubble.textContent = "";
+
+  function typeNextLetter() {
+    if (chatTyping !== state) return;
+    bubble.textContent += letters[state.index] || "";
+    state.index += 1;
+    scrollChatToBottom();
+
+    if (state.index >= letters.length) {
+      bubble.classList.remove('is-typing');
+      chatTyping = null;
+      if (onDone) onDone();
+      return;
+    }
+
+    addChatTimer(typeNextLetter, state.fast ? 26 : 145);
+  }
+
+  addChatTimer(typeNextLetter, 220);
+}
+
+function speedUpChatTyping() {
+  if (chatTyping) chatTyping.fast = true;
+}
+
+function showChatChoices() {
+  chatChoices.replaceChildren();
+  chatChoices.classList.add('is-visible');
+  const options = chatChoiceSets[chatChoiceStep] || chatChoiceSets.first;
+  options.forEach((option, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'chat-choice';
+    const label = document.createElement('span');
+    label.textContent = `${index + 1}. ${option.text}`;
+    button.append(label);
+    if (option.hint) {
+      const hint = document.createElement('small');
+      hint.textContent = option.hint;
+      button.append(hint);
+    }
+    button.addEventListener('click', () => chooseChatAnswer(option, button));
+    chatChoices.append(button);
+  });
+}
+
+function burstChatHearts() {
+  chatHearts.replaceChildren();
+  for (let i = 0; i < 34; i += 1) {
+    const heart = document.createElement('span');
+    heart.textContent = '♥';
+    heart.style.left = `${8 + Math.random() * 84}%`;
+    heart.style.animationDelay = `${Math.random() * 0.8}s`;
+    heart.style.animationDuration = `${2.4 + Math.random() * 1.5}s`;
+    heart.style.setProperty('--heart-drift', `${-36 + Math.random() * 72}px`);
+    heart.style.setProperty('--heart-scale', `${0.72 + Math.random() * 0.82}`);
+    chatHearts.append(heart);
+  }
+}
+
+function shakeWrongChatAnswer(button) {
+  chatPanel.classList.remove('is-shaking');
+  chatChoices.classList.remove('is-shaking');
+  button.classList.remove('is-wrong');
+  void chatPanel.offsetWidth;
+  chatPanel.classList.add('is-shaking');
+  chatChoices.classList.add('is-shaking');
+  button.classList.add('is-wrong');
+  chatFeedback.textContent = "it's wrong it not turn like this.";
+  if ('vibrate' in navigator) navigator.vibrate([45, 35, 45]);
+}
+
+function chooseChatAnswer(option, button) {
+  if (chatSolved) return;
+  if (!option.correct) {
+    shakeWrongChatAnswer(button);
+    return;
+  }
+
+  chatFeedback.textContent = "";
+  chatChoices.classList.remove('is-visible', 'is-shaking');
+  chatChoices.replaceChildren();
+  const answerBubble = createChatBubble('girl');
+  answerBubble.classList.add('is-confirmed');
+  const completedStep = chatChoiceStep;
+  typeChatBubble(answerBubble, option.sendText || option.text, () => {
+    burstChatHearts();
+    if (completedStep === 'first') {
+      addChatTimer(startReferenceChatScript, 950);
+      return;
+    }
+    chatSolved = true;
+  });
+}
+
+function typeChatSequence(messages, onDone) {
+  const [message, ...rest] = messages;
+  if (!message) {
+    if (onDone) onDone();
+    return;
+  }
+
+  const bubble = createChatBubble(message.side);
+  typeChatBubble(bubble, message.text, () => {
+    addChatTimer(() => typeChatSequence(rest, onDone), message.pause ?? 420);
+  });
+}
+
+function startReferenceChatScript() {
+  chatChoiceStep = 'second';
+  typeChatSequence(
+    [
+      { side: 'girl', text: "why" },
+      { side: 'guy', text: "nothing" },
+      { side: 'guy', text: "but nice to match u" },
+      { side: 'girl', text: "Yea its fine" },
+      { side: 'girl', text: "Nice to match u also" },
+      { side: 'guy', text: "cape ga sih? harus nyapa org baru lagi" },
+      { side: 'guy', text: "say hi lgi" },
+      { side: 'guy', text: "nanyain suka kopi apa atau makan apa lagi" },
+    ],
+    () => addChatTimer(showChatChoices, 320),
+  );
+}
+
+function startChatScript() {
+  clearChatTimers();
+  chatSolved = false;
+  chatChoiceStep = 'first';
+  chatThread.replaceChildren();
+  chatChoices.replaceChildren();
+  chatFeedback.textContent = "";
+  chatHearts.replaceChildren();
+  chatChoices.classList.remove('is-visible', 'is-shaking');
+  chatPanel.classList.remove('is-shaking');
+
+  const firstBubble = createChatBubble('girl');
+  typeChatBubble(firstBubble, "Hiii", () => {
+    addChatTimer(() => {
+      const guyHiBubble = createChatBubble('guy');
+      typeChatBubble(guyHiBubble, "Hiii", () => {
+        addChatTimer(() => {
+          const replyBubble = createChatBubble('guy');
+          typeChatBubble(replyBubble, "have we met before?", () => {
+            addChatTimer(showChatChoices, 320);
+          });
+        }, 420);
+      });
+    }, 420);
+  });
+}
+
 function openChatScene() {
   closeBumbleApp();
   chatOpen = true;
   stopMovementInput();
+  startChatScript();
   chatScene.classList.add('is-visible');
   chatScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('chat-open');
@@ -1250,6 +1483,7 @@ function openChatScene() {
 
 function closeChatScene() {
   chatOpen = false;
+  clearChatTimers();
   chatScene.classList.remove('is-visible');
   chatScene.setAttribute('aria-hidden', 'true');
   document.body.classList.remove('chat-open');
@@ -2048,6 +2282,7 @@ bumbleCardStack.addEventListener('pointermove', moveBumbleSwipe);
 bumbleCardStack.addEventListener('pointerup', finishBumbleSwipe);
 bumbleCardStack.addEventListener('pointercancel', resetBumbleCardDrag);
 chatClose.addEventListener('click', closeChatScene);
+chatPanel.addEventListener('pointerdown', speedUpChatTyping);
 chatScene.addEventListener('pointerdown', (event) => {
   if (event.target === chatScene) closeChatScene();
 });

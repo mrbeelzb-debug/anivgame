@@ -211,9 +211,11 @@
             <span>Chat</span>
             <button class="chat-close" id="chat-close" type="button" aria-label="Close chat">x</button>
           </div>
-          <div class="chat-thread" id="chat-thread">
-            <div class="chat-bubble chat-bubble-yellow">Chat story starts here...</div>
-            <div class="chat-bubble chat-bubble-white">We can fill this with the real messages later.</div>
+          <div class="chat-body">
+            <div class="chat-thread" id="chat-thread"></div>
+            <div class="chat-feedback" id="chat-feedback" aria-live="polite"></div>
+            <div class="chat-choices" id="chat-choices" aria-label="Choose your reply"></div>
+            <div class="chat-hearts" id="chat-hearts" aria-hidden="true"></div>
           </div>
         </div>
       </div>

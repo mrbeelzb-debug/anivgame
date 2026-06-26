@@ -1217,8 +1217,9 @@ body.media-open .phone-button {
 
 .phone-launch-shell {
   position: relative;
-  width: min(360px, calc(100vw - 40px));
+  width: min(430px, calc(100vw - 18px), calc((var(--app-height) - 18px) * 0.5625));
   aspect-ratio: 9 / 16;
+  max-height: calc(var(--app-height) - 18px);
   overflow: hidden;
   border: clamp(8px, 1.6vw, 14px) solid #151318;
   border-radius: 34px;
@@ -1394,8 +1395,8 @@ body.phone-launch-open .phone-button {
 
 .bumble-phone {
   position: relative;
-  width: min(330px, calc(100vw - 34px), calc((var(--app-height) - 34px) * 0.56));
-  height: min(640px, calc(var(--app-height) - 34px));
+  width: min(430px, calc(100vw - 18px), calc((var(--app-height) - 18px) * 0.56));
+  height: min(760px, calc(var(--app-height) - 18px));
   min-height: 0;
   padding: 14px;
   border: 8px solid #17151b;
@@ -1732,8 +1733,8 @@ body.bumble-open .phone-button {
   display: grid;
   place-items: center;
   visibility: hidden;
-  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
-    max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+  padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+    max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
   opacity: 0;
   background: #000;
   pointer-events: none;
@@ -1751,16 +1752,20 @@ body.bumble-open .phone-button {
 .chat-panel {
   display: grid;
   grid-template-rows: auto 1fr;
-  width: min(760px, 100%);
-  height: min(720px, 100%);
+  width: 100%;
+  height: 100%;
   border: 2px solid rgb(255 212 71 / 68%);
-  border-radius: 18px;
+  border-radius: 14px;
   overflow: hidden;
   background: #080808;
   box-shadow:
     0 26px 90px rgb(0 0 0 / 72%),
     0 0 34px rgb(255 212 71 / 18%);
   animation: chat-panel-in 360ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.chat-panel.is-shaking {
+  animation: chat-panel-shake 340ms ease;
 }
 
 .chat-topbar {
@@ -1788,12 +1793,62 @@ body.bumble-open .phone-button {
   touch-action: manipulation;
 }
 
+.chat-body {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(rgb(255 255 255 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 4%) 1px, transparent 1px),
+    #080808;
+  background-size: 28px 28px;
+}
+
 .chat-thread {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   padding: 18px;
   overflow: auto;
+}
+
+.chat-row {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  width: 100%;
+  animation: chat-message-in 220ms ease both;
+}
+
+.chat-row-girl {
+  justify-content: flex-end;
+}
+
+.chat-row-guy {
+  justify-content: flex-start;
+}
+
+.chat-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #201314;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 28%);
+  font-size: 0.84rem;
+  font-weight: 950;
+}
+
+.chat-avatar-girl {
+  background: linear-gradient(135deg, #fff8ed, #ffffff);
+}
+
+.chat-avatar-guy {
+  background: linear-gradient(135deg, #ffd447, #ffe27a);
 }
 
 .chat-bubble {
@@ -1803,18 +1858,117 @@ body.bumble-open .phone-button {
   font-weight: 850;
   line-height: 1.35;
   box-shadow: 0 12px 26px rgb(0 0 0 / 28%);
+  white-space: pre-wrap;
 }
 
+.chat-bubble-guy,
 .chat-bubble-yellow {
-  align-self: flex-end;
   color: #201314;
   background: #ffd447;
 }
 
+.chat-bubble-girl,
 .chat-bubble-white {
-  align-self: flex-start;
   color: #201314;
   background: #fff8ed;
+}
+
+.chat-bubble.is-typing::after {
+  display: inline-block;
+  width: 0.6em;
+  content: "|";
+  animation: chat-caret 680ms steps(1) infinite;
+}
+
+.chat-bubble.is-confirmed {
+  box-shadow:
+    0 12px 26px rgb(0 0 0 / 28%),
+    0 0 30px rgb(255 183 208 / 36%);
+}
+
+.chat-feedback {
+  min-height: 26px;
+  padding: 0 18px 6px;
+  color: #ffb7d0;
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.chat-choices {
+  display: none;
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+
+.chat-choices.is-visible {
+  display: grid;
+}
+
+.chat-choices.is-shaking {
+  animation: chat-choice-shake 320ms ease;
+}
+
+.chat-choice {
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 212 71 / 42%);
+  border-radius: 8px;
+  color: #201314;
+  background: #fff8ed;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 22%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.94rem;
+  font-weight: 950;
+  text-align: left;
+  touch-action: manipulation;
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.chat-choice small {
+  color: rgb(32 19 20 / 58%);
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.chat-choice:hover {
+  transform: translateY(-1px);
+  background: #fff1c6;
+}
+
+.chat-choice:active {
+  transform: scale(0.98);
+}
+
+.chat-choice.is-wrong {
+  border-color: #ff6f9d;
+  background: #ffe2ec;
+}
+
+.chat-hearts {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.chat-hearts span {
+  position: absolute;
+  bottom: -36px;
+  color: #ff7aa8;
+  font-size: calc(20px * var(--heart-scale));
+  text-shadow:
+    0 0 12px rgb(255 122 168 / 72%),
+    0 8px 18px rgb(0 0 0 / 22%);
+  opacity: 0;
+  animation: chat-heart-float 3s ease-out forwards;
 }
 
 body.chat-open .hud,
@@ -1847,6 +2001,81 @@ body.chat-open .phone-button {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes chat-panel-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  18% {
+    transform: translateX(-10px) rotate(-0.8deg);
+  }
+
+  36% {
+    transform: translateX(11px) rotate(0.8deg);
+  }
+
+  58% {
+    transform: translateX(-7px) rotate(-0.45deg);
+  }
+
+  78% {
+    transform: translateX(5px) rotate(0.35deg);
+  }
+}
+
+@keyframes chat-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@keyframes chat-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes chat-choice-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(8px);
+  }
+
+  50% {
+    transform: translateX(-8px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes chat-heart-float {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.5) rotate(-8deg);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--heart-drift), -112vh, 0) scale(1.25) rotate(14deg);
   }
 }
 
@@ -2145,8 +2374,8 @@ body.chat-open .phone-button {
   }
 
   .bumble-phone {
-    width: min(330px, calc(100vw - 20px), calc((var(--app-height) - 18px) * 0.56));
-    height: min(640px, calc(var(--app-height) - 18px));
+    width: min(430px, calc(100vw - 12px), calc((var(--app-height) - 12px) * 0.56));
+    height: min(760px, calc(var(--app-height) - 12px));
     padding: 10px;
     border-width: 6px;
   }
@@ -2246,6 +2475,39 @@ body.chat-open .phone-button {
 }
 
 @media (max-width: 430px) {
+  .chat-scene {
+    padding: 0;
+  }
+
+  .chat-panel {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
+  .chat-topbar {
+    min-height: 48px;
+  }
+
+  .chat-thread {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .chat-choices {
+    padding: 0 12px 12px;
+  }
+
+  .chat-bubble {
+    max-width: min(78%, 520px);
+    padding: 11px 13px;
+  }
+
+  .chat-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
   .prompt-panel p:last-child {
     display: none;
   }
