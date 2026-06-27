@@ -658,6 +658,18 @@ body.tutorial-active .phone-button {
   box-shadow: 0 0 20px rgb(255 143 171 / 70%);
 }
 
+.mission-status {
+  display: none;
+  padding-left: 10px;
+  color: #ffd447;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.mission-status:not(:empty) {
+  display: inline;
+}
+
 .counter {
   display: inline-flex;
   align-items: center;
@@ -1763,6 +1775,14 @@ body.bumble-open .phone-button {
   pointer-events: auto;
 }
 
+.chat-scene.is-returning {
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 1400ms ease,
+    visibility 1400ms ease;
+}
+
 .chat-panel {
   position: relative;
   display: grid;
@@ -2050,6 +2070,177 @@ body.chat-open .cuddle-button,
 body.chat-open .door-button,
 body.chat-open .phone-button {
   display: none !important;
+}
+
+.puzzle-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 82;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  opacity: 0;
+  background: rgb(8 8 8 / 72%);
+  pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    visibility 300ms ease;
+}
+
+.puzzle-scene.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.puzzle-panel {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  width: min(86vmin, 720px);
+  max-height: min(92vh, 760px);
+  padding: 12px;
+  border: 2px solid rgb(255 212 71 / 72%);
+  border-radius: 14px;
+  color: #201314;
+  background: #fff8ed;
+  box-shadow:
+    0 26px 80px rgb(0 0 0 / 52%),
+    0 0 34px rgb(255 143 171 / 26%);
+  animation: chat-panel-in 360ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  font-weight: 950;
+}
+
+.puzzle-close {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  color: #fff8ed;
+  background: #201314;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  touch-action: manipulation;
+}
+
+.puzzle-picker {
+  display: none;
+  justify-content: center;
+  padding: 8px 0 12px;
+}
+
+.puzzle-picker.is-visible {
+  display: flex;
+}
+
+.puzzle-pick-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: #201314;
+  background: #ffd447;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  touch-action: manipulation;
+  box-shadow: 0 12px 24px rgb(0 0 0 / 16%);
+}
+
+.puzzle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: min(72vmin, 620px);
+  aspect-ratio: 1;
+  justify-self: center;
+  overflow: hidden;
+  border: 2px solid #201314;
+  border-radius: 10px;
+  background: #ebe8e3;
+}
+
+.puzzle-tile {
+  appearance: none;
+  padding: 0;
+  border: 1px solid rgb(32 19 20 / 72%);
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  background-color: #ebe8e3;
+  cursor: pointer;
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
+}
+
+.puzzle-tile.is-selected {
+  filter: brightness(1.16) saturate(1.18);
+  transform: scale(0.96);
+  outline: 3px solid #ffd447;
+  outline-offset: -5px;
+}
+
+.puzzle-status {
+  min-height: 30px;
+  padding-top: 10px;
+  font-weight: 900;
+  text-align: center;
+}
+
+body.puzzle-open .hud,
+body.puzzle-open .touch-stick,
+body.puzzle-open .dog-bubble,
+body.puzzle-open .cuddle-button,
+body.puzzle-open .door-button,
+body.puzzle-open .phone-button {
+  display: none !important;
+}
+
+.meetup-choices {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: none;
+  width: min(760px, calc(100vw - 28px));
+  gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.meetup-choices.is-visible {
+  display: grid;
+}
+
+.meetup-choice {
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid rgb(255 212 71 / 58%);
+  border-radius: 8px;
+  color: #201314;
+  background: #fff8ed;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 20%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.meetup-choice.is-wrong {
+  background: #ffe0ea;
+  border-color: #ff6f9d;
 }
 
 @keyframes bumble-phone-in {

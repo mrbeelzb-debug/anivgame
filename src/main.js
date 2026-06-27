@@ -8,6 +8,8 @@ import './styles.css';
 
 const canvas = document.querySelector('#game');
 const memoryCount = document.querySelector('#memory-count');
+const memoryTotal = document.querySelector('#memory-total');
+const missionStatus = document.querySelector('#mission-status');
 const stick = document.querySelector('#touch-stick');
 const knob = document.querySelector('#touch-knob');
 const mainMenu = document.querySelector('#main-menu');
@@ -58,6 +60,14 @@ const chatChoices = document.querySelector('#chat-choices');
 const chatFeedback = document.querySelector('#chat-feedback');
 const chatHearts = document.querySelector('#chat-hearts');
 const chatBody = document.querySelector('.chat-body');
+const puzzleScene = document.querySelector('#puzzle-scene');
+const puzzlePicker = document.querySelector('#puzzle-picker');
+const puzzlePickButton = document.querySelector('#puzzle-pick-button');
+const puzzleFileInput = document.querySelector('#puzzle-file-input');
+const puzzleGrid = document.querySelector('#puzzle-grid');
+const puzzleStatus = document.querySelector('#puzzle-status');
+const puzzleClose = document.querySelector('#puzzle-close');
+const meetupChoices = document.querySelector('#meetup-choices');
 const mediaViewer = document.querySelector('#media-viewer');
 const mediaStage = document.querySelector('#media-stage');
 const mediaTitle = document.querySelector('#media-title');
@@ -101,6 +111,9 @@ bigPhoneTexture.colorSpace = THREE.SRGBColorSpace;
 bigPhoneTexture.anisotropy = 8;
 const roomFocusMode = true;
 const blankRoomMode = false;
+const chatFocusMode = true;
+const puzzleFocusMode = true;
+const outdoorFocusMode = true;
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -339,6 +352,76 @@ function createTextPlane(text, width, height, fontSize = 54) {
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
   plane.castShadow = false;
   return plane;
+}
+
+function roundRectPath(context, x, y, width, height, radius) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+}
+
+function wrapCanvasText(context, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (context.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+function createMeetupBubblePlane(side = 'guy') {
+  const canvasBubble = document.createElement('canvas');
+  canvasBubble.width = 768;
+  canvasBubble.height = 256;
+  const texture = new THREE.CanvasTexture(canvasBubble);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.55, 0.85), material);
+  plane.visible = false;
+  plane.userData.context = canvasBubble.getContext('2d');
+  plane.userData.texture = texture;
+  plane.userData.side = side;
+  outdoorArea.add(plane);
+  return plane;
+}
+
+function drawMeetupBubble(plane, text) {
+  const context = plane.userData.context;
+  const isGirl = plane.userData.side === 'girl';
+  context.clearRect(0, 0, 768, 256);
+  roundRectPath(context, 24, 28, 720, 160, 46);
+  context.fillStyle = isGirl ? '#fff8ed' : '#ffd447';
+  context.shadowColor = 'rgba(0, 0, 0, 0.24)';
+  context.shadowBlur = 18;
+  context.shadowOffsetY = 8;
+  context.fill();
+  context.shadowColor = 'transparent';
+  context.fillStyle = '#201314';
+  context.font = '900 42px Arial, sans-serif';
+  context.textBaseline = 'top';
+  const prefix = isGirl ? 'M: ' : '?: ';
+  const lines = wrapCanvasText(context, `${prefix}${text}`, 650).slice(0, 3);
+  lines.forEach((line, index) => {
+    context.fillText(line, 58, 58 + index * 48);
+  });
+  plane.userData.texture.needsUpdate = true;
+  plane.visible = true;
 }
 
 function addDaisy(parent, position, scale = 1) {
@@ -836,8 +919,247 @@ bumbleLogo.rotation.y = 0;
 bumbleLogo.userData.hitBox = bumbleLogoHitBox;
 room.add(bumbleLogo);
 
+const puzzleHeart = new THREE.Group();
+const puzzleHeartBaseMaterial = new THREE.MeshStandardMaterial({
+  color: 0xfff4d5,
+  emissive: 0xffd447,
+  emissiveIntensity: 0.18,
+  roughness: 0.58,
+});
+const puzzleHeartMesh = new THREE.Mesh(createHeartGeometry(), heartPinkMaterial.clone());
+const puzzleHeartBase = new THREE.Mesh(new THREE.CylinderGeometry(0.54, 0.62, 0.075, 36), puzzleHeartBaseMaterial);
+puzzleHeartMesh.position.y = 0.68;
+puzzleHeartMesh.rotation.x = -0.08;
+puzzleHeartMesh.scale.setScalar(0.72);
+puzzleHeartMesh.castShadow = true;
+puzzleHeartBase.castShadow = true;
+puzzleHeartBase.receiveShadow = true;
+puzzleHeart.add(puzzleHeartBase, puzzleHeartMesh);
+puzzleHeart.position.set(0, 6.4, 0.25);
+puzzleHeart.visible = false;
+room.add(puzzleHeart);
+
+const bedroomDoor = new THREE.Group();
+addPart(bedroomDoor, new THREE.BoxGeometry(1.34, 2.12, 0.18), doorMaterial, [0, 1.18, 0]);
+addPart(bedroomDoor, new THREE.BoxGeometry(1.62, 0.16, 0.22), doorTrimMaterial, [0, 2.32, 0.01]);
+addPart(bedroomDoor, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [-0.8, 1.22, 0.01]);
+addPart(bedroomDoor, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [0.8, 1.22, 0.01]);
+bedroomDoor.position.set(-0.2, doorDropStartY, 4.15);
+bedroomDoor.rotation.y = Math.PI;
+bedroomDoor.visible = false;
+room.add(bedroomDoor);
+
+const outdoorArea = new THREE.Group();
+outdoorArea.visible = false;
+scene.add(outdoorArea);
+
+const outdoorGrassMaterial = new THREE.MeshStandardMaterial({ color: 0x7abf86, roughness: 0.9 });
+const outdoorPathMaterial = new THREE.MeshStandardMaterial({ color: 0xf1d6b3, roughness: 0.86 });
+const outdoorBenchMaterial = new THREE.MeshStandardMaterial({ color: 0xd58b5f, roughness: 0.78 });
+const outdoorBenchLegMaterial = new THREE.MeshStandardMaterial({ color: 0x5b4638, roughness: 0.72 });
+const outdoorTableMaterial = new THREE.MeshStandardMaterial({ color: 0x141b1f, roughness: 0.62, metalness: 0.1 });
+const outdoorChairMaterial = new THREE.MeshStandardMaterial({ color: 0x2f3a42, roughness: 0.62, metalness: 0.12 });
+const outdoorPaverMaterial = new THREE.MeshStandardMaterial({ color: 0xd8cabc, roughness: 0.82 });
+const outdoorBuildingMaterial = new THREE.MeshStandardMaterial({ color: 0xd4c1b8, roughness: 0.78 });
+const outdoorBuildingAccentMaterial = new THREE.MeshStandardMaterial({ color: 0x9e6575, roughness: 0.76 });
+const outdoorGlassMaterial = new THREE.MeshStandardMaterial({
+  color: 0xc9eef2,
+  transparent: true,
+  opacity: 0.42,
+  roughness: 0.18,
+  metalness: 0.08,
+});
+const outdoorFrameMaterial = new THREE.MeshStandardMaterial({ color: 0xd7c9ad, roughness: 0.48, metalness: 0.18 });
+const outdoorHedgeMaterial = new THREE.MeshStandardMaterial({ color: 0x4f9b5b, roughness: 0.92 });
+const outdoorDarkLeafMaterial = new THREE.MeshStandardMaterial({ color: 0x2f6f3e, roughness: 0.94 });
+const guySkinMaterial = new THREE.MeshStandardMaterial({ color: 0xd49a82, roughness: 0.72 });
+const guyHairMaterial = new THREE.MeshStandardMaterial({ color: 0x161210, roughness: 0.88 });
+const guyShirtMaterial = new THREE.MeshStandardMaterial({ color: 0xf6f1e7, roughness: 0.82 });
+const guyGraphicMaterial = new THREE.MeshStandardMaterial({ color: 0xf28a2d, roughness: 0.78 });
+const guyPantsMaterial = new THREE.MeshStandardMaterial({ color: 0x5f7790, roughness: 0.86 });
+const guyGlassesMaterial = new THREE.MeshStandardMaterial({ color: 0x101010, roughness: 0.34, metalness: 0.18 });
+
+addPart(outdoorArea, new THREE.BoxGeometry(22, 0.12, 17), outdoorGrassMaterial, [0, -0.06, 0]);
+addPart(outdoorArea, new THREE.BoxGeometry(7.2, 0.05, 15.8), outdoorPaverMaterial, [0.2, 0.01, 0.15]);
+addPart(outdoorArea, new THREE.BoxGeometry(2.1, 0.055, 15.8), outdoorPathMaterial, [3.95, 0.025, 0.15]);
+
+function createOutdoorChair(parent, x, z, rotation = 0) {
+  const chair = new THREE.Group();
+  addPart(chair, new THREE.BoxGeometry(0.62, 0.08, 0.56), outdoorChairMaterial, [0, 0.45, 0]);
+  addPart(chair, new THREE.BoxGeometry(0.62, 0.08, 0.08), outdoorChairMaterial, [0, 0.78, -0.25]);
+  for (const [lx, lz] of [[-0.24, -0.2], [0.24, -0.2], [-0.24, 0.2], [0.24, 0.2]]) {
+    addPart(chair, new THREE.CylinderGeometry(0.025, 0.03, 0.86, 8), outdoorChairMaterial, [lx, 0.06, lz]);
+  }
+  chair.position.set(x, 0, z);
+  chair.rotation.y = rotation;
+  parent.add(chair);
+  return chair;
+}
+
+function createOutdoorTableSet(parent, x, z, rotation = 0, active = false) {
+  const set = new THREE.Group();
+  addPart(set, new THREE.CylinderGeometry(active ? 0.92 : 0.72, active ? 0.92 : 0.72, 0.09, 48), outdoorTableMaterial, [0, 0.64, 0]);
+  addPart(set, new THREE.CylinderGeometry(0.055, 0.07, 0.68, 12), outdoorBenchLegMaterial, [0, 0.28, 0]);
+  addPart(set, new THREE.CylinderGeometry(0.36, 0.46, 0.06, 32), outdoorBenchLegMaterial, [0, 0.05, 0]);
+  set.position.set(x, 0, z);
+  set.rotation.y = rotation;
+  parent.add(set);
+  return set;
+}
+
+createOutdoorTableSet(outdoorArea, 0, -0.08, 0, true);
+for (const [x, z, ry] of [
+  [-3.1, -2.6, 0.12],
+  [-3.8, 0.3, -0.08],
+  [-2.2, 2.7, 0.18],
+  [5.3, -2.7, -0.18],
+  [5.7, 0.2, 0.1],
+  [4.7, 2.8, -0.08],
+]) {
+  createOutdoorTableSet(outdoorArea, x, z, ry);
+}
+
+addPart(outdoorArea, new THREE.BoxGeometry(0.72, 2.6, 15.5), outdoorBuildingAccentMaterial, [-8.2, 1.3, 0]);
+addPart(outdoorArea, new THREE.BoxGeometry(2.3, 3.8, 15.5), outdoorBuildingMaterial, [-7.25, 1.9, 0]);
+for (let floor = 0; floor < 3; floor += 1) {
+  for (let row = 0; row < 6; row += 1) {
+    addPart(outdoorArea, new THREE.BoxGeometry(0.05, 0.48, 0.72), outdoorGlassMaterial, [-6.08, 0.95 + floor * 1.05, -5.6 + row * 2.05]);
+  }
+}
+
+function createGadingWalkLogo() {
+  const logo = new THREE.Group();
+  addPart(logo, new THREE.BoxGeometry(4.6, 1.25, 0.12), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.34 }), [0, 0, -0.06]);
+
+  const colors = [0xff3d3d, 0xffcf00, 0x1da8ff];
+  const offsets = [-1.25, 0, 1.25];
+  offsets.forEach((offset, index) => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-1.04 + offset, 0.24, 0.08),
+      new THREE.Vector3(-0.58 + offset, 0.52, 0.12),
+      new THREE.Vector3(-0.12 + offset, -0.12, 0.12),
+      new THREE.Vector3(0.38 + offset, 0.34, 0.12),
+      new THREE.Vector3(0.82 + offset, 0.02, 0.08),
+    ]);
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 32, 0.08, 12, false),
+      new THREE.MeshStandardMaterial({ color: colors[index], emissive: colors[index], emissiveIntensity: 0.08, roughness: 0.32 }),
+    );
+    logo.add(tube);
+  });
+
+  const text = createTextPlane('Gading Walk', 2.3, 0.42, 56);
+  text.position.set(0, -0.42, 0.11);
+  logo.add(text);
+  for (const x of [-1.85, 1.85]) {
+    addPart(logo, new THREE.CylinderGeometry(0.055, 0.07, 2.7, 16), outdoorFrameMaterial, [x, -1.95, -0.12]);
+    addPart(logo, new THREE.BoxGeometry(0.34, 0.08, 0.34), outdoorFrameMaterial, [x, -3.28, -0.12]);
+  }
+  logo.position.set(0.2, 3.25, -4.4);
+  logo.rotation.y = 0;
+  return logo;
+}
+
+outdoorArea.add(createGadingWalkLogo());
+
+addPart(outdoorArea, new THREE.BoxGeometry(0.22, 3.2, 15.5), outdoorFrameMaterial, [6.45, 1.6, 0]);
+addPart(outdoorArea, new THREE.BoxGeometry(0.18, 0.16, 15.5), outdoorFrameMaterial, [5.3, 2.95, 0]);
+for (let i = 0; i < 7; i += 1) {
+  addPart(outdoorArea, new THREE.BoxGeometry(1.55, 1.45, 0.045), outdoorGlassMaterial, [5.72, 2.12, -6 + i * 2], [1, 1, 1], [0, 0.12, 0]);
+  addPart(outdoorArea, new THREE.BoxGeometry(0.08, 1.6, 0.08), outdoorFrameMaterial, [5.12, 1.84, -6 + i * 2]);
+}
+addPart(outdoorArea, new THREE.BoxGeometry(1.6, 0.12, 15.5), outdoorFrameMaterial, [5.75, 1.03, 0]);
+
+for (const [x, z, sx, sz] of [[-4.8, -5.6, 1.4, 0.7], [-4.9, 5.2, 1.2, 0.75], [3.2, -5.7, 1.0, 0.65], [6.1, 4.4, 0.82, 0.72]]) {
+  addPart(outdoorArea, new THREE.BoxGeometry(1.6 * sx, 0.92, 1.1 * sz), outdoorHedgeMaterial, [x, 0.46, z]);
+}
+for (const [x, z, scale] of [[-4.8, -3.4, 1.35], [-4.4, 2.4, 1.1], [3.7, 4.4, 1.08]]) {
+  addPart(outdoorArea, new THREE.CylinderGeometry(0.15, 0.23, 1.85 * scale, 14), outdoorBenchLegMaterial, [x, 0.78 * scale, z]);
+  const crown = new THREE.Group();
+  for (const [ox, oy, oz, s] of [[0, 0, 0, 1], [-0.42, -0.08, 0.15, 0.82], [0.48, -0.02, -0.12, 0.78], [0.06, 0.38, 0.05, 0.74]]) {
+    addPart(crown, new THREE.SphereGeometry(0.86 * scale * s, 18, 14), outdoorDarkLeafMaterial, [ox * scale, oy * scale, oz * scale]);
+  }
+  crown.position.set(x, 1.92 * scale, z);
+  outdoorArea.add(crown);
+}
+
+function createRandomGuy() {
+  const guy = new THREE.Group();
+  const leftLeg = new THREE.Group();
+  const rightLeg = new THREE.Group();
+  const torso = new THREE.Group();
+  const headGroup = new THREE.Group();
+  guy.add(leftLeg, rightLeg, torso, headGroup);
+  leftLeg.position.set(-0.13, 0.82, 0);
+  rightLeg.position.set(0.13, 0.82, 0);
+  addPart(leftLeg, new THREE.CylinderGeometry(0.13, 0.15, 0.82, 18), guyPantsMaterial, [0, -0.41, 0], [1, 1, 0.82]);
+  addPart(rightLeg, new THREE.CylinderGeometry(0.13, 0.15, 0.82, 18), guyPantsMaterial, [0, -0.41, 0], [1, 1, 0.82]);
+  addPart(leftLeg, new THREE.BoxGeometry(0.16, 0.035, 0.03), new THREE.MeshStandardMaterial({ color: 0xdde5ef, roughness: 0.7 }), [0.04, -0.2, 0.11], [1, 1, 1], [0, 0, -0.16]);
+  addPart(rightLeg, new THREE.BoxGeometry(0.16, 0.035, 0.03), new THREE.MeshStandardMaterial({ color: 0xdde5ef, roughness: 0.7 }), [-0.04, -0.3, 0.11], [1, 1, 1], [0, 0, 0.14]);
+  addPart(leftLeg, new THREE.CapsuleGeometry(0.09, 0.2, 8, 12), shoeMaterial, [0, -0.82, 0.08], [1.12, 0.44, 1.35], [Math.PI / 2, 0, 0]);
+  addPart(rightLeg, new THREE.CapsuleGeometry(0.09, 0.2, 8, 12), shoeMaterial, [0, -0.82, 0.08], [1.12, 0.44, 1.35], [Math.PI / 2, 0, 0]);
+  addPart(torso, new THREE.CylinderGeometry(0.32, 0.25, 0.68, 32), guyShirtMaterial, [0, 1.02, 0], [1, 1, 0.76]);
+  addPart(torso, new THREE.BoxGeometry(0.28, 0.34, 0.035), guyGraphicMaterial, [0.02, 1.05, 0.235], [1, 1, 1], [0.02, 0, 0.08]);
+  addPart(torso, new THREE.BoxGeometry(0.12, 0.18, 0.04), new THREE.MeshStandardMaterial({ color: 0x2f74b8, roughness: 0.72 }), [0.1, 0.98, 0.26], [1, 1, 1], [0, 0, -0.16]);
+  const leftArm = addPart(torso, new THREE.CapsuleGeometry(0.07, 0.44, 8, 12), guySkinMaterial, [-0.35, 1.0, 0.02], [1, 1, 0.9], [0.1, 0, 0.18]);
+  const rightArm = addPart(torso, new THREE.CapsuleGeometry(0.07, 0.44, 8, 12), guySkinMaterial, [0.35, 1.0, 0.02], [1, 1, 0.9], [0.14, 0, -0.18]);
+  headGroup.position.set(0, 1.35, 0);
+  addPart(headGroup, new THREE.CylinderGeometry(0.08, 0.09, 0.13, 16), guySkinMaterial, [0, 0, 0]);
+  addPart(headGroup, new THREE.SphereGeometry(0.32, 28, 20), guySkinMaterial, [0, 0.3, 0.03], [0.96, 1.02, 0.9]);
+  addPart(headGroup, new THREE.SphereGeometry(0.34, 30, 20), guyHairMaterial, [0, 0.52, -0.01], [1.06, 0.6, 0.92]);
+  addPart(headGroup, new THREE.SphereGeometry(0.16, 18, 12), guyHairMaterial, [-0.16, 0.66, 0.12], [1.05, 0.7, 0.7], [0, 0, -0.2]);
+  addPart(headGroup, new THREE.SphereGeometry(0.15, 18, 12), guyHairMaterial, [0.1, 0.68, 0.14], [1, 0.72, 0.68], [0, 0, 0.18]);
+  addPart(headGroup, new THREE.TorusGeometry(0.09, 0.01, 8, 24), guyGlassesMaterial, [-0.12, 0.32, 0.32], [1.18, 0.86, 1]);
+  addPart(headGroup, new THREE.TorusGeometry(0.09, 0.01, 8, 24), guyGlassesMaterial, [0.12, 0.32, 0.32], [1.18, 0.86, 1]);
+  addPart(headGroup, new THREE.BoxGeometry(0.08, 0.014, 0.014), guyGlassesMaterial, [0, 0.32, 0.32]);
+  guy.userData.leftLeg = leftLeg;
+  guy.userData.rightLeg = rightLeg;
+  guy.userData.leftArm = leftArm;
+  guy.userData.rightArm = rightArm;
+  guy.userData.torso = torso;
+  guy.userData.head = headGroup;
+  return guy;
+}
+
+const randomGuy = createRandomGuy();
+randomGuy.position.set(-5.4, 0, 1.75);
+randomGuy.rotation.y = Math.PI / 2;
+randomGuy.visible = false;
+outdoorArea.add(randomGuy);
+
+const meetupLoveHearts = [];
+for (let i = 0; i < 8; i += 1) {
+  const heart = new THREE.Mesh(createHeartGeometry(), heartPinkMaterial.clone());
+  heart.scale.setScalar(0.18 + (i % 3) * 0.035);
+  heart.visible = false;
+  outdoorArea.add(heart);
+  meetupLoveHearts.push(heart);
+}
+
+const guyMeetupBubble = createMeetupBubblePlane('guy');
+const girlMeetupBubble = createMeetupBubblePlane('girl');
+
+const meetupTableProps = new THREE.Group();
+const walletProp = addPart(meetupTableProps, new THREE.BoxGeometry(0.36, 0.06, 0.24), new THREE.MeshStandardMaterial({ color: 0x3b2418, roughness: 0.58 }), [-0.28, 0.73, 0.04], [1, 1, 1], [0, 0.08, 0]);
+addPart(walletProp, new THREE.BoxGeometry(0.16, 0.012, 0.08), new THREE.MeshStandardMaterial({ color: 0xd8b16a, roughness: 0.42 }), [0.02, 0.034, 0.02]);
+addPart(meetupTableProps, new THREE.BoxGeometry(0.42, 0.46, 0.14), new THREE.MeshStandardMaterial({ color: 0xe64b34, roughness: 0.74 }), [0.26, 0.91, -0.02], [1, 1, 1], [0.08, 0, -0.08]);
+addPart(meetupTableProps, new THREE.TorusGeometry(0.16, 0.015, 8, 24), new THREE.MeshStandardMaterial({ color: 0xffdf9e, roughness: 0.56 }), [0.26, 1.15, -0.02], [0.8, 0.32, 0.32], [Math.PI / 2, 0, 0]);
+addPart(meetupTableProps, new THREE.CylinderGeometry(0.08, 0.08, 0.22, 20), new THREE.MeshStandardMaterial({ color: 0xf7f0e8, roughness: 0.62 }), [0.02, 0.78, 0.28]);
+meetupTableProps.visible = false;
+outdoorArea.add(meetupTableProps);
+
+const outdoorExitDoor = new THREE.Group();
+addPart(outdoorExitDoor, new THREE.BoxGeometry(1.42, 2.18, 0.18), doorMaterial, [0, 1.2, 0]);
+addPart(outdoorExitDoor, new THREE.BoxGeometry(1.72, 0.16, 0.24), doorTrimMaterial, [0, 2.38, 0.01]);
+addPart(outdoorExitDoor, new THREE.BoxGeometry(0.16, 2.38, 0.24), doorTrimMaterial, [-0.84, 1.22, 0.01]);
+addPart(outdoorExitDoor, new THREE.BoxGeometry(0.16, 2.38, 0.24), doorTrimMaterial, [0.84, 1.22, 0.01]);
+outdoorExitDoor.position.set(0, doorDropStartY, 4.85);
+outdoorExitDoor.rotation.y = Math.PI;
+outdoorExitDoor.visible = false;
+outdoorArea.add(outdoorExitDoor);
+
 if (blankRoomMode) {
-  const keepInBlankRoom = new Set([bigPhone, bumbleLogo]);
+  const keepInBlankRoom = new Set([bigPhone, bumbleLogo, puzzleHeart, bedroomDoor]);
   room.children.slice(defaultRoomDecorStartIndex).forEach((child) => {
     if (!keepInBlankRoom.has(child)) child.visible = false;
   });
@@ -1021,6 +1343,9 @@ let currentArea = 'tutorial-island';
 let doorUnlocked = false;
 let doorFalling = false;
 let doorReady = false;
+let bedroomDoorUnlocked = false;
+let bedroomDoorFalling = false;
+let bedroomDoorReady = false;
 let doorPromptVisible = false;
 let phonePromptVisible = false;
 let roomLoading = false;
@@ -1035,10 +1360,30 @@ let chatSolved = false;
 const chatTimers = [];
 let chatTyping = null;
 let chatChoiceStep = 'first';
+let puzzleOpen = false;
+let puzzleSolved = false;
+let puzzleHeartDropping = false;
+let puzzleHeartLanded = false;
+let puzzleHeartReadyToOpen = true;
+let selectedPuzzleTile = null;
+let puzzleTiles = [];
+let puzzleImageReady = false;
+let puzzleImageObjectUrl = null;
 let mediaOpen = false;
 let mediaIndex = 0;
 let phoneLaunchOpen = false;
 let phoneLaunchZoomTimer = null;
+let meetupStartedAt = 0;
+let meetupGuySeated = false;
+let meetupConversationActive = false;
+let meetupConversationIndex = 0;
+let meetupWaitingForChoice = false;
+let meetupDoorFalling = false;
+let meetupDoorReady = false;
+let meetupWalkingToDoor = false;
+let meetupWalkStartedAt = 0;
+let meetupLastTimer = null;
+let meetupLoveActive = false;
 const bumbleSwipe = {
   active: false,
   id: null,
@@ -1092,6 +1437,7 @@ const chatChoiceSets = {
 };
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
+let puzzleImageSrc = '/puzzle/puzzle.png';
 
 const mediaItems = [
   { type: 'image', title: 'Phone Preview', src: '/bumble-slide/phone.png' },
@@ -1484,7 +1830,6 @@ function startThirdQuestionScript() {
   typeChatSequence(
     [
       { side: 'guy', text: "kdg udah ketemu yang tepat, tapi kepisah sama agama" },
-      { side: 'girl', text: "3rd question" },
     ],
     () => addChatTimer(showChatChoices, 320),
   );
@@ -1543,6 +1888,9 @@ function showMoveSomewhereChoice() {
   yesButton.addEventListener('click', () => {
     title.textContent = "yesss :\")";
     burstChatHearts();
+    yesButton.disabled = true;
+    noButton.disabled = true;
+    addChatTimer(startRoomReturnFromChat, 720);
   });
 
   const noButton = document.createElement('button');
@@ -1564,6 +1912,144 @@ function showMoveSomewhereChoice() {
   addChatTimer(() => moveNoButton(noButton, screen), 80);
 }
 
+function startRoomReturnFromChat() {
+  chatScene.classList.add('is-returning');
+  window.setTimeout(() => {
+    closeChatScene();
+    chatScene.classList.remove('is-returning');
+    beginPuzzleHeartDrop();
+  }, 1400);
+}
+
+function beginPuzzleHeartDrop() {
+  if (puzzleSolved) return;
+  puzzleHeart.visible = true;
+  puzzleHeartDropping = true;
+  puzzleHeartLanded = false;
+  puzzleHeartReadyToOpen = true;
+  puzzleHeart.position.set(0, 6.4, 0.25);
+  puzzleHeart.scale.setScalar(0.88);
+  puzzleHeartMesh.material.emissiveIntensity = 0.75;
+  player.position.set(-0.2, 0, 1.65);
+  yaw = Math.PI;
+  stopMovementInput();
+}
+
+function shufflePuzzleTiles() {
+  puzzleTiles = Array.from({ length: 9 }, (_, index) => index);
+  for (let index = puzzleTiles.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [puzzleTiles[index], puzzleTiles[swapIndex]] = [puzzleTiles[swapIndex], puzzleTiles[index]];
+  }
+  if (puzzleTiles.every((tile, index) => tile === index)) {
+    [puzzleTiles[0], puzzleTiles[1]] = [puzzleTiles[1], puzzleTiles[0]];
+  }
+}
+
+function checkPuzzleImage() {
+  const image = new Image();
+  image.onload = () => {
+    puzzleImageReady = true;
+    puzzlePicker.classList.remove('is-visible');
+    puzzleStatus.textContent = "tap two pieces to swap them";
+    renderPuzzle();
+  };
+  image.onerror = () => {
+    puzzleImageReady = false;
+    puzzleGrid.replaceChildren();
+    puzzlePicker.classList.add('is-visible');
+    puzzleStatus.textContent = "choose the photo first";
+  };
+  image.src = puzzleImageSrc;
+}
+
+function setPuzzleImageFromFile(file) {
+  if (!file) return;
+  if (puzzleImageObjectUrl) URL.revokeObjectURL(puzzleImageObjectUrl);
+  puzzleImageObjectUrl = URL.createObjectURL(file);
+  puzzleImageSrc = puzzleImageObjectUrl;
+  puzzleSolved = false;
+  selectedPuzzleTile = null;
+  shufflePuzzleTiles();
+  checkPuzzleImage();
+}
+
+function renderPuzzle() {
+  puzzleGrid.replaceChildren();
+  if (!puzzleImageReady) return;
+  puzzleTiles.forEach((tileIndex, displayIndex) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'puzzle-tile';
+    tile.style.backgroundImage = `url("${puzzleImageSrc}")`;
+    tile.style.backgroundPosition = `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`;
+    tile.setAttribute('aria-label', `Puzzle tile ${displayIndex + 1}`);
+    if (selectedPuzzleTile === displayIndex) tile.classList.add('is-selected');
+    tile.addEventListener('click', () => choosePuzzleTile(displayIndex));
+    puzzleGrid.append(tile);
+  });
+}
+
+function choosePuzzleTile(index) {
+  if (puzzleSolved) return;
+  if (selectedPuzzleTile === null) {
+    selectedPuzzleTile = index;
+    puzzleStatus.textContent = "pick another piece";
+    renderPuzzle();
+    return;
+  }
+
+  if (selectedPuzzleTile !== index) {
+    [puzzleTiles[selectedPuzzleTile], puzzleTiles[index]] = [puzzleTiles[index], puzzleTiles[selectedPuzzleTile]];
+  }
+  selectedPuzzleTile = null;
+  const solved = puzzleTiles.every((tile, tileIndex) => tile === tileIndex);
+  if (solved) {
+    puzzleSolved = true;
+    puzzleStatus.textContent = "perfect :)";
+    puzzleHeart.visible = false;
+    window.setTimeout(completeFirstMission, 900);
+  } else {
+    puzzleStatus.textContent = "keep going";
+  }
+  renderPuzzle();
+}
+
+function completeFirstMission() {
+  closePuzzleScene();
+  collected = 0;
+  memoryCount.textContent = '0';
+  memoryTotal.textContent = '3';
+  missionStatus.textContent = 'Mission 1 clear';
+  player.position.set(-0.2, 0, 1.65);
+  player.rotation.y = 0;
+  yaw = 0;
+  unlockBedroomDoor();
+}
+
+function openPuzzleScene() {
+  if (puzzleOpen || puzzleSolved) return;
+  puzzleOpen = true;
+  selectedPuzzleTile = null;
+  shufflePuzzleTiles();
+  puzzleStatus.textContent = "loading photo...";
+  checkPuzzleImage();
+  stopMovementInput();
+  puzzleScene.classList.add('is-visible');
+  puzzleScene.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('puzzle-open');
+}
+
+function closePuzzleScene() {
+  puzzleOpen = false;
+  selectedPuzzleTile = null;
+  puzzleHeartReadyToOpen = false;
+  puzzleScene.classList.remove('is-visible');
+  puzzleScene.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('puzzle-open');
+  stopMovementInput();
+}
+
 function startMoveSomewhereScript() {
   chatSolved = true;
   typeChatSequence(
@@ -1580,7 +2066,7 @@ function startMoveSomewhereScript() {
 function startChatScript() {
   clearChatTimers();
   chatSolved = false;
-  chatChoiceStep = 'first';
+  chatChoiceStep = chatFocusMode ? 'third' : 'first';
   chatThread.replaceChildren();
   chatChoices.replaceChildren();
   chatFeedback.textContent = "";
@@ -1588,6 +2074,11 @@ function startChatScript() {
   hideChatFinalScreen();
   chatChoices.classList.remove('is-visible', 'is-shaking');
   chatPanel.classList.remove('is-shaking');
+
+  if (chatFocusMode) {
+    startThirdQuestionScript();
+    return;
+  }
 
   const firstBubble = createChatBubble('girl');
   typeChatBubble(firstBubble, "Hiii", () => {
@@ -2324,6 +2815,15 @@ startButton.addEventListener('click', () => {
       tutorial.classList.remove('is-visible');
       document.body.classList.remove('tutorial-active');
       enterBedroom();
+      if (outdoorFocusMode) {
+        enterNextPart();
+        return;
+      }
+      if (puzzleFocusMode) {
+        openPuzzleScene();
+        return;
+      }
+      if (chatFocusMode) openChatScene();
       return;
     }
     startTutorial();
@@ -2352,7 +2852,7 @@ tutorialNext.addEventListener('click', () => {
 tutorialSkip.addEventListener('click', finishTutorial);
 
 canvas.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen) return;
   if (roomEditorActive && currentArea === 'bedroom') {
     if (event.pointerType !== 'touch' && event.button === 2) {
       draggingLook = true;
@@ -2420,6 +2920,16 @@ chatClose.addEventListener('click', closeChatScene);
 chatPanel.addEventListener('pointerdown', speedUpChatTyping);
 chatScene.addEventListener('pointerdown', (event) => {
   if (event.target === chatScene) closeChatScene();
+});
+puzzleClose.addEventListener('click', closePuzzleScene);
+puzzleScene.addEventListener('pointerdown', (event) => {
+  if (event.target === puzzleScene) closePuzzleScene();
+});
+puzzlePickButton.addEventListener('click', () => puzzleFileInput.click());
+puzzleFileInput.addEventListener('change', () => {
+  const [file] = puzzleFileInput.files || [];
+  puzzleFileInput.value = '';
+  setPuzzleImageFromFile(file);
 });
 mediaClose.addEventListener('click', closeMediaViewer);
 mediaPrev.addEventListener('click', () => showNextMedia(-1));
@@ -2536,7 +3046,7 @@ editorDelete.addEventListener('click', () => {
 });
 
 canvas.addEventListener('pointermove', (event) => {
-  if (bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
+  if (bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen) return;
   if (moveEditorDrag(event)) return;
   if (event.pointerType === 'touch') {
     if (!pinchPointers.has(event.pointerId)) return;
@@ -2588,7 +3098,7 @@ canvas.addEventListener(
 );
 
 stick.addEventListener('pointerdown', (event) => {
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) return;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen) return;
   event.preventDefault();
   pointer.active = true;
   pointer.id = event.pointerId;
@@ -2620,7 +3130,7 @@ stick.addEventListener('lostpointercapture', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen) {
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen || currentArea === 'next-part') {
     pointer.active = false;
     pointer.id = null;
     knob.style.transform = 'translate(-50%, -50%)';
@@ -2703,7 +3213,7 @@ function updatePlayer(delta) {
     bang.position.y = 0.49 - Math.abs(index - 4) * 0.008;
   });
 
-  if (currentArea === 'bedroom') {
+  if (currentArea === 'bedroom' || currentArea === 'next-part') {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -roomHalfWidth + 0.75, roomHalfWidth - 0.75);
     player.position.z = THREE.MathUtils.clamp(player.position.z, -roomHalfDepth + 0.75, roomHalfDepth - 0.75);
   } else {
@@ -2726,7 +3236,7 @@ function updateCamera() {
 }
 
 function updateRoomWalls() {
-  if (currentArea !== 'bedroom') {
+  if (currentArea !== 'bedroom' && currentArea !== 'next-part') {
     roomBackWallMaterial.opacity = 1;
     roomLeftWallMaterial.opacity = 1;
     roomRightWallMaterial.opacity = 1;
@@ -2782,6 +3292,251 @@ function updateBumbleLogo(time, delta) {
   );
 }
 
+function applyPlayerMeetupPose(time) {
+  player.position.set(-1.32, 0, -0.08);
+  player.rotation.y = Math.PI / 2;
+  avatar.position.y = avatarGroundOffset + Math.sin(time * 1.8) * 0.006;
+  rig.torso.rotation.x = 0;
+  rig.torso.rotation.z = 0.02;
+  rig.leftLeg.rotation.x = 0;
+  rig.rightLeg.rotation.x = 0;
+  rig.leftLeg.rotation.z = 0;
+  rig.rightLeg.rotation.z = 0;
+  rig.leftArm.rotation.z = -0.48;
+  rig.rightArm.rotation.z = 0.48;
+  rig.leftArm.rotation.x = 0.06;
+  rig.rightArm.rotation.x = 0.06;
+  rig.head.rotation.x = -0.02 + Math.sin(time * 1.4) * 0.006;
+  rig.head.rotation.z = 0.02;
+}
+
+function applyGuyWalkingPose(time) {
+  const stride = Math.sin(time * 8.2);
+  randomGuy.userData.leftLeg.rotation.x = stride * 0.42;
+  randomGuy.userData.rightLeg.rotation.x = -stride * 0.42;
+  randomGuy.userData.torso.rotation.z = Math.sin(time * 4.1) * 0.025;
+  randomGuy.userData.head.rotation.z = Math.sin(time * 2.2) * 0.01;
+}
+
+function applyGuyStandingPose(time) {
+  randomGuy.position.set(1.32, 0, -0.08);
+  randomGuy.rotation.y = -Math.PI / 2;
+  randomGuy.userData.leftLeg.rotation.x = 0;
+  randomGuy.userData.rightLeg.rotation.x = 0;
+  randomGuy.userData.leftLeg.rotation.z = 0;
+  randomGuy.userData.rightLeg.rotation.z = 0;
+  randomGuy.userData.torso.rotation.x = 0;
+  randomGuy.userData.torso.rotation.z = -0.015;
+  randomGuy.userData.head.rotation.x = -0.01 + Math.sin(time * 1.3) * 0.006;
+  randomGuy.userData.leftArm.rotation.z = 0.42;
+  randomGuy.userData.rightArm.rotation.z = -0.32;
+}
+
+const meetupConversation = [
+  { side: 'guy', text: 'hi am i taking a long time' },
+  {
+    side: 'girl',
+    choices: [
+      { text: "bet ur ass, yea u take a long time, i'm coming home", correct: false },
+      { text: "no u were not! i know it's far", correct: true },
+      { text: 'i wanna kiss this guy', correct: false },
+    ],
+  },
+  { side: 'guy', text: 'ok then', action: 'placeProps' },
+  { side: 'guy', text: 'you look cute in real life' },
+  { side: 'girl', text: 'oh yea thanks!' },
+  { side: 'guy', text: 'i like your hair, ur lips, it looks good' },
+  { side: 'guy', text: 'tell me bout yourself, and yea when should i bring you home?' },
+  {
+    side: 'girl',
+    choices: [
+      { text: 'you can bring me to your home if u want.', correct: false },
+      { text: '24 hours i can go home anytime!', correct: false },
+      { text: "I actually cannot go and don't usually come home after 7 at the night", correct: true },
+    ],
+  },
+  { side: 'guy', text: '...', action: 'loveGasp', pause: 760 },
+  {
+    side: 'guy',
+    text: "wow i also not a night guy who usually came out a lot. i'm really glad to hear that. i'm happy bout that!",
+  },
+  { side: 'girl', text: "yea rather than that i'd like to spending time in the day, i'm a DAY GURL BRehhh" },
+  {
+    side: 'guy',
+    text: 'bet u r, wanna get a coffe? like you r the queen of this place. should you take me somewhere else?',
+  },
+  { side: 'girl', text: "yeaa it's good", action: 'finishConversation' },
+];
+
+function clearMeetupTimer() {
+  if (meetupLastTimer) clearTimeout(meetupLastTimer);
+  meetupLastTimer = null;
+}
+
+function hideMeetupChoices() {
+  meetupChoices.classList.remove('is-visible');
+  meetupChoices.replaceChildren();
+  meetupWaitingForChoice = false;
+}
+
+function showMeetupChoices(step) {
+  meetupChoices.replaceChildren();
+  meetupWaitingForChoice = true;
+  step.choices.forEach((choice, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'meetup-choice';
+    button.textContent = `${index + 1}. ${choice.text}`;
+    button.addEventListener('click', () => {
+      if (!choice.correct) {
+        button.classList.add('is-wrong');
+        return;
+      }
+      hideMeetupChoices();
+      drawMeetupBubble(girlMeetupBubble, choice.text);
+      meetupConversationIndex += 1;
+      meetupLastTimer = window.setTimeout(runMeetupConversationStep, 900);
+    });
+    meetupChoices.append(button);
+  });
+  meetupChoices.classList.add('is-visible');
+}
+
+function performMeetupAction(action) {
+  if (action === 'placeProps') {
+    meetupTableProps.visible = true;
+    meetupTableProps.scale.setScalar(0.05);
+  }
+  if (action === 'loveGasp') {
+    meetupLoveActive = true;
+  }
+  if (action === 'finishConversation') {
+    meetupLastTimer = window.setTimeout(startMeetupExit, 1000);
+  }
+}
+
+function runMeetupConversationStep() {
+  clearMeetupTimer();
+  if (!meetupConversationActive || meetupWaitingForChoice) return;
+  const step = meetupConversation[meetupConversationIndex];
+  if (!step) return;
+  if (step.choices) {
+    showMeetupChoices(step);
+    return;
+  }
+
+  const bubble = step.side === 'girl' ? girlMeetupBubble : guyMeetupBubble;
+  const otherBubble = step.side === 'girl' ? guyMeetupBubble : girlMeetupBubble;
+  otherBubble.visible = false;
+  drawMeetupBubble(bubble, step.text);
+  performMeetupAction(step.action);
+  meetupConversationIndex += 1;
+  if (step.action !== 'finishConversation') {
+    meetupLastTimer = window.setTimeout(runMeetupConversationStep, step.pause ?? Math.max(1200, step.text.length * 48));
+  }
+}
+
+function startMeetupConversation() {
+  meetupConversationActive = true;
+  meetupConversationIndex = 0;
+  meetupLoveActive = false;
+  guyMeetupBubble.visible = false;
+  girlMeetupBubble.visible = false;
+  hideMeetupChoices();
+  runMeetupConversationStep();
+}
+
+function startMeetupExit() {
+  meetupConversationActive = false;
+  hideMeetupChoices();
+  guyMeetupBubble.visible = false;
+  girlMeetupBubble.visible = false;
+  meetupDoorFalling = true;
+  meetupDoorReady = false;
+  outdoorExitDoor.visible = true;
+  outdoorExitDoor.position.y = doorDropStartY;
+  meetupLastTimer = window.setTimeout(() => {
+    meetupWalkingToDoor = true;
+    meetupWalkStartedAt = clock.elapsedTime;
+  }, 1300);
+}
+
+function updateMeetupScene(time, delta) {
+  if (currentArea !== 'next-part') return;
+  if (!meetupWalkingToDoor) applyPlayerMeetupPose(time);
+  dog.visible = false;
+  doorButton.classList.remove('is-visible');
+  phoneButton.classList.remove('is-visible');
+  if (meetupTableProps.visible && meetupTableProps.scale.x < 0.99) {
+    meetupTableProps.scale.lerp(new THREE.Vector3(1, 1, 1), 0.18);
+  }
+
+  const elapsed = time - meetupStartedAt;
+  const targetX = 1.32;
+  if (!meetupGuySeated && !meetupWalkingToDoor) {
+    const nextX = Math.min(targetX, randomGuy.position.x + delta * 1.35);
+    randomGuy.position.x = nextX;
+    randomGuy.position.y = 0;
+    randomGuy.position.z = 3.8 - THREE.MathUtils.smoothstep(nextX, -5.4, targetX) * 3.9;
+    randomGuy.rotation.y = Math.PI / 2;
+    applyGuyWalkingPose(time);
+    if (nextX >= targetX - 0.01 || elapsed > 5.2) {
+      meetupGuySeated = true;
+      randomGuy.position.set(targetX, 0, -0.08);
+      startMeetupConversation();
+    }
+  } else if (!meetupWalkingToDoor) {
+    applyGuyStandingPose(time);
+  }
+
+  if (meetupDoorFalling) {
+    outdoorExitDoor.position.y = Math.max(0.02, outdoorExitDoor.position.y - delta * 5.8);
+    if (outdoorExitDoor.position.y <= 0.021) {
+      meetupDoorFalling = false;
+      meetupDoorReady = true;
+    }
+  }
+
+  if (meetupWalkingToDoor) {
+    const progress = THREE.MathUtils.clamp((time - meetupWalkStartedAt) / 3.2, 0, 1);
+    const eased = THREE.MathUtils.smoothstep(progress, 0, 1);
+    const girlStart = new THREE.Vector3(-1.32, 0, -0.08);
+    const guyStart = new THREE.Vector3(1.32, 0, -0.08);
+    const girlEnd = new THREE.Vector3(-0.34, 0, 4.05);
+    const guyEnd = new THREE.Vector3(0.34, 0, 4.05);
+    player.position.lerpVectors(girlStart, girlEnd, eased);
+    randomGuy.position.lerpVectors(guyStart, guyEnd, eased);
+    player.rotation.y = 0;
+    randomGuy.rotation.y = 0;
+    const walkStride = Math.sin(time * 8);
+    rig.leftLeg.rotation.x = walkStride * 0.24;
+    rig.rightLeg.rotation.x = -walkStride * 0.24;
+    randomGuy.userData.leftLeg.rotation.x = -walkStride * 0.24;
+    randomGuy.userData.rightLeg.rotation.x = walkStride * 0.24;
+  }
+
+  guyMeetupBubble.position.copy(randomGuy.position).add(new THREE.Vector3(0, 2.55, 0));
+  girlMeetupBubble.position.copy(player.position).add(new THREE.Vector3(0, 2.65, 0));
+  guyMeetupBubble.lookAt(camera.position);
+  girlMeetupBubble.lookAt(camera.position);
+
+  meetupLoveHearts.forEach((heart, index) => {
+    heart.visible = meetupLoveActive;
+    if (!meetupLoveActive) return;
+    const phase = time * 1.35 + index * 0.82;
+    const centerX = index % 2 ? randomGuy.position.x : player.position.x;
+    heart.position.set(
+      centerX + Math.sin(phase) * 0.32,
+      2.25 + ((phase * 0.32) % 1) * 0.85,
+      -0.08 + Math.cos(phase * 0.8) * 0.18,
+    );
+    heart.rotation.y += delta * 1.8;
+    heart.rotation.z = Math.sin(phase) * 0.28;
+    heart.material.opacity = 0.72 + Math.sin(phase) * 0.2;
+    heart.material.transparent = true;
+  });
+}
+
 function unlockDoor() {
   if (doorUnlocked) return;
   doorUnlocked = true;
@@ -2791,11 +3546,35 @@ function unlockDoor() {
   dogBubble.textContent = "the next door is falling!";
 }
 
+function unlockBedroomDoor() {
+  if (bedroomDoorUnlocked) return;
+  bedroomDoorUnlocked = true;
+  bedroomDoorFalling = true;
+  bedroomDoorReady = false;
+  bedroomDoor.visible = true;
+  bedroomDoor.position.y = doorDropStartY;
+  doorButton.classList.remove('is-visible');
+}
+
 function resetGameProgress() {
   currentArea = 'tutorial-island';
+  meetupStartedAt = 0;
+  meetupGuySeated = false;
+  meetupConversationActive = false;
+  meetupConversationIndex = 0;
+  meetupWaitingForChoice = false;
+  meetupDoorFalling = false;
+  meetupDoorReady = false;
+  meetupWalkingToDoor = false;
+  meetupLoveActive = false;
+  clearMeetupTimer();
+  hideMeetupChoices();
   doorUnlocked = false;
   doorFalling = false;
   doorReady = false;
+  bedroomDoorUnlocked = false;
+  bedroomDoorFalling = false;
+  bedroomDoorReady = false;
   doorPromptVisible = false;
   phonePromptVisible = false;
   roomLoading = false;
@@ -2804,8 +3583,20 @@ function resetGameProgress() {
   closePhoneLaunch();
   collected = 0;
   memoryCount.textContent = '0';
+  memoryTotal.textContent = '5';
+  missionStatus.textContent = '';
   root.visible = true;
   room.visible = false;
+  outdoorArea.visible = false;
+  randomGuy.visible = false;
+  guyMeetupBubble.visible = false;
+  girlMeetupBubble.visible = false;
+  meetupTableProps.visible = false;
+  outdoorExitDoor.visible = false;
+  outdoorExitDoor.position.set(0, doorDropStartY, 4.85);
+  meetupLoveHearts.forEach((heart) => {
+    heart.visible = false;
+  });
   document.body.classList.remove('room-editor-mode');
   bumbleLogoPulseUntil = 0;
   bumbleLogo.scale.setScalar(1);
@@ -2833,6 +3624,8 @@ function resetGameProgress() {
   bigPhoneScreen.scale.set(1, 1, 1);
   nextDoor.visible = false;
   nextDoor.position.set(0, doorDropStartY, -5.35);
+  bedroomDoor.visible = false;
+  bedroomDoor.position.set(-0.2, doorDropStartY, 4.15);
   markers.forEach((marker) => {
     marker.userData.collected = false;
     marker.userData.heart.material = glowMaterial;
@@ -2853,6 +3646,7 @@ function enterBedroom() {
   currentArea = 'bedroom';
   doorButton.classList.remove('is-visible');
   root.visible = false;
+  outdoorArea.visible = false;
   dog.visible = false;
   dogBubble.style.display = 'none';
   cuddleButton.classList.remove('is-visible');
@@ -2889,41 +3683,136 @@ function enterBedroom() {
 }
 
 function startRoomLoading() {
-  if (!doorReady || roomLoading) return;
+  const usingBedroomDoor = currentArea === 'bedroom' && bedroomDoorReady;
+  const usingTutorialDoor = currentArea === 'tutorial-island' && doorReady;
+  if ((!usingBedroomDoor && !usingTutorialDoor) || roomLoading) return;
   roomLoading = true;
   stopMovementInput();
   loadingScreen.classList.add('is-visible');
   setTimeout(() => {
     loadingScreen.classList.remove('is-visible');
-    enterBedroom();
+    roomLoading = false;
+    if (usingBedroomDoor) {
+      enterNextPart();
+    } else {
+      enterBedroom();
+    }
   }, 900);
 }
 
-function updateDoor(delta, time) {
-  if (!doorUnlocked) return;
-  doorHeart.rotation.y += 0.05;
-  doorHeart.position.y = 1.35 + Math.sin(time * 2.8) * 0.06;
+function enterNextPart() {
+  currentArea = 'next-part';
+  roomLoading = false;
+  bedroomDoorReady = false;
+  bedroomDoor.visible = false;
+  root.visible = false;
+  room.visible = false;
+  outdoorArea.visible = true;
+  randomGuy.visible = true;
+  randomGuy.position.set(-5.4, 0, 3.8);
+  randomGuy.rotation.y = Math.PI / 2;
+  meetupStartedAt = clock.elapsedTime;
+  meetupGuySeated = false;
+  meetupConversationActive = false;
+  meetupConversationIndex = 0;
+  meetupWaitingForChoice = false;
+  meetupDoorFalling = false;
+  meetupDoorReady = false;
+  meetupWalkingToDoor = false;
+  meetupLoveActive = false;
+  clearMeetupTimer();
+  hideMeetupChoices();
+  guyMeetupBubble.visible = false;
+  girlMeetupBubble.visible = false;
+  meetupTableProps.visible = false;
+  meetupTableProps.scale.setScalar(1);
+  outdoorExitDoor.visible = false;
+  outdoorExitDoor.position.set(0, doorDropStartY, 4.85);
+  doorButton.classList.remove('is-visible');
+  phoneButton.classList.remove('is-visible');
+  missionStatus.textContent = 'Next mission';
+  memoryCount.textContent = '0';
+  memoryTotal.textContent = '3';
+  player.position.set(-1.32, 0, -0.08);
+  player.rotation.y = Math.PI / 2;
+  yaw = Math.PI * 0.92;
+  cameraDistance = 4.6;
+  scene.background.set(0x8ed8ff);
+  scene.fog.color.set(0x8ed8ff);
+  stopMovementInput();
+}
 
-  if (doorFalling) {
-    nextDoor.position.y = Math.max(doorGroundY, nextDoor.position.y - delta * 7.5);
-    if (nextDoor.position.y <= doorGroundY + 0.001) {
-      doorFalling = false;
-      doorReady = true;
-      dogBubble.textContent = "go through the door!";
+function updateDoor(delta, time) {
+  if (doorUnlocked) {
+    doorHeart.rotation.y += 0.05;
+    doorHeart.position.y = 1.35 + Math.sin(time * 2.8) * 0.06;
+
+    if (doorFalling) {
+      nextDoor.position.y = Math.max(doorGroundY, nextDoor.position.y - delta * 7.5);
+      if (nextDoor.position.y <= doorGroundY + 0.001) {
+        doorFalling = false;
+        doorReady = true;
+        dogBubble.textContent = "go through the door!";
+      }
     }
   }
 
-  const nearDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
+  if (bedroomDoorUnlocked) {
+    if (bedroomDoorFalling) {
+      bedroomDoor.position.y = Math.max(doorGroundY, bedroomDoor.position.y - delta * 6.2);
+      if (bedroomDoor.position.y <= doorGroundY + 0.001) {
+        bedroomDoorFalling = false;
+        bedroomDoorReady = true;
+      }
+    }
+  }
+
+  const nearTutorialDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
+  const nearBedroomDoor = bedroomDoorReady && currentArea === 'bedroom' && bedroomDoor.position.distanceTo(player.position) < 2.05;
+  const activeDoor = nearBedroomDoor ? bedroomDoor : nextDoor;
+  const nearDoor = nearTutorialDoor || nearBedroomDoor;
   doorPromptVisible = nearDoor && !roomLoading;
   doorButton.classList.toggle('is-visible', doorPromptVisible);
 
   if (doorPromptVisible) {
-    doorScreenPosition.set(nextDoor.position.x, nextDoor.position.y + 2.55, nextDoor.position.z);
+    doorScreenPosition.set(activeDoor.position.x, activeDoor.position.y + 2.55, activeDoor.position.z);
     doorScreenPosition.project(camera);
     const width = window.visualViewport?.width || window.innerWidth;
     const height = window.visualViewport?.height || window.innerHeight;
     doorButton.style.left = `${(doorScreenPosition.x * 0.5 + 0.5) * width}px`;
     doorButton.style.top = `${(-doorScreenPosition.y * 0.5 + 0.5) * height}px`;
+  }
+}
+
+function updatePuzzleHeart(time, delta) {
+  if (currentArea !== 'bedroom' || !puzzleHeart.visible || puzzleSolved) return;
+
+  puzzleHeart.rotation.y += delta * (puzzleHeartDropping ? 2.8 : 1.45);
+  puzzleHeartMesh.position.y = 0.68 + Math.sin(time * 3.1) * 0.055;
+  puzzleHeartMesh.material.emissiveIntensity = THREE.MathUtils.lerp(
+    puzzleHeartMesh.material.emissiveIntensity,
+    puzzleHeartDropping ? 0.95 : 0.42 + Math.sin(time * 3.6) * 0.16,
+    0.12,
+  );
+
+  if (puzzleHeartDropping) {
+    puzzleHeart.position.y = Math.max(0.08, puzzleHeart.position.y - delta * 3.1);
+    if (puzzleHeart.position.y <= 0.081) {
+      puzzleHeartDropping = false;
+      puzzleHeartLanded = true;
+      puzzleHeart.position.y = 0.08;
+      puzzleHeart.scale.setScalar(1);
+    }
+    return;
+  }
+
+  puzzleHeart.position.y = 0.08 + Math.sin(time * 2.2) * 0.035;
+  const heartFlat = new THREE.Vector2(puzzleHeart.position.x, puzzleHeart.position.z);
+  const playerFlat = new THREE.Vector2(player.position.x, player.position.z);
+  const distanceToHeart = heartFlat.distanceTo(playerFlat);
+  if (distanceToHeart > 1.9) puzzleHeartReadyToOpen = true;
+  if (puzzleHeartLanded && puzzleHeartReadyToOpen && distanceToHeart < 1.35) {
+    openPuzzleScene();
   }
 }
 
@@ -3053,9 +3942,11 @@ function tick() {
 
   updateInput();
   updatePlayer(delta);
+  updateMeetupScene(time, delta);
   updateCamera();
   updateRoomWalls();
   updateBumbleLogo(time, delta);
+  updatePuzzleHeart(time, delta);
   updateMarkers(time);
   updateDoor(delta, time);
   updatePhonePrompt();
