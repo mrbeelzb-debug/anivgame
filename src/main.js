@@ -1135,8 +1135,15 @@ function createRandomGuy() {
   addPart(torso, new THREE.CylinderGeometry(0.32, 0.25, 0.68, 32), guyShirtMaterial, [0, 1.02, 0], [1, 1, 0.76]);
   addPart(torso, new THREE.BoxGeometry(0.28, 0.34, 0.035), guyGraphicMaterial, [0.02, 1.05, 0.235], [1, 1, 1], [0.02, 0, 0.08]);
   addPart(torso, new THREE.BoxGeometry(0.12, 0.18, 0.04), new THREE.MeshStandardMaterial({ color: 0x2f74b8, roughness: 0.72 }), [0.1, 0.98, 0.26], [1, 1, 1], [0, 0, -0.16]);
-  const leftArm = addPart(torso, new THREE.CapsuleGeometry(0.07, 0.44, 8, 12), guySkinMaterial, [-0.35, 1.0, 0.02], [1, 1, 0.9], [0.1, 0, 0.18]);
-  const rightArm = addPart(torso, new THREE.CapsuleGeometry(0.07, 0.44, 8, 12), guySkinMaterial, [0.35, 1.0, 0.02], [1, 1, 0.9], [0.14, 0, -0.18]);
+  const leftArm = new THREE.Group();
+  const rightArm = new THREE.Group();
+  leftArm.position.set(-0.31, 1.17, 0.02);
+  rightArm.position.set(0.31, 1.17, 0.02);
+  leftArm.rotation.z = -0.58;
+  rightArm.rotation.z = 0.58;
+  torso.add(leftArm, rightArm);
+  addPart(leftArm, new THREE.CapsuleGeometry(0.07, 0.5, 8, 16), guySkinMaterial, [-0.08, -0.24, 0.04], [0.95, 1, 0.95], [0.18, 0, 0.25]);
+  addPart(rightArm, new THREE.CapsuleGeometry(0.07, 0.5, 8, 16), guySkinMaterial, [0.08, -0.24, 0.04], [0.95, 1, 0.95], [0.18, 0, -0.25]);
   headGroup.position.set(0, 1.35, 0);
   addPart(headGroup, new THREE.CylinderGeometry(0.08, 0.09, 0.13, 16), guySkinMaterial, [0, 0, 0]);
   addPart(headGroup, new THREE.SphereGeometry(0.32, 28, 20), guySkinMaterial, [0, 0.3, 0.03], [0.96, 1.02, 0.9]);
@@ -1187,13 +1194,13 @@ const pastryGlassMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.05,
   metalness: 0.08,
 });
-addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeDarkWoodMaterial, [-3.75, 1.03, -2.52]);
-addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeCreamMaterial, [-3.75, 1.56, -2.52]);
-addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.46, 0.035), pastryGlassMaterial, [-3.75, 1.31, -2.16]);
-addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-4.53, 1.31, -2.52]);
-addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-2.97, 1.31, -2.52]);
-addPart(starbucksArea, new THREE.BoxGeometry(1.42, 0.035, 0.56), coffeeCreamMaterial, [-3.75, 1.28, -2.48]);
-for (const x of [-4.08, -3.75, -3.42]) {
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeDarkWoodMaterial, [-2.1, 1.03, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeCreamMaterial, [-2.1, 1.56, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.46, 0.035), pastryGlassMaterial, [-2.1, 1.31, -2.16]);
+addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-2.88, 1.31, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-1.32, 1.31, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.42, 0.035, 0.56), coffeeCreamMaterial, [-2.1, 1.28, -2.48]);
+for (const x of [-2.43, -2.1, -1.77]) {
   addPart(starbucksArea, new THREE.CylinderGeometry(0.12, 0.15, 0.08, 20), new THREE.MeshStandardMaterial({ color: 0xd99b55, roughness: 0.82 }), [x, 1.16, -2.28]);
 }
 addPart(starbucksArea, new THREE.BoxGeometry(2.9, 1.05, 0.08), new THREE.MeshStandardMaterial({ color: 0x1e2a24, roughness: 0.54 }), [-2.35, 2.75, -4.78]);
@@ -1207,9 +1214,11 @@ starbucksArea.add(coffeeLogo);
 addPart(starbucksArea, new THREE.CylinderGeometry(0.48, 0.48, 0.08, 48), coffeeGreenMaterial, [0, 3.02, -4.72], [1, 1, 1], [Math.PI / 2, 0, 0]);
 addPart(starbucksArea, new THREE.TorusGeometry(0.33, 0.025, 8, 36), coffeeCreamMaterial, [0, 3.02, -4.66], [1, 1, 1], [0, 0, 0]);
 for (const x of [-4.6, -2.4, 2.4, 4.6]) {
-  addPart(starbucksArea, new THREE.CylinderGeometry(0.34, 0.34, 0.045, 32), new THREE.MeshStandardMaterial({ color: 0xffefc0, emissive: 0xffd47a, emissiveIntensity: 0.55, roughness: 0.42 }), [x, 4.04, -2.32]);
-  const light = new THREE.PointLight(0xffdf9e, 0.45, 2.8, 1.4);
-  light.position.set(x, 3.55, -2.32);
+  addPart(starbucksArea, new THREE.CylinderGeometry(0.025, 0.025, 0.52, 12), coffeeDarkWoodMaterial, [x, 3.78, -2.32]);
+  addPart(starbucksArea, new THREE.ConeGeometry(0.38, 0.34, 32, 1, true), coffeeGreenMaterial, [x, 3.45, -2.32], [1, 1, 1], [Math.PI, 0, 0]);
+  addPart(starbucksArea, new THREE.CylinderGeometry(0.24, 0.24, 0.035, 32), new THREE.MeshStandardMaterial({ color: 0xffefc0, emissive: 0xffd47a, emissiveIntensity: 1.2, roughness: 0.34 }), [x, 3.27, -2.32]);
+  const light = new THREE.PointLight(0xffdf9e, 0.72, 3.2, 1.4);
+  light.position.set(x, 3.12, -2.32);
   light.castShadow = false;
   starbucksArea.add(light);
 }
@@ -1220,9 +1229,9 @@ for (const y of [1.75, 2.12]) {
     addPart(starbucksArea, new THREE.CylinderGeometry(0.09, 0.09, 0.035, 16), coffeeGreenMaterial, [x, y + 0.34, -4.52]);
   }
 }
-for (const x of [-3.9, -3.1, 3.1, 3.9]) {
-  addPart(starbucksArea, new THREE.CylinderGeometry(0.18, 0.14, 0.42, 20), coffeeCreamMaterial, [x, 1.38, -2.35]);
-  addPart(starbucksArea, new THREE.CylinderGeometry(0.19, 0.19, 0.035, 20), coffeeGreenMaterial, [x, 1.61, -2.35]);
+for (const [x, z] of [[-5.28, 0.82], [-4.92, 1.06], [4.92, 0.82], [5.28, 1.06]]) {
+  addPart(starbucksArea, new THREE.CylinderGeometry(0.18, 0.14, 0.42, 20), coffeeCreamMaterial, [x, 0.86, z]);
+  addPart(starbucksArea, new THREE.CylinderGeometry(0.19, 0.19, 0.035, 20), coffeeGreenMaterial, [x, 1.09, z]);
 }
 for (const x of [-5.1, 5.1]) {
   addPart(starbucksArea, new THREE.CylinderGeometry(0.58, 0.58, 0.07, 42), coffeeWoodMaterial, [x, 0.62, 0.95]);
@@ -1489,10 +1498,17 @@ let puzzleSolved = false;
 let puzzleHeartDropping = false;
 let puzzleHeartLanded = false;
 let puzzleHeartReadyToOpen = true;
-let selectedPuzzleTile = null;
-let puzzleTiles = [];
-let puzzleImageReady = false;
-let puzzleImageObjectUrl = null;
+let puzzleRound = 0;
+let puzzleCards = [];
+let puzzleAcceptingInput = false;
+let puzzleRoundCorrectSlot = 0;
+let puzzleShuffleClass = '';
+const puzzleTimers = [];
+const puzzleShufflePaths = [
+  { className: 'shuffle-middle-left', finalSlots: [1, 0, 2] },
+  { className: 'shuffle-middle-right', finalSlots: [0, 2, 1] },
+  { className: 'shuffle-middle-left-right', finalSlots: [2, 0, 1] },
+];
 let mediaOpen = false;
 let mediaIndex = 0;
 let phoneLaunchOpen = false;
@@ -1567,7 +1583,7 @@ const chatChoiceSets = {
 };
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
-let puzzleImageSrc = '/puzzle/puzzle.png';
+const puzzlePhotoSources = Array.from({ length: 9 }, (_, index) => `/puzzlestarbucks/${index + 1}.jpeg`);
 
 const mediaItems = [
   { type: 'image', title: 'Phone Preview', src: '/bumble-slide/phone.png' },
@@ -2065,84 +2081,124 @@ function beginPuzzleHeartDrop() {
   stopMovementInput();
 }
 
-function shufflePuzzleTiles() {
-  puzzleTiles = Array.from({ length: 9 }, (_, index) => index);
-  for (let index = puzzleTiles.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [puzzleTiles[index], puzzleTiles[swapIndex]] = [puzzleTiles[swapIndex], puzzleTiles[index]];
-  }
-  if (puzzleTiles.every((tile, index) => tile === index)) {
-    [puzzleTiles[0], puzzleTiles[1]] = [puzzleTiles[1], puzzleTiles[0]];
-  }
+function clearPuzzleTimers() {
+  while (puzzleTimers.length) clearTimeout(puzzleTimers.pop());
 }
 
-function checkPuzzleImage() {
-  const image = new Image();
-  image.onload = () => {
-    puzzleImageReady = true;
-    puzzlePicker.classList.remove('is-visible');
-    puzzleStatus.textContent = "tap two pieces to swap them";
-    renderPuzzle();
-  };
-  image.onerror = () => {
-    puzzleImageReady = false;
-    puzzleGrid.replaceChildren();
-    puzzlePicker.classList.add('is-visible');
-    puzzleStatus.textContent = "choose the photo first";
-  };
-  image.src = puzzleImageSrc;
+function addPuzzleTimer(callback, delay) {
+  const timer = window.setTimeout(() => {
+    const index = puzzleTimers.indexOf(timer);
+    if (index >= 0) puzzleTimers.splice(index, 1);
+    callback();
+  }, delay);
+  puzzleTimers.push(timer);
+  return timer;
 }
 
-function setPuzzleImageFromFile(file) {
-  if (!file) return;
-  if (puzzleImageObjectUrl) URL.revokeObjectURL(puzzleImageObjectUrl);
-  puzzleImageObjectUrl = URL.createObjectURL(file);
-  puzzleImageSrc = puzzleImageObjectUrl;
-  puzzleSolved = false;
-  selectedPuzzleTile = null;
-  shufflePuzzleTiles();
-  checkPuzzleImage();
-}
-
-function renderPuzzle() {
+function startPuzzleRound() {
+  clearPuzzleTimers();
+  puzzleAcceptingInput = false;
+  const settleAfterShuffle = puzzleRound === 2 ? 11000 : 9550;
+  puzzleShuffleClass = '';
+  puzzleGrid.classList.remove('is-ready', 'is-shaking', 'is-shuffling', ...puzzleShufflePaths.map((path) => path.className));
   puzzleGrid.replaceChildren();
-  if (!puzzleImageReady) return;
-  puzzleTiles.forEach((tileIndex, displayIndex) => {
+
+  const groupStart = puzzleRound * 3;
+  const roundPhotos = puzzlePhotoSources.slice(groupStart, groupStart + 3);
+  const correctPhoto = roundPhotos[0];
+  puzzleRoundCorrectSlot = 1;
+  puzzleCards = roundPhotos.map((photo, index) => ({
+    photo,
+    correct: photo === correctPhoto,
+    startSlot: index === 0 ? puzzleRoundCorrectSlot : null,
+    finalSlot: null,
+  }));
+
+  const freeSlots = [0, 1, 2].filter((slot) => slot !== puzzleRoundCorrectSlot);
+  puzzleCards.forEach((card) => {
+    if (card.startSlot === null) card.startSlot = freeSlots.shift();
+  });
+  puzzleCards.sort((a, b) => a.startSlot - b.startSlot);
+
+  puzzleStatus.textContent = `Round ${puzzleRound + 1}/3: remember the photo`;
+  renderPuzzleCards(false);
+  addPuzzleTimer(() => {
+    puzzleStatus.textContent = "remember the middle one";
+    puzzleGrid.classList.add('is-shaking');
+  }, 4000);
+  addPuzzleTimer(() => {
+    puzzleStatus.textContent = "folding cards...";
+    puzzleGrid.classList.remove('is-ready', 'is-shaking', ...puzzleShufflePaths.map((path) => path.className));
+    renderPuzzleCards(true);
+  }, 5900);
+  addPuzzleTimer(() => {
+    const path = puzzleShufflePaths[puzzleRound % puzzleShufflePaths.length];
+    puzzleShuffleClass = path.className;
+    puzzleCards.forEach((card, startSlot) => {
+      card.finalSlot = path.finalSlots[startSlot];
+    });
+    puzzleGrid.classList.add('is-shuffling', puzzleShuffleClass);
+    puzzleStatus.textContent = "watch the cards...";
+  }, 6600);
+  addPuzzleTimer(() => {
+    puzzleCards.sort((a, b) => a.finalSlot - b.finalSlot);
+    puzzleShuffleClass = '';
+    puzzleStatus.textContent = "where is it?";
+    puzzleGrid.classList.remove('is-shuffling', ...puzzleShufflePaths.map((path) => path.className));
+    puzzleGrid.classList.add('is-ready');
+    puzzleAcceptingInput = true;
+    renderPuzzleCards(true);
+  }, settleAfterShuffle);
+}
+
+function renderPuzzleCards(hidden) {
+  puzzleGrid.replaceChildren();
+  puzzleCards.forEach((card, index) => {
     const tile = document.createElement('button');
     tile.type = 'button';
-    tile.className = 'puzzle-tile';
-    tile.style.backgroundImage = `url("${puzzleImageSrc}")`;
-    tile.style.backgroundPosition = `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`;
-    tile.setAttribute('aria-label', `Puzzle tile ${displayIndex + 1}`);
-    if (selectedPuzzleTile === displayIndex) tile.classList.add('is-selected');
-    tile.addEventListener('click', () => choosePuzzleTile(displayIndex));
+    tile.className = 'puzzle-tile memory-card';
+    tile.setAttribute('aria-label', `Memory card ${index + 1}`);
+    if (hidden) tile.classList.add('is-folded');
+    if (card.correct) tile.classList.add('is-correct-card');
+    const marker = card.correct ? '✅' : '❎';
+    tile.innerHTML = `
+      <span class="memory-card-inner">
+        <span class="memory-card-front" style="background-image: url('${card.photo}')">
+          <span class="memory-card-marker">${marker}</span>
+        </span>
+        <span class="memory-card-back">?</span>
+      </span>
+    `;
+    tile.addEventListener('click', () => choosePuzzleCard(index));
     puzzleGrid.append(tile);
   });
 }
 
-function choosePuzzleTile(index) {
-  if (puzzleSolved) return;
-  if (selectedPuzzleTile === null) {
-    selectedPuzzleTile = index;
-    puzzleStatus.textContent = "pick another piece";
-    renderPuzzle();
+function choosePuzzleCard(index) {
+  if (!puzzleAcceptingInput || puzzleSolved) return;
+  puzzleAcceptingInput = false;
+  const card = puzzleCards[index];
+  const tiles = [...puzzleGrid.children];
+  tiles[index]?.classList.remove('is-folded');
+  if (!card.correct) {
+    tiles[index]?.classList.add('is-wrong');
+    puzzleStatus.textContent = "wrong card, watch again";
+    addPuzzleTimer(startPuzzleRound, 950);
     return;
   }
 
-  if (selectedPuzzleTile !== index) {
-    [puzzleTiles[selectedPuzzleTile], puzzleTiles[index]] = [puzzleTiles[index], puzzleTiles[selectedPuzzleTile]];
+  tiles[index]?.classList.add('is-picked');
+  puzzleStatus.textContent = "correct!";
+  if (puzzleRound < 2) {
+    puzzleRound += 1;
+    addPuzzleTimer(startPuzzleRound, 1100);
+    return;
   }
-  selectedPuzzleTile = null;
-  const solved = puzzleTiles.every((tile, tileIndex) => tile === tileIndex);
-  if (solved) {
-    puzzleSolved = true;
-    puzzleStatus.textContent = "perfect :)";
-    puzzleHeart.visible = false;
-    window.setTimeout(completeFirstMission, 900);
-  } else {
-    puzzleStatus.textContent = "keep going";
-  }
-  renderPuzzle();
+
+  puzzleSolved = true;
+  puzzleStatus.textContent = "perfect memory :)";
+  puzzleHeart.visible = false;
+  addPuzzleTimer(completeFirstMission, 900);
 }
 
 function completeFirstMission() {
@@ -2160,19 +2216,30 @@ function completeFirstMission() {
 function openPuzzleScene() {
   if (puzzleOpen || puzzleSolved) return;
   puzzleOpen = true;
-  selectedPuzzleTile = null;
-  shufflePuzzleTiles();
-  puzzleStatus.textContent = "loading photo...";
-  checkPuzzleImage();
+  puzzleRound = 0;
+  puzzlePicker.classList.remove('is-visible');
+  puzzleStatus.textContent = "get ready";
   stopMovementInput();
   puzzleScene.classList.add('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('puzzle-open');
+  startPuzzleRound();
+}
+
+function openPuzzleSceneFromStarbucks(delay = 0) {
+  if (puzzleOpen || puzzleSolved) return;
+  starbucksLastTimer = window.setTimeout(() => {
+    starbucksConversationActive = false;
+    starbucksBaristaBubble.visible = false;
+    starbucksGuyBubble.visible = false;
+    openPuzzleScene();
+  }, delay);
 }
 
 function closePuzzleScene() {
   puzzleOpen = false;
-  selectedPuzzleTile = null;
+  clearPuzzleTimers();
+  puzzleAcceptingInput = false;
   puzzleHeartReadyToOpen = false;
   puzzleScene.classList.remove('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'true');
@@ -3057,13 +3124,11 @@ chatScene.addEventListener('pointerdown', (event) => {
 });
 puzzleClose.addEventListener('click', closePuzzleScene);
 puzzleScene.addEventListener('pointerdown', (event) => {
-  if (event.target === puzzleScene) closePuzzleScene();
+  if (event.target === puzzleScene) event.preventDefault();
 });
 puzzlePickButton.addEventListener('click', () => puzzleFileInput.click());
 puzzleFileInput.addEventListener('change', () => {
-  const [file] = puzzleFileInput.files || [];
   puzzleFileInput.value = '';
-  setPuzzleImageFromFile(file);
 });
 mediaClose.addEventListener('click', closeMediaViewer);
 mediaPrev.addEventListener('click', () => showNextMedia(-1));
@@ -3427,7 +3492,7 @@ function updateBumbleLogo(time, delta) {
 }
 
 function applyPlayerMeetupPose(time) {
-  player.position.set(-1.32, 0, -0.08);
+  player.position.set(-0.82, 0, -0.08);
   player.rotation.y = Math.PI / 2;
   avatar.position.y = avatarGroundOffset + Math.sin(time * 1.8) * 0.006;
   rig.torso.rotation.x = 0;
@@ -3436,10 +3501,10 @@ function applyPlayerMeetupPose(time) {
   rig.rightLeg.rotation.x = 0;
   rig.leftLeg.rotation.z = 0;
   rig.rightLeg.rotation.z = 0;
-  rig.leftArm.rotation.z = -0.48;
-  rig.rightArm.rotation.z = 0.48;
+  rig.leftArm.rotation.z = -0.52;
+  rig.rightArm.rotation.z = -0.18;
   rig.leftArm.rotation.x = 0.06;
-  rig.rightArm.rotation.x = 0.06;
+  rig.rightArm.rotation.x = 0.18;
   rig.head.rotation.x = -0.02 + Math.sin(time * 1.4) * 0.006;
   rig.head.rotation.z = 0.02;
 }
@@ -3453,7 +3518,7 @@ function applyGuyWalkingPose(time) {
 }
 
 function applyGuyStandingPose(time) {
-  randomGuy.position.set(1.32, 0, -0.08);
+  randomGuy.position.set(0.82, 0, -0.08);
   randomGuy.rotation.y = -Math.PI / 2;
   randomGuy.userData.leftLeg.rotation.x = 0;
   randomGuy.userData.rightLeg.rotation.x = 0;
@@ -3462,8 +3527,10 @@ function applyGuyStandingPose(time) {
   randomGuy.userData.torso.rotation.x = 0;
   randomGuy.userData.torso.rotation.z = -0.015;
   randomGuy.userData.head.rotation.x = -0.01 + Math.sin(time * 1.3) * 0.006;
-  randomGuy.userData.leftArm.rotation.z = 0.42;
-  randomGuy.userData.rightArm.rotation.z = -0.32;
+  randomGuy.userData.leftArm.rotation.z = 0.18;
+  randomGuy.userData.rightArm.rotation.z = 0.58;
+  randomGuy.userData.leftArm.rotation.x = 0.18;
+  randomGuy.userData.rightArm.rotation.x = 0.06;
 }
 
 const meetupConversation = [
@@ -3615,7 +3682,10 @@ function runStarbucksConversationStep() {
   otherBubble.visible = false;
   typeMeetupBubble(bubble, step.text);
   starbucksConversationIndex += 1;
-  if (step.action === 'memoryGameLater') return;
+  if (step.action === 'memoryGameLater') {
+    openPuzzleSceneFromStarbucks(Math.max(1800, step.text.length * 58));
+    return;
+  }
   starbucksLastTimer = window.setTimeout(runStarbucksConversationStep, Math.max(1400, step.text.length * 52));
 }
 
@@ -3637,7 +3707,7 @@ function enterStarbucks() {
   barista.visible = true;
   starbucksGuy.position.set(-0.7, 0, 3.85);
   starbucksGuy.rotation.y = Math.PI;
-  barista.position.set(0, 0, -2.55);
+  barista.position.set(0, 0, -3.35);
   barista.rotation.y = 0;
   player.position.set(-1.45, 0, 3.85);
   player.rotation.y = Math.PI;
@@ -3693,22 +3763,26 @@ function updateStarbucksScene(time) {
   avatar.position.y = avatarGroundOffset + Math.sin(time * 1.5) * 0.005;
   rig.torso.rotation.x = 0;
   rig.torso.rotation.z = 0.01;
-  rig.leftArm.rotation.z = -0.48;
+  rig.leftArm.rotation.z = -0.9;
   rig.rightArm.rotation.z = 0.48;
+  rig.leftArm.rotation.x = 0.18;
+  rig.rightArm.rotation.x = 0.06;
   rig.head.rotation.x = -0.015 + Math.sin(time * 1.2) * 0.004;
 
   starbucksGuy.rotation.y = Math.PI;
   starbucksGuy.userData.torso.rotation.x = 0;
   starbucksGuy.userData.head.rotation.x = -0.01 + Math.sin(time * 1.1) * 0.004;
-  starbucksGuy.userData.leftArm.rotation.z = 0.35;
-  starbucksGuy.userData.rightArm.rotation.z = -0.26;
+  starbucksGuy.userData.leftArm.rotation.z = -0.58;
+  starbucksGuy.userData.rightArm.rotation.z = 0.9;
+  starbucksGuy.userData.leftArm.rotation.x = 0.06;
+  starbucksGuy.userData.rightArm.rotation.x = 0.18;
 
-  barista.position.set(0, 0, -2.55);
+  barista.position.set(0, 0, -3.35);
   barista.rotation.y = 0;
   barista.userData.leftLeg.rotation.x = 0;
   barista.userData.rightLeg.rotation.x = 0;
-  barista.userData.leftArm.rotation.z = 0.54 + Math.sin(time * 1.6) * 0.04;
-  barista.userData.rightArm.rotation.z = -0.54 + Math.sin(time * 1.6 + Math.PI) * 0.04;
+  barista.userData.leftArm.rotation.z = -0.58 + Math.sin(time * 1.6) * 0.025;
+  barista.userData.rightArm.rotation.z = 0.58 + Math.sin(time * 1.6 + Math.PI) * 0.025;
 
   starbucksBaristaBubble.position.copy(barista.position).add(new THREE.Vector3(0, 2.72, 0.1));
   starbucksGuyBubble.position.copy(starbucksGuy.position).add(new THREE.Vector3(0, 2.65, 0.15));
@@ -4010,7 +4084,7 @@ function enterNextPart() {
   missionStatus.textContent = 'Next mission';
   memoryCount.textContent = '0';
   memoryTotal.textContent = '3';
-  player.position.set(-1.32, 0, -0.08);
+  player.position.set(-0.82, 0, -0.08);
   player.rotation.y = Math.PI / 2;
   yaw = Math.PI * 0.92;
   cameraDistance = 4.6;

@@ -2098,7 +2098,7 @@ body.chat-open .phone-button {
 .puzzle-panel {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  width: min(86vmin, 720px);
+  width: min(920px, calc(100vw - 28px));
   max-height: min(92vh, 760px);
   padding: 12px;
   border: 2px solid rgb(255 212 71 / 72%);
@@ -2121,6 +2121,7 @@ body.chat-open .phone-button {
 }
 
 .puzzle-close {
+  display: none;
   width: 34px;
   height: 34px;
   border: 0;
@@ -2158,36 +2159,176 @@ body.chat-open .phone-button {
 }
 
 .puzzle-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  width: min(72vmin, 620px);
-  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 24px);
+  width: 100%;
+  min-height: min(54vh, 430px);
   justify-self: center;
-  overflow: hidden;
-  border: 2px solid #201314;
-  border-radius: 10px;
-  background: #ebe8e3;
+  perspective: 1200px;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 48%, rgb(255 212 71 / 18%), transparent 44%),
+    linear-gradient(180deg, #fff8ed, #ffeec6);
 }
 
 .puzzle-tile {
   appearance: none;
+  position: relative;
+  width: min(27vw, 210px);
+  aspect-ratio: 3 / 4;
   padding: 0;
-  border: 1px solid rgb(32 19 20 / 72%);
-  background-repeat: no-repeat;
-  background-size: 300% 300%;
-  background-color: #ebe8e3;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
   cursor: pointer;
+  transform-style: preserve-3d;
   transition:
     filter 150ms ease,
-    transform 150ms ease;
+    transform 520ms cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
-.puzzle-tile.is-selected {
-  filter: brightness(1.16) saturate(1.18);
-  transform: scale(0.96);
-  outline: 3px solid #ffd447;
-  outline-offset: -5px;
+.memory-card-inner,
+.memory-card-front,
+.memory-card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.memory-card-inner {
+  transform-style: preserve-3d;
+  transition: transform 620ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.memory-card-front,
+.memory-card-back {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  backface-visibility: hidden;
+  box-shadow: 0 20px 42px rgb(0 0 0 / 22%);
+}
+
+.memory-card-front {
+  border: 5px solid #fff8ed;
+  background-size: cover;
+  background-position: center;
+}
+
+.memory-card-front::before {
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  border-radius: inherit;
+  content: "";
+}
+
+.puzzle-tile.is-correct-card:not(.is-folded) .memory-card-front {
+  border-color: #38d96f;
+  box-shadow:
+    0 20px 42px rgb(0 0 0 / 22%),
+    0 0 0 10px rgb(56 217 111 / 34%),
+    0 0 34px rgb(56 217 111 / 58%);
+}
+
+.puzzle-tile:not(.is-correct-card):not(.is-folded) .memory-card-front {
+  border-color: #ff5f87;
+  box-shadow:
+    0 20px 42px rgb(0 0 0 / 22%),
+    0 0 0 10px rgb(255 95 135 / 30%),
+    0 0 34px rgb(255 95 135 / 48%);
+}
+
+.memory-card-marker {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgb(255 248 237 / 90%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 24%);
+  font-size: 1.65rem;
+}
+
+.memory-card-back {
+  border: 4px solid #201314;
+  color: #201314;
+  background:
+    radial-gradient(circle at 28% 24%, rgb(255 255 255 / 82%), transparent 22%),
+    repeating-linear-gradient(135deg, #ffd447 0 16px, #f4a900 16px 28px);
+  font-size: clamp(3rem, 10vw, 5.8rem);
+  font-weight: 950;
+  transform: rotateY(180deg);
+}
+
+.puzzle-tile.is-folded .memory-card-inner {
+  transform: rotateY(180deg) rotateZ(1turn);
+}
+
+.puzzle-grid.is-shaking .puzzle-tile:nth-child(1) {
+  animation: memory-card-shake-hard 760ms ease-in-out 2;
+}
+
+.puzzle-grid.is-shaking .puzzle-tile:nth-child(2) {
+  animation: memory-card-shake-hard 760ms ease-in-out 2 70ms;
+}
+
+.puzzle-grid.is-shaking .puzzle-tile:nth-child(3) {
+  animation: memory-card-shake-hard 760ms ease-in-out 2 140ms;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left .puzzle-tile:nth-child(1) {
+  animation: card-roll-left-to-middle 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left .puzzle-tile:nth-child(2) {
+  animation: card-roll-middle-to-left 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left .puzzle-tile:nth-child(3) {
+  animation: card-hop-stay 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-right .puzzle-tile:nth-child(1) {
+  animation: card-hop-stay 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-right .puzzle-tile:nth-child(2) {
+  animation: card-roll-middle-to-right 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-right .puzzle-tile:nth-child(3) {
+  animation: card-roll-right-to-middle 2.75s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left-right .puzzle-tile:nth-child(1) {
+  animation: card-hard-left-to-right 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left-right .puzzle-tile:nth-child(2) {
+  animation: card-hard-middle-to-left 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-middle-left-right .puzzle-tile:nth-child(3) {
+  animation: card-hard-right-to-middle 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-ready .puzzle-tile:hover {
+  transform: translateY(-8px);
+}
+
+.puzzle-tile.is-picked {
+  filter: saturate(1.18) brightness(1.05);
+  transform: translateY(-10px) scale(1.04);
+}
+
+.puzzle-tile.is-wrong {
+  animation: card-denied 280ms ease;
 }
 
 .puzzle-status {
@@ -2345,6 +2486,251 @@ body.puzzle-open .phone-button {
 @keyframes chat-white-in {
   from {
     opacity: 0;
+  }
+}
+
+@keyframes card-roll-middle-to-left {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  24% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(-48px) rotate(260deg) scale(0.92);
+  }
+
+  48% {
+    transform: translateX(0) translateY(30px) rotate(520deg) scale(0.96);
+  }
+
+  72% {
+    transform: translateX(calc(-50% - clamp(5px, 1.5vw, 12px))) translateY(-38px) rotate(760deg) scale(0.92);
+  }
+
+  100% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(0) rotate(1080deg) scale(1);
+  }
+}
+
+@keyframes card-roll-left-to-middle {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  24% {
+    transform: translateX(calc(200% + clamp(20px, 6vw, 48px))) translateY(42px) rotate(260deg) scale(0.92);
+  }
+
+  48% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(-32px) rotate(520deg) scale(0.96);
+  }
+
+  72% {
+    transform: translateX(calc(150% + clamp(15px, 4.5vw, 36px))) translateY(34px) rotate(760deg) scale(0.92);
+  }
+
+  100% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(0) rotate(1080deg) scale(1);
+  }
+}
+
+@keyframes card-roll-middle-to-right {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  24% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(-48px) rotate(-260deg) scale(0.92);
+  }
+
+  48% {
+    transform: translateX(0) translateY(30px) rotate(-520deg) scale(0.96);
+  }
+
+  72% {
+    transform: translateX(calc(50% + clamp(5px, 1.5vw, 12px))) translateY(-38px) rotate(-760deg) scale(0.92);
+  }
+
+  100% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(0) rotate(-1080deg) scale(1);
+  }
+}
+
+@keyframes card-roll-right-to-middle {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  24% {
+    transform: translateX(calc(-200% - clamp(20px, 6vw, 48px))) translateY(42px) rotate(-260deg) scale(0.92);
+  }
+
+  48% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(-32px) rotate(-520deg) scale(0.96);
+  }
+
+  72% {
+    transform: translateX(calc(-150% - clamp(15px, 4.5vw, 36px))) translateY(34px) rotate(-760deg) scale(0.92);
+  }
+
+  100% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(0) rotate(-1080deg) scale(1);
+  }
+}
+
+@keyframes card-roll-left-to-right {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  25% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(-46px) rotate(300deg) scale(0.92);
+  }
+
+  50% {
+    transform: translateX(0) translateY(32px) rotate(600deg) scale(0.96);
+  }
+
+  75% {
+    transform: translateX(calc(150% + clamp(15px, 4.5vw, 36px))) translateY(-40px) rotate(900deg) scale(0.92);
+  }
+
+  100% {
+    transform: translateX(calc(200% + clamp(20px, 6vw, 48px))) translateY(0) rotate(1200deg) scale(1);
+  }
+}
+
+@keyframes card-hop-stay {
+  0% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+
+  25% {
+    transform: translateX(calc(-35% - clamp(4px, 1vw, 8px))) translateY(24px) rotate(-160deg) scale(0.96);
+  }
+
+  50% {
+    transform: translateX(calc(35% + clamp(4px, 1vw, 8px))) translateY(-24px) rotate(160deg) scale(0.96);
+  }
+
+  75% {
+    transform: translateX(calc(-24% - clamp(3px, 0.8vw, 6px))) translateY(16px) rotate(-80deg) scale(0.98);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes card-hard-middle-to-left {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  18% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(-46px) rotate(300deg) scale(0.9);
+  }
+
+  36% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(36px) rotate(680deg) scale(0.94);
+  }
+
+  56% {
+    transform: translateX(calc(70% + clamp(7px, 2vw, 16px))) translateY(-54px) rotate(1040deg) scale(0.9);
+  }
+
+  76% {
+    transform: translateX(calc(-32% - clamp(4px, 1vw, 8px))) translateY(28px) rotate(1380deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(0) rotate(1800deg) scale(1);
+  }
+}
+
+@keyframes card-hard-left-to-right {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  20% {
+    transform: translateX(calc(200% + clamp(20px, 6vw, 48px))) translateY(42px) rotate(360deg) scale(0.9);
+  }
+
+  42% {
+    transform: translateX(calc(80% + clamp(8px, 2.4vw, 20px))) translateY(-48px) rotate(760deg) scale(0.95);
+  }
+
+  62% {
+    transform: translateX(calc(-22% - clamp(4px, 1vw, 8px))) translateY(34px) rotate(1080deg) scale(0.92);
+  }
+
+  80% {
+    transform: translateX(calc(140% + clamp(14px, 4vw, 32px))) translateY(-34px) rotate(1440deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(200% + clamp(20px, 6vw, 48px))) translateY(0) rotate(1800deg) scale(1);
+  }
+}
+
+@keyframes card-hard-right-to-middle {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  18% {
+    transform: translateX(calc(-200% - clamp(20px, 6vw, 48px))) translateY(42px) rotate(-360deg) scale(0.9);
+  }
+
+  38% {
+    transform: translateX(calc(-70% - clamp(7px, 2vw, 16px))) translateY(-52px) rotate(-720deg) scale(0.94);
+  }
+
+  58% {
+    transform: translateX(calc(38% + clamp(4px, 1vw, 8px))) translateY(30px) rotate(-1080deg) scale(0.92);
+  }
+
+  78% {
+    transform: translateX(calc(-132% - clamp(13px, 4vw, 32px))) translateY(-34px) rotate(-1440deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(0) rotate(-1800deg) scale(1);
+  }
+}
+
+@keyframes memory-card-shake-hard {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0) scale(1);
+  }
+
+  10% {
+    transform: translateX(-18px) rotate(-6deg) scale(1.02);
+  }
+
+  20% {
+    transform: translateX(18px) rotate(6deg) scale(1.02);
+  }
+
+  30% {
+    transform: translateX(-16px) rotate(-7deg) scale(1.03);
+  }
+
+  40% {
+    transform: translateX(16px) rotate(7deg) scale(1.03);
+  }
+
+  55% {
+    transform: translateX(-12px) rotate(-5deg) scale(1.01);
+  }
+
+  70% {
+    transform: translateX(12px) rotate(5deg) scale(1.01);
+  }
+
+  85% {
+    transform: translateX(-7px) rotate(-3deg) scale(1);
   }
 }
 
