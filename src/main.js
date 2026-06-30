@@ -386,6 +386,8 @@ function wrapCanvasText(context, text, maxWidth) {
   return lines;
 }
 
+const typedBubblePlanes = [];
+
 function createMeetupBubblePlane(side = 'guy', parent = outdoorArea) {
   const canvasBubble = document.createElement('canvas');
   canvasBubble.width = 768;
@@ -398,11 +400,16 @@ function createMeetupBubblePlane(side = 'guy', parent = outdoorArea) {
   plane.userData.context = canvasBubble.getContext('2d');
   plane.userData.texture = texture;
   plane.userData.side = side;
+  plane.userData.typingText = '';
+  plane.userData.typedText = '';
+  plane.userData.typingStartedAt = 0;
+  plane.userData.typing = false;
+  typedBubblePlanes.push(plane);
   parent.add(plane);
   return plane;
 }
 
-function drawMeetupBubble(plane, text) {
+function drawMeetupBubble(plane, text, showCaret = false) {
   const context = plane.userData.context;
   const isGirl = plane.userData.side === 'girl';
   const isBarista = plane.userData.side === 'barista';
@@ -418,12 +425,37 @@ function drawMeetupBubble(plane, text) {
   context.font = '900 42px Arial, sans-serif';
   context.textBaseline = 'top';
   const prefix = isGirl ? 'M: ' : isBarista ? 'Barrista: ' : '?: ';
-  const lines = wrapCanvasText(context, `${prefix}${text}`, 650).slice(0, 3);
+  const caret = showCaret ? '|' : '';
+  const lines = wrapCanvasText(context, `${prefix}${text}${caret}`, 650).slice(0, 3);
   lines.forEach((line, index) => {
     context.fillText(line, 58, 58 + index * 48);
   });
   plane.userData.texture.needsUpdate = true;
   plane.visible = true;
+}
+
+function typeMeetupBubble(plane, text) {
+  plane.userData.typingText = text;
+  plane.userData.typedText = '';
+  plane.userData.typingStartedAt = clock?.elapsedTime || 0;
+  plane.userData.typing = true;
+  drawMeetupBubble(plane, '', true);
+}
+
+function updateTypedBubbles(time) {
+  typedBubblePlanes.forEach((plane) => {
+    if (!plane.userData.typing || !plane.visible) return;
+    const fullText = plane.userData.typingText || '';
+    const typedLength = Math.min(fullText.length, Math.floor((time - plane.userData.typingStartedAt) * 28));
+    const nextText = fullText.slice(0, typedLength);
+    const stillTyping = typedLength < fullText.length;
+    if (nextText !== plane.userData.typedText || stillTyping !== plane.userData.lastTypingState) {
+      plane.userData.typedText = nextText;
+      plane.userData.lastTypingState = stillTyping;
+      drawMeetupBubble(plane, nextText, stillTyping);
+    }
+    if (!stillTyping) plane.userData.typing = false;
+  });
 }
 
 function addDaisy(parent, position, scale = 1) {
@@ -1148,8 +1180,19 @@ addPart(starbucksArea, new THREE.BoxGeometry(0.16, 4.2, 10), coffeeWallMaterial,
 addPart(starbucksArea, new THREE.BoxGeometry(5.8, 0.18, 1.1), coffeeWoodMaterial, [0, 1.0, -2.65]);
 addPart(starbucksArea, new THREE.BoxGeometry(5.8, 1.0, 0.95), coffeeDarkWoodMaterial, [0, 0.48, -2.66]);
 addPart(starbucksArea, new THREE.BoxGeometry(5.6, 0.08, 0.18), coffeeCreamMaterial, [0, 1.15, -2.08]);
-addPart(starbucksArea, new THREE.BoxGeometry(1.35, 0.56, 0.62), new THREE.MeshStandardMaterial({ color: 0xcce8ea, transparent: true, opacity: 0.48, roughness: 0.18 }), [-3.75, 1.32, -2.52]);
-addPart(starbucksArea, new THREE.BoxGeometry(1.38, 0.06, 0.66), coffeeDarkWoodMaterial, [-3.75, 1.03, -2.52]);
+const pastryGlassMaterial = new THREE.MeshStandardMaterial({
+  color: 0xd9f8ff,
+  transparent: true,
+  opacity: 0.32,
+  roughness: 0.05,
+  metalness: 0.08,
+});
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeDarkWoodMaterial, [-3.75, 1.03, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.08, 0.72), coffeeCreamMaterial, [-3.75, 1.56, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.56, 0.46, 0.035), pastryGlassMaterial, [-3.75, 1.31, -2.16]);
+addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-4.53, 1.31, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(0.035, 0.46, 0.72), pastryGlassMaterial, [-2.97, 1.31, -2.52]);
+addPart(starbucksArea, new THREE.BoxGeometry(1.42, 0.035, 0.56), coffeeCreamMaterial, [-3.75, 1.28, -2.48]);
 for (const x of [-4.08, -3.75, -3.42]) {
   addPart(starbucksArea, new THREE.CylinderGeometry(0.12, 0.15, 0.08, 20), new THREE.MeshStandardMaterial({ color: 0xd99b55, roughness: 0.82 }), [x, 1.16, -2.28]);
 }
@@ -1164,8 +1207,11 @@ starbucksArea.add(coffeeLogo);
 addPart(starbucksArea, new THREE.CylinderGeometry(0.48, 0.48, 0.08, 48), coffeeGreenMaterial, [0, 3.02, -4.72], [1, 1, 1], [Math.PI / 2, 0, 0]);
 addPart(starbucksArea, new THREE.TorusGeometry(0.33, 0.025, 8, 36), coffeeCreamMaterial, [0, 3.02, -4.66], [1, 1, 1], [0, 0, 0]);
 for (const x of [-4.6, -2.4, 2.4, 4.6]) {
-  addPart(starbucksArea, new THREE.CylinderGeometry(0.08, 0.16, 0.08, 24), new THREE.MeshStandardMaterial({ color: 0xffefc0, emissive: 0xffd47a, emissiveIntensity: 0.4, roughness: 0.42 }), [x, 3.75, -1.4]);
-  addPart(starbucksArea, new THREE.CylinderGeometry(0.012, 0.012, 0.82, 8), coffeeDarkWoodMaterial, [x, 3.35, -1.4]);
+  addPart(starbucksArea, new THREE.CylinderGeometry(0.34, 0.34, 0.045, 32), new THREE.MeshStandardMaterial({ color: 0xffefc0, emissive: 0xffd47a, emissiveIntensity: 0.55, roughness: 0.42 }), [x, 4.04, -2.32]);
+  const light = new THREE.PointLight(0xffdf9e, 0.45, 2.8, 1.4);
+  light.position.set(x, 3.55, -2.32);
+  light.castShadow = false;
+  starbucksArea.add(light);
 }
 for (const y of [1.75, 2.12]) {
   addPart(starbucksArea, new THREE.BoxGeometry(1.9, 0.08, 0.32), coffeeWoodMaterial, [-5.7, y, -4.62]);
@@ -3481,7 +3527,7 @@ function showMeetupChoices(step) {
         return;
       }
       hideMeetupChoices();
-      drawMeetupBubble(girlMeetupBubble, choice.text);
+      typeMeetupBubble(girlMeetupBubble, choice.text);
       meetupConversationIndex += 1;
       meetupLastTimer = window.setTimeout(runMeetupConversationStep, 900);
     });
@@ -3516,7 +3562,7 @@ function runMeetupConversationStep() {
   const bubble = step.side === 'girl' ? girlMeetupBubble : guyMeetupBubble;
   const otherBubble = step.side === 'girl' ? guyMeetupBubble : girlMeetupBubble;
   otherBubble.visible = false;
-  drawMeetupBubble(bubble, step.text);
+  typeMeetupBubble(bubble, step.text);
   performMeetupAction(step.action);
   meetupConversationIndex += 1;
   if (step.action !== 'finishConversation') {
@@ -3567,7 +3613,7 @@ function runStarbucksConversationStep() {
   const bubble = step.speaker === 'barista' ? starbucksBaristaBubble : starbucksGuyBubble;
   const otherBubble = step.speaker === 'barista' ? starbucksGuyBubble : starbucksBaristaBubble;
   otherBubble.visible = false;
-  drawMeetupBubble(bubble, step.text);
+  typeMeetupBubble(bubble, step.text);
   starbucksConversationIndex += 1;
   if (step.action === 'memoryGameLater') return;
   starbucksLastTimer = window.setTimeout(runStarbucksConversationStep, Math.max(1400, step.text.length * 52));
@@ -3583,13 +3629,15 @@ function startStarbucksConversation() {
 
 function enterStarbucks() {
   currentArea = 'starbucks';
+  root.visible = false;
+  room.visible = false;
   outdoorArea.visible = false;
   starbucksArea.visible = true;
   starbucksGuy.visible = true;
   barista.visible = true;
   starbucksGuy.position.set(-0.7, 0, 3.85);
   starbucksGuy.rotation.y = Math.PI;
-  barista.position.set(0.85, 0, -2.45);
+  barista.position.set(0, 0, -2.55);
   barista.rotation.y = 0;
   player.position.set(-1.45, 0, 3.85);
   player.rotation.y = Math.PI;
@@ -3655,14 +3703,14 @@ function updateStarbucksScene(time) {
   starbucksGuy.userData.leftArm.rotation.z = 0.35;
   starbucksGuy.userData.rightArm.rotation.z = -0.26;
 
-  barista.position.set(0.85, 0, -2.45);
+  barista.position.set(0, 0, -2.55);
   barista.rotation.y = 0;
   barista.userData.leftLeg.rotation.x = 0;
   barista.userData.rightLeg.rotation.x = 0;
   barista.userData.leftArm.rotation.z = 0.54 + Math.sin(time * 1.6) * 0.04;
   barista.userData.rightArm.rotation.z = -0.54 + Math.sin(time * 1.6 + Math.PI) * 0.04;
 
-  starbucksBaristaBubble.position.copy(barista.position).add(new THREE.Vector3(0, 2.65, 0.1));
+  starbucksBaristaBubble.position.copy(barista.position).add(new THREE.Vector3(0, 2.72, 0.1));
   starbucksGuyBubble.position.copy(starbucksGuy.position).add(new THREE.Vector3(0, 2.65, 0.15));
   starbucksBaristaBubble.lookAt(camera.position);
   starbucksGuyBubble.lookAt(camera.position);
@@ -4173,6 +4221,7 @@ function tick() {
   updatePlayer(delta);
   updateMeetupScene(time, delta);
   updateStarbucksScene(time);
+  updateTypedBubbles(time);
   updateCamera();
   updateRoomWalls();
   updateBumbleLogo(time, delta);
