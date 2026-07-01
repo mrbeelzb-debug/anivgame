@@ -2318,6 +2318,30 @@ body.chat-open .phone-button {
   animation: card-hard-right-to-middle 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
 }
 
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right-left .puzzle-tile:nth-child(1) {
+  animation: card-hard-left-to-middle 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right-left .puzzle-tile:nth-child(2) {
+  animation: card-hard-middle-to-right 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right-left .puzzle-tile:nth-child(3) {
+  animation: card-hard-right-to-left 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right .puzzle-tile:nth-child(1) {
+  animation: card-hard-left-decoy-stay 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right .puzzle-tile:nth-child(2) {
+  animation: card-hard-middle-to-right 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.puzzle-grid.is-shuffling.shuffle-hard-middle-right .puzzle-tile:nth-child(3) {
+  animation: card-hard-right-to-middle 4.2s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
 .puzzle-grid.is-ready .puzzle-tile:hover {
   transform: translateY(-8px);
 }
@@ -2647,6 +2671,32 @@ body.puzzle-open .phone-button {
   }
 }
 
+@keyframes card-hard-middle-to-right {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  18% {
+    transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(-46px) rotate(-300deg) scale(0.9);
+  }
+
+  36% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(36px) rotate(-680deg) scale(0.94);
+  }
+
+  56% {
+    transform: translateX(calc(-70% - clamp(7px, 2vw, 16px))) translateY(-54px) rotate(-1040deg) scale(0.9);
+  }
+
+  76% {
+    transform: translateX(calc(32% + clamp(4px, 1vw, 8px))) translateY(28px) rotate(-1380deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(0) rotate(-1800deg) scale(1);
+  }
+}
+
 @keyframes card-hard-left-to-right {
   0% {
     transform: translateX(0) translateY(0) rotate(0) scale(1);
@@ -2673,6 +2723,32 @@ body.puzzle-open .phone-button {
   }
 }
 
+@keyframes card-hard-left-to-middle {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  20% {
+    transform: translateX(calc(200% + clamp(20px, 6vw, 48px))) translateY(42px) rotate(360deg) scale(0.9);
+  }
+
+  42% {
+    transform: translateX(calc(40% + clamp(4px, 1vw, 10px))) translateY(-48px) rotate(760deg) scale(0.95);
+  }
+
+  62% {
+    transform: translateX(calc(-35% - clamp(4px, 1vw, 8px))) translateY(34px) rotate(1080deg) scale(0.92);
+  }
+
+  80% {
+    transform: translateX(calc(150% + clamp(15px, 4.5vw, 36px))) translateY(-34px) rotate(1440deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(100% + clamp(10px, 3vw, 24px))) translateY(0) rotate(1800deg) scale(1);
+  }
+}
+
 @keyframes card-hard-right-to-middle {
   0% {
     transform: translateX(0) translateY(0) rotate(0) scale(1);
@@ -2696,6 +2772,58 @@ body.puzzle-open .phone-button {
 
   100% {
     transform: translateX(calc(-100% - clamp(10px, 3vw, 24px))) translateY(0) rotate(-1800deg) scale(1);
+  }
+}
+
+@keyframes card-hard-right-to-left {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  18% {
+    transform: translateX(calc(-200% - clamp(20px, 6vw, 48px))) translateY(42px) rotate(-360deg) scale(0.9);
+  }
+
+  38% {
+    transform: translateX(calc(-58% - clamp(6px, 1.8vw, 15px))) translateY(-52px) rotate(-720deg) scale(0.94);
+  }
+
+  58% {
+    transform: translateX(calc(38% + clamp(4px, 1vw, 8px))) translateY(30px) rotate(-1080deg) scale(0.92);
+  }
+
+  78% {
+    transform: translateX(calc(-132% - clamp(13px, 4vw, 32px))) translateY(-34px) rotate(-1440deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(calc(-200% - clamp(20px, 6vw, 48px))) translateY(0) rotate(-1800deg) scale(1);
+  }
+}
+
+@keyframes card-hard-left-decoy-stay {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0) scale(1);
+  }
+
+  18% {
+    transform: translateX(calc(95% + clamp(10px, 3vw, 24px))) translateY(-42px) rotate(300deg) scale(0.9);
+  }
+
+  38% {
+    transform: translateX(calc(190% + clamp(20px, 6vw, 48px))) translateY(34px) rotate(680deg) scale(0.94);
+  }
+
+  58% {
+    transform: translateX(calc(42% + clamp(4px, 1vw, 8px))) translateY(-50px) rotate(1040deg) scale(0.92);
+  }
+
+  78% {
+    transform: translateX(calc(132% + clamp(13px, 4vw, 32px))) translateY(28px) rotate(1440deg) scale(0.96);
+  }
+
+  100% {
+    transform: translateX(0) translateY(0) rotate(1800deg) scale(1);
   }
 }
 

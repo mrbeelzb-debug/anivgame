@@ -1503,12 +1503,18 @@ let puzzleCards = [];
 let puzzleAcceptingInput = false;
 let puzzleRoundCorrectSlot = 0;
 let puzzleShuffleClass = '';
+let puzzleLastHardShuffleClass = '';
 const puzzleTimers = [];
 const puzzleShufflePaths = [
   { className: 'shuffle-middle-left', finalSlots: [1, 0, 2] },
   { className: 'shuffle-middle-right', finalSlots: [0, 2, 1] },
-  { className: 'shuffle-middle-left-right', finalSlots: [2, 0, 1] },
 ];
+const puzzleHardShufflePaths = [
+  { className: 'shuffle-middle-left-right', finalSlots: [2, 0, 1] },
+  { className: 'shuffle-hard-middle-right-left', finalSlots: [1, 2, 0] },
+  { className: 'shuffle-hard-middle-right', finalSlots: [0, 2, 1] },
+];
+const puzzleAllShufflePaths = [...puzzleShufflePaths, ...puzzleHardShufflePaths];
 let mediaOpen = false;
 let mediaIndex = 0;
 let phoneLaunchOpen = false;
@@ -2095,12 +2101,23 @@ function addPuzzleTimer(callback, delay) {
   return timer;
 }
 
+function pickPuzzleShufflePath() {
+  if (puzzleRound < 2) {
+    return puzzleShufflePaths[puzzleRound % puzzleShufflePaths.length];
+  }
+
+  const choices = puzzleHardShufflePaths.filter((path) => path.className !== puzzleLastHardShuffleClass);
+  const path = choices[Math.floor(Math.random() * choices.length)] || puzzleHardShufflePaths[0];
+  puzzleLastHardShuffleClass = path.className;
+  return path;
+}
+
 function startPuzzleRound() {
   clearPuzzleTimers();
   puzzleAcceptingInput = false;
   const settleAfterShuffle = puzzleRound === 2 ? 11000 : 9550;
   puzzleShuffleClass = '';
-  puzzleGrid.classList.remove('is-ready', 'is-shaking', 'is-shuffling', ...puzzleShufflePaths.map((path) => path.className));
+  puzzleGrid.classList.remove('is-ready', 'is-shaking', 'is-shuffling', ...puzzleAllShufflePaths.map((path) => path.className));
   puzzleGrid.replaceChildren();
 
   const groupStart = puzzleRound * 3;
@@ -2128,11 +2145,11 @@ function startPuzzleRound() {
   }, 4000);
   addPuzzleTimer(() => {
     puzzleStatus.textContent = "folding cards...";
-    puzzleGrid.classList.remove('is-ready', 'is-shaking', ...puzzleShufflePaths.map((path) => path.className));
+    puzzleGrid.classList.remove('is-ready', 'is-shaking', ...puzzleAllShufflePaths.map((path) => path.className));
     renderPuzzleCards(true);
   }, 5900);
   addPuzzleTimer(() => {
-    const path = puzzleShufflePaths[puzzleRound % puzzleShufflePaths.length];
+    const path = pickPuzzleShufflePath();
     puzzleShuffleClass = path.className;
     puzzleCards.forEach((card, startSlot) => {
       card.finalSlot = path.finalSlots[startSlot];
@@ -2144,7 +2161,7 @@ function startPuzzleRound() {
     puzzleCards.sort((a, b) => a.finalSlot - b.finalSlot);
     puzzleShuffleClass = '';
     puzzleStatus.textContent = "where is it?";
-    puzzleGrid.classList.remove('is-shuffling', ...puzzleShufflePaths.map((path) => path.className));
+    puzzleGrid.classList.remove('is-shuffling', ...puzzleAllShufflePaths.map((path) => path.className));
     puzzleGrid.classList.add('is-ready');
     puzzleAcceptingInput = true;
     renderPuzzleCards(true);
@@ -2217,6 +2234,7 @@ function openPuzzleScene() {
   if (puzzleOpen || puzzleSolved) return;
   puzzleOpen = true;
   puzzleRound = 0;
+  puzzleLastHardShuffleClass = '';
   puzzlePicker.classList.remove('is-visible');
   puzzleStatus.textContent = "get ready";
   stopMovementInput();
