@@ -32,7 +32,8 @@ body.tutorial-active .touch-stick,
 body.tutorial-active .dog-bubble,
 body.tutorial-active .cuddle-button,
 body.tutorial-active .door-button,
-body.tutorial-active .phone-button {
+body.tutorial-active .phone-button,
+body.tutorial-active .love-game-button {
   opacity: 0;
   pointer-events: none;
 }
@@ -945,6 +946,114 @@ body.game-started .dog-bubble {
   display: block;
 }
 
+.love-game-button {
+  position: fixed;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 42;
+  display: none;
+  min-height: 54px;
+  padding: 0 24px;
+  border: 1px solid rgb(255 248 237 / 54%);
+  border-radius: 999px;
+  color: #201314;
+  background: linear-gradient(135deg, #fff8ed 0%, #ffb7c8 48%, #ffd447 100%);
+  box-shadow:
+    0 14px 34px rgb(0 0 0 / 28%),
+    0 0 34px rgb(255 111 157 / 42%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 950;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  animation: bumble-button-breathe 1.7s ease-in-out infinite;
+}
+
+.love-game-button.is-visible {
+  display: block;
+}
+
+.maze-game {
+  position: fixed;
+  inset: 0;
+  z-index: 76;
+  display: none;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  background: #fff;
+  pointer-events: auto;
+}
+
+.maze-game.is-visible {
+  display: grid;
+}
+
+.maze-stage {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+}
+
+#maze-canvas {
+  display: block;
+  width: min(calc(100vw - 16px), calc(var(--app-height, 100dvh) - 118px));
+  max-width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border: 0;
+  background: #fff;
+}
+
+.maze-controls {
+  display: grid;
+  grid-template-columns: 64px 64px 64px;
+  grid-template-areas:
+    ". up ."
+    "left down right";
+  justify-content: center;
+  gap: 8px;
+  padding-bottom: 2px;
+}
+
+.maze-controls button {
+  width: 64px;
+  height: 54px;
+  border: 2px solid #101417;
+  border-radius: 8px;
+  color: #101417;
+  background: #fff;
+  box-shadow: 0 5px 0 #101417;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1.6rem;
+  font-weight: 950;
+  touch-action: manipulation;
+}
+
+.maze-controls button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #101417;
+}
+
+#maze-up {
+  grid-area: up;
+}
+
+#maze-left {
+  grid-area: left;
+}
+
+#maze-down {
+  grid-area: down;
+}
+
+#maze-right {
+  grid-area: right;
+}
+
 .room-editor {
   position: fixed;
   left: max(12px, env(safe-area-inset-left));
@@ -1193,6 +1302,111 @@ body.room-editor-mode .room-editor {
   animation: scene-circle-open 1100ms cubic-bezier(0.18, 0.78, 0.24, 1) forwards;
 }
 
+.proposal-ending {
+  position: fixed;
+  inset: 0;
+  z-index: 73;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+  opacity: 0;
+  background: transparent;
+  pointer-events: none;
+  transition:
+    opacity 520ms ease,
+    visibility 520ms ease,
+    background 1200ms ease;
+}
+
+.proposal-ending.is-visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.proposal-ending.is-white {
+  background: #fff;
+}
+
+.proposal-fireworks {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.proposal-fireworks span {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  opacity: 0;
+  background: #fff8ed;
+  box-shadow:
+    0 -48px 0 #fff8ed,
+    34px -34px 0 #ff7eb3,
+    48px 0 0 #ffd447,
+    34px 34px 0 #8fd8ff,
+    0 48px 0 #ffb7c8,
+    -34px 34px 0 #fff8ed,
+    -48px 0 0 #ffd447,
+    -34px -34px 0 #ff7eb3;
+  transform: scale(var(--firework-scale));
+  animation: proposal-firework 1.8s ease-out infinite;
+}
+
+.proposal-ending-panel {
+  position: relative;
+  z-index: 2;
+  display: none;
+  width: min(760px, calc(100vw - 36px));
+  justify-items: center;
+  gap: 18px;
+  color: #201314;
+  text-align: center;
+}
+
+.proposal-ending.is-game-over .proposal-ending-panel {
+  display: grid;
+}
+
+.proposal-ending-panel strong {
+  font-size: clamp(3.4rem, 12vw, 8rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 0.9;
+}
+
+.proposal-ending-panel p {
+  min-height: 72px;
+  margin: 0;
+  color: #201314;
+  font-size: clamp(1.1rem, 3.5vw, 2rem);
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+@keyframes proposal-firework {
+  0% {
+    opacity: 0;
+    transform: scale(calc(var(--firework-scale) * 0.2));
+    filter: blur(0);
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  62% {
+    opacity: 0.95;
+    transform: scale(calc(var(--firework-scale) * 1.35));
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(calc(var(--firework-scale) * 1.9));
+    filter: blur(1px);
+  }
+}
+
 .media-viewer {
   position: fixed;
   inset: 0;
@@ -1291,7 +1505,8 @@ body.media-open .touch-stick,
 body.media-open .dog-bubble,
 body.media-open .cuddle-button,
 body.media-open .door-button,
-body.media-open .phone-button {
+body.media-open .phone-button,
+body.media-open .love-game-button {
   display: none !important;
 }
 
@@ -1476,7 +1691,8 @@ body.phone-launch-open .touch-stick,
 body.phone-launch-open .dog-bubble,
 body.phone-launch-open .cuddle-button,
 body.phone-launch-open .door-button,
-body.phone-launch-open .phone-button {
+body.phone-launch-open .phone-button,
+body.phone-launch-open .love-game-button {
   display: none !important;
 }
 
@@ -1842,7 +2058,8 @@ body.bumble-open .touch-stick,
 body.bumble-open .dog-bubble,
 body.bumble-open .cuddle-button,
 body.bumble-open .door-button,
-body.bumble-open .phone-button {
+body.bumble-open .phone-button,
+body.bumble-open .love-game-button {
   display: none !important;
 }
 
@@ -2162,7 +2379,8 @@ body.chat-open .touch-stick,
 body.chat-open .dog-bubble,
 body.chat-open .cuddle-button,
 body.chat-open .door-button,
-body.chat-open .phone-button {
+body.chat-open .phone-button,
+body.chat-open .love-game-button {
   display: none !important;
 }
 
@@ -2461,7 +2679,19 @@ body.puzzle-open .touch-stick,
 body.puzzle-open .dog-bubble,
 body.puzzle-open .cuddle-button,
 body.puzzle-open .door-button,
-body.puzzle-open .phone-button {
+body.puzzle-open .phone-button,
+body.puzzle-open .love-game-button {
+  display: none !important;
+}
+
+body.maze-open .hud,
+body.maze-open .touch-stick,
+body.maze-open .dog-bubble,
+body.maze-open .cuddle-button,
+body.maze-open .door-button,
+body.maze-open .phone-button,
+body.maze-open .love-game-button,
+body.maze-open .meetup-choices {
   display: none !important;
 }
 
@@ -2481,6 +2711,28 @@ body.puzzle-open .phone-button {
   display: grid;
 }
 
+.meetup-choices.is-shaking {
+  animation: meetup-choice-shake 360ms ease;
+}
+
+.meetup-choices.is-proposal {
+  grid-template-columns: 1fr 0.55fr;
+  align-items: center;
+}
+
+.meetup-choice-feedback {
+  min-height: 24px;
+  padding: 0 8px 2px;
+  color: #fff8ed;
+  font-size: 0.95rem;
+  font-weight: 950;
+  text-align: center;
+  text-shadow:
+    0 2px 8px rgb(0 0 0 / 54%),
+    0 0 18px rgb(255 111 157 / 50%);
+  grid-column: 1 / -1;
+}
+
 .meetup-choice {
   min-height: 44px;
   padding: 9px 14px;
@@ -2495,11 +2747,38 @@ body.puzzle-open .phone-button {
   font-weight: 900;
   text-align: left;
   touch-action: manipulation;
+  transition:
+    transform 220ms cubic-bezier(0.18, 0.9, 0.22, 1),
+    background 180ms ease,
+    border-color 180ms ease;
 }
 
 .meetup-choice.is-wrong {
   background: #ffe0ea;
   border-color: #ff6f9d;
+}
+
+@keyframes meetup-choice-shake {
+  0%,
+  100% {
+    transform: translateX(-50%);
+  }
+
+  18% {
+    transform: translateX(calc(-50% - 12px)) rotate(-0.7deg);
+  }
+
+  36% {
+    transform: translateX(calc(-50% + 13px)) rotate(0.7deg);
+  }
+
+  58% {
+    transform: translateX(calc(-50% - 8px)) rotate(-0.45deg);
+  }
+
+  78% {
+    transform: translateX(calc(-50% + 6px)) rotate(0.35deg);
+  }
 }
 
 @keyframes bumble-phone-in {

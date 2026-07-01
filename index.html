@@ -105,6 +105,7 @@
         <span>Click me</span>
       </button>
       <button class="phone-button" id="phone-button" type="button">View phone</button>
+      <button class="love-game-button" id="love-game-button" type="button">Love Game 3/3</button>
 
       <div class="room-editor" id="room-editor" aria-label="Room editor">
         <div class="room-editor-row">
@@ -143,6 +144,26 @@
       </div>
 
       <div class="scene-wipe" id="scene-wipe" aria-hidden="true"></div>
+
+      <div class="proposal-ending" id="proposal-ending" aria-hidden="true">
+        <div class="proposal-fireworks" id="proposal-fireworks" aria-hidden="true"></div>
+        <div class="proposal-ending-panel">
+          <strong>Game Over</strong>
+          <p id="proposal-ending-line"></p>
+        </div>
+      </div>
+
+      <div class="maze-game" id="maze-game" aria-hidden="true">
+        <div class="maze-stage">
+          <canvas id="maze-canvas" width="1254" height="1254" aria-label="Wallet maze"></canvas>
+        </div>
+        <div class="maze-controls" aria-label="Maze controls">
+          <button id="maze-up" type="button" aria-label="Move up">↑</button>
+          <button id="maze-left" type="button" aria-label="Move left">←</button>
+          <button id="maze-down" type="button" aria-label="Move down">↓</button>
+          <button id="maze-right" type="button" aria-label="Move right">→</button>
+        </div>
+      </div>
 
       <div class="media-viewer" id="media-viewer" aria-hidden="true">
         <div class="media-frame" role="dialog" aria-modal="true" aria-label="Memory viewer">
