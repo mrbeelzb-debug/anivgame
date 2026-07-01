@@ -25,6 +25,7 @@ const cuddleButton = document.querySelector('#cuddle-button');
 const doorButton = document.querySelector('#door-button');
 const phoneButton = document.querySelector('#phone-button');
 const loadingScreen = document.querySelector('#loading-screen');
+const sceneWipe = document.querySelector('#scene-wipe');
 const roomEditor = document.querySelector('#room-editor');
 const editorToggle = document.querySelector('#editor-toggle');
 const editorSave = document.querySelector('#editor-save');
@@ -983,6 +984,15 @@ bedroomDoor.rotation.y = Math.PI;
 bedroomDoor.visible = false;
 room.add(bedroomDoor);
 
+function createFallingDoor() {
+  const door = new THREE.Group();
+  addPart(door, new THREE.BoxGeometry(1.34, 2.12, 0.18), doorMaterial, [0, 1.18, 0]);
+  addPart(door, new THREE.BoxGeometry(1.62, 0.16, 0.22), doorTrimMaterial, [0, 2.32, 0.01]);
+  addPart(door, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [-0.8, 1.22, 0.01]);
+  addPart(door, new THREE.BoxGeometry(0.16, 2.34, 0.22), doorTrimMaterial, [0.8, 1.22, 0.01]);
+  return door;
+}
+
 const outdoorArea = new THREE.Group();
 outdoorArea.visible = false;
 scene.add(outdoorArea);
@@ -1180,6 +1190,38 @@ const coffeeGreenMaterial = new THREE.MeshStandardMaterial({ color: 0x0b6b43, ro
 const coffeeCreamMaterial = new THREE.MeshStandardMaterial({ color: 0xfff4dd, roughness: 0.76 });
 const baristaApronMaterial = new THREE.MeshStandardMaterial({ color: 0x0b5f3c, roughness: 0.74 });
 
+const starbucksOutdoorArea = new THREE.Group();
+starbucksOutdoorArea.visible = false;
+scene.add(starbucksOutdoorArea);
+const patioStoneMaterial = new THREE.MeshStandardMaterial({ color: 0xd6c3a5, roughness: 0.88 });
+const patioRoadMaterial = new THREE.MeshStandardMaterial({ color: 0x30383a, roughness: 0.8 });
+const patioGlassMaterial = new THREE.MeshStandardMaterial({ color: 0xbfe9ed, transparent: true, opacity: 0.42, roughness: 0.12, metalness: 0.06 });
+const patioUmbrellaMaterial = new THREE.MeshStandardMaterial({ color: 0x0b6b43, roughness: 0.72 });
+
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(18, 0.12, 14), patioStoneMaterial, [0, -0.06, 0]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(18, 0.06, 3.1), patioRoadMaterial, [0, -0.025, 5.45]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(13.6, 3.5, 0.18), coffeeWallMaterial, [0, 1.75, -5.45]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(13.8, 0.22, 0.32), coffeeDarkWoodMaterial, [0, 3.56, -5.28]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(2.2, 2.2, 0.08), patioGlassMaterial, [-4.6, 1.66, -5.22]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(2.2, 2.2, 0.08), patioGlassMaterial, [4.6, 1.66, -5.22]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(1.35, 2.45, 0.12), coffeeGreenMaterial, [0, 1.28, -5.16]);
+addPart(starbucksOutdoorArea, new THREE.BoxGeometry(0.86, 1.78, 0.08), patioGlassMaterial, [0, 1.34, -5.06]);
+const patioLogo = createTextPlane('STARBUCKS', 3.0, 0.45, 52);
+patioLogo.position.set(0, 3.08, -5.02);
+starbucksOutdoorArea.add(patioLogo);
+addPart(starbucksOutdoorArea, new THREE.CylinderGeometry(0.34, 0.34, 0.07, 42), coffeeGreenMaterial, [0, 2.62, -4.96], [1, 1, 1], [Math.PI / 2, 0, 0]);
+addPart(starbucksOutdoorArea, new THREE.TorusGeometry(0.23, 0.018, 8, 36), coffeeCreamMaterial, [0, 2.62, -4.91]);
+for (const [x, z] of [[-3.4, -0.4], [3.15, -0.2], [-1.2, 2.0], [2.15, 2.4]]) {
+  createOutdoorTableSet(starbucksOutdoorArea, x, z, 0.08, true);
+  addPart(starbucksOutdoorArea, new THREE.CylinderGeometry(0.045, 0.055, 1.65, 14), coffeeDarkWoodMaterial, [x, 1.36, z]);
+  addPart(starbucksOutdoorArea, new THREE.ConeGeometry(0.82, 0.42, 28), patioUmbrellaMaterial, [x, 2.18, z], [1, 0.65, 1], [Math.PI, 0, 0]);
+}
+for (const [x, z, sx] of [[-6.4, -1.2, 1.1], [6.3, -1.35, 1.0], [-6.1, 3.2, 0.9], [5.7, 3.1, 0.92]]) {
+  addPart(starbucksOutdoorArea, new THREE.BoxGeometry(1.25 * sx, 0.58, 0.72), outdoorHedgeMaterial, [x, 0.29, z]);
+  addPart(starbucksOutdoorArea, new THREE.CylinderGeometry(0.1, 0.16, 1.15, 12), outdoorBenchLegMaterial, [x, 0.8, z]);
+  addPart(starbucksOutdoorArea, new THREE.SphereGeometry(0.58 * sx, 16, 12), outdoorDarkLeafMaterial, [x, 1.42, z]);
+}
+
 addPart(starbucksArea, new THREE.BoxGeometry(14, 0.12, 10), coffeeFloorMaterial, [0, -0.04, 0]);
 addPart(starbucksArea, new THREE.BoxGeometry(14, 4.2, 0.16), coffeeWallMaterial, [0, 2.05, -4.9]);
 addPart(starbucksArea, new THREE.BoxGeometry(0.16, 4.2, 10), coffeeWallMaterial, [-7, 2.05, 0]);
@@ -1259,6 +1301,45 @@ barista.visible = false;
 starbucksArea.add(barista);
 const starbucksBaristaBubble = createMeetupBubblePlane('barista', starbucksArea);
 const starbucksGuyBubble = createMeetupBubblePlane('guy', starbucksArea);
+const starbucksGirlBubble = createMeetupBubblePlane('girl', starbucksArea);
+
+function createHandDrink() {
+  const drink = new THREE.Group();
+  addPart(drink, new THREE.CylinderGeometry(0.11, 0.085, 0.34, 20), coffeeCreamMaterial, [0, 0, 0], [1, 1, 1], [0.16, 0, 0.08]);
+  addPart(drink, new THREE.CylinderGeometry(0.115, 0.115, 0.025, 20), coffeeGreenMaterial, [0, 0.19, 0.015], [1, 1, 1], [0.16, 0, 0.08]);
+  drink.visible = false;
+  return drink;
+}
+
+const starbucksGirlDrink = createHandDrink();
+starbucksGirlDrink.position.set(0.42, 1.02, 0.28);
+avatar.add(starbucksGirlDrink);
+const starbucksGuyDrink = createHandDrink();
+starbucksGuyDrink.position.set(-0.42, 1.03, 0.28);
+starbucksGuy.add(starbucksGuyDrink);
+const starbucksOutdoorGuy = createRandomGuy();
+starbucksOutdoorGuy.visible = false;
+starbucksOutdoorArea.add(starbucksOutdoorGuy);
+const starbucksOutdoorGuyDrink = createHandDrink();
+starbucksOutdoorGuyDrink.position.set(-0.42, 1.03, 0.28);
+starbucksOutdoorGuyDrink.visible = true;
+starbucksOutdoorGuy.add(starbucksOutdoorGuyDrink);
+
+const starbucksExitHeart = new THREE.Group();
+const starbucksExitHeartMesh = new THREE.Mesh(createHeartGeometry(), heartPinkMaterial.clone());
+const starbucksExitHeartBase = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.54, 0.07, 34), puzzleHeartBaseMaterial.clone());
+starbucksExitHeartMesh.position.y = 0.58;
+starbucksExitHeartMesh.rotation.x = -0.08;
+starbucksExitHeartMesh.scale.setScalar(0.58);
+starbucksExitHeart.add(starbucksExitHeartBase, starbucksExitHeartMesh);
+starbucksExitHeart.visible = false;
+starbucksArea.add(starbucksExitHeart);
+
+const starbucksExitDoor = createFallingDoor();
+starbucksExitDoor.position.set(-5.1, doorDropStartY, 3.95);
+starbucksExitDoor.rotation.y = Math.PI;
+starbucksExitDoor.visible = false;
+starbucksArea.add(starbucksExitDoor);
 
 const meetupLoveHearts = [];
 for (let i = 0; i < 8; i += 1) {
@@ -1536,6 +1617,16 @@ let starbucksLastTimer = null;
 let starbucksConversationActive = false;
 let starbucksWalkingToCounter = false;
 let starbucksWalkStartedAt = 0;
+let starbucksPostPuzzlePhase = '';
+let starbucksPostPuzzleStartedAt = 0;
+let starbucksAtTable = false;
+let starbucksCanMove = false;
+let starbucksExitHeartDropping = false;
+let starbucksExitHeartLanded = false;
+let starbucksExitHeartReady = true;
+let starbucksExitDoorUnlocked = false;
+let starbucksExitDoorFalling = false;
+let starbucksExitDoorReady = false;
 const bumbleSwipe = {
   active: false,
   id: null,
@@ -2220,6 +2311,10 @@ function choosePuzzleCard(index) {
 
 function completeFirstMission() {
   closePuzzleScene();
+  if (currentArea === 'starbucks') {
+    startStarbucksAfterPuzzle();
+    return;
+  }
   collected = 0;
   memoryCount.textContent = '0';
   memoryTotal.textContent = '3';
@@ -2248,8 +2343,7 @@ function openPuzzleSceneFromStarbucks(delay = 0) {
   if (puzzleOpen || puzzleSolved) return;
   starbucksLastTimer = window.setTimeout(() => {
     starbucksConversationActive = false;
-    starbucksBaristaBubble.visible = false;
-    starbucksGuyBubble.visible = false;
+    hideStarbucksBubbles();
     openPuzzleScene();
   }, delay);
 }
@@ -3347,7 +3441,8 @@ stick.addEventListener('lostpointercapture', (event) => {
 
 function updateInput() {
   move.set(0, 0);
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen || currentArea === 'next-part' || currentArea === 'starbucks') {
+  const starbucksLocked = currentArea === 'starbucks' && !starbucksCanMove;
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen || currentArea === 'next-part' || starbucksLocked) {
     pointer.active = false;
     pointer.id = null;
     knob.style.transform = 'translate(-50%, -50%)';
@@ -3430,7 +3525,7 @@ function updatePlayer(delta) {
     bang.position.y = 0.49 - Math.abs(index - 4) * 0.008;
   });
 
-  if (currentArea === 'bedroom' || currentArea === 'next-part' || currentArea === 'starbucks') {
+  if (currentArea === 'bedroom' || currentArea === 'next-part' || currentArea === 'starbucks' || currentArea === 'starbucks-outdoor') {
     player.position.x = THREE.MathUtils.clamp(player.position.x, -roomHalfWidth + 0.75, roomHalfWidth - 0.75);
     player.position.z = THREE.MathUtils.clamp(player.position.z, -roomHalfDepth + 0.75, roomHalfDepth - 0.75);
   } else {
@@ -3690,14 +3785,81 @@ function clearStarbucksTimer() {
   starbucksLastTimer = null;
 }
 
+function getStarbucksBubble(speaker) {
+  if (speaker === 'barista') return starbucksBaristaBubble;
+  if (speaker === 'girl') return starbucksGirlBubble;
+  return starbucksGuyBubble;
+}
+
+function hideStarbucksBubbles(except = null) {
+  [starbucksBaristaBubble, starbucksGuyBubble, starbucksGirlBubble].forEach((bubble) => {
+    if (bubble !== except) bubble.visible = false;
+  });
+}
+
+function runSceneCircleWipe(onCovered, onDone) {
+  const closeDuration = 1400;
+  const coveredDuration = 520;
+  const openDuration = 1100;
+  sceneWipe.classList.remove('is-opening', 'is-covered', 'is-closing');
+  sceneWipe.classList.add('is-closing');
+  window.setTimeout(() => {
+    sceneWipe.classList.remove('is-closing');
+    sceneWipe.classList.add('is-covered');
+    onCovered?.();
+    window.setTimeout(() => {
+      sceneWipe.classList.remove('is-covered');
+      sceneWipe.classList.add('is-opening');
+      window.setTimeout(() => {
+        sceneWipe.classList.remove('is-opening');
+        onDone?.();
+      }, openDuration);
+    }, coveredDuration);
+  }, closeDuration);
+}
+
+function startStarbucksAfterPuzzle() {
+  clearStarbucksTimer();
+  starbucksConversationActive = false;
+  hideStarbucksBubbles();
+  const bubble = starbucksGirlBubble;
+  typeMeetupBubble(bubble, "i'm gonna pick the same as you, just more less sugar.");
+  starbucksLastTimer = window.setTimeout(() => {
+    hideStarbucksBubbles();
+    runSceneCircleWipe(() => {
+      player.position.set(-1.45, 0, 1.62);
+      starbucksGuy.position.set(-0.68, 0, 1.62);
+      player.rotation.y = Math.PI;
+      starbucksGuy.rotation.y = Math.PI;
+      starbucksGirlDrink.visible = false;
+      starbucksGuyDrink.visible = false;
+      starbucksAtTable = false;
+      starbucksPostPuzzlePhase = 'approach-counter';
+      starbucksPostPuzzleStartedAt = clock.elapsedTime;
+    });
+  }, 4300);
+}
+
+function beginStarbucksExitHeartDrop() {
+  if (starbucksExitHeart.visible || starbucksExitDoorUnlocked) return;
+  starbucksCanMove = true;
+  starbucksExitHeart.visible = true;
+  starbucksExitHeartDropping = true;
+  starbucksExitHeartLanded = false;
+  starbucksExitHeartReady = true;
+  starbucksExitHeart.position.set(-4.15, 6.2, 2.55);
+  starbucksExitHeart.scale.setScalar(0.9);
+  if ('emissiveIntensity' in starbucksExitHeartMesh.material) starbucksExitHeartMesh.material.emissiveIntensity = 0.78;
+  missionStatus.textContent = 'Follow the heart';
+}
+
 function runStarbucksConversationStep() {
   clearStarbucksTimer();
   if (!starbucksConversationActive) return;
   const step = starbucksConversation[starbucksConversationIndex];
   if (!step) return;
-  const bubble = step.speaker === 'barista' ? starbucksBaristaBubble : starbucksGuyBubble;
-  const otherBubble = step.speaker === 'barista' ? starbucksGuyBubble : starbucksBaristaBubble;
-  otherBubble.visible = false;
+  const bubble = getStarbucksBubble(step.speaker);
+  hideStarbucksBubbles(bubble);
   typeMeetupBubble(bubble, step.text);
   starbucksConversationIndex += 1;
   if (step.action === 'memoryGameLater') {
@@ -3710,8 +3872,7 @@ function runStarbucksConversationStep() {
 function startStarbucksConversation() {
   starbucksConversationActive = true;
   starbucksConversationIndex = 0;
-  starbucksBaristaBubble.visible = false;
-  starbucksGuyBubble.visible = false;
+  hideStarbucksBubbles();
   runStarbucksConversationStep();
 }
 
@@ -3720,9 +3881,13 @@ function enterStarbucks() {
   root.visible = false;
   room.visible = false;
   outdoorArea.visible = false;
+  starbucksOutdoorArea.visible = false;
+  starbucksOutdoorGuy.visible = false;
   starbucksArea.visible = true;
   starbucksGuy.visible = true;
   barista.visible = true;
+  starbucksGirlDrink.visible = false;
+  starbucksGuyDrink.visible = false;
   starbucksGuy.position.set(-0.7, 0, 3.85);
   starbucksGuy.rotation.y = Math.PI;
   barista.position.set(0, 0, -3.35);
@@ -3745,6 +3910,18 @@ function enterStarbucks() {
   starbucksStartedAt = clock.elapsedTime;
   starbucksWalkingToCounter = true;
   starbucksWalkStartedAt = clock.elapsedTime;
+  starbucksPostPuzzlePhase = '';
+  starbucksPostPuzzleStartedAt = 0;
+  starbucksAtTable = false;
+  starbucksCanMove = false;
+  starbucksExitHeart.visible = false;
+  starbucksExitHeartDropping = false;
+  starbucksExitHeartLanded = false;
+  starbucksExitDoorUnlocked = false;
+  starbucksExitDoorFalling = false;
+  starbucksExitDoorReady = false;
+  starbucksExitDoor.visible = false;
+  starbucksExitDoor.position.set(-5.1, doorDropStartY, 3.95);
   stopMovementInput();
 }
 
@@ -3754,13 +3931,20 @@ function updateStarbucksScene(time) {
   const guyStart = new THREE.Vector3(-0.7, 0, 3.85);
   const girlCounter = new THREE.Vector3(-1.65, 0, 0.9);
   const guyCounter = new THREE.Vector3(-0.9, 0, 0.9);
+  const girlPickupStart = new THREE.Vector3(-1.45, 0, 1.62);
+  const guyPickupStart = new THREE.Vector3(-0.68, 0, 1.62);
+  const girlPickup = new THREE.Vector3(-1.48, 0, 0.68);
+  const guyPickup = new THREE.Vector3(-0.74, 0, 0.68);
+  const girlTable = new THREE.Vector3(-5.1, 0, 1.55);
+  const guyTable = new THREE.Vector3(-5.1, 0, 0.3);
   let walkProgress = 1;
+  let stride = 0;
   if (starbucksWalkingToCounter) {
     walkProgress = THREE.MathUtils.clamp((time - starbucksWalkStartedAt) / 2.6, 0, 1);
     const eased = THREE.MathUtils.smoothstep(walkProgress, 0, 1);
     player.position.lerpVectors(girlStart, girlCounter, eased);
     starbucksGuy.position.lerpVectors(guyStart, guyCounter, eased);
-    const stride = Math.sin(time * 8.4);
+    stride = Math.sin(time * 8.4);
     rig.leftLeg.rotation.x = stride * 0.24;
     rig.rightLeg.rotation.x = -stride * 0.24;
     starbucksGuy.userData.leftLeg.rotation.x = -stride * 0.24;
@@ -3769,30 +3953,62 @@ function updateStarbucksScene(time) {
       starbucksWalkingToCounter = false;
       startStarbucksConversation();
     }
+  } else if (starbucksPostPuzzlePhase === 'approach-counter') {
+    walkProgress = THREE.MathUtils.clamp((time - starbucksPostPuzzleStartedAt) / 1.65, 0, 1);
+    const eased = THREE.MathUtils.smoothstep(walkProgress, 0, 1);
+    player.position.lerpVectors(girlPickupStart, girlPickup, eased);
+    starbucksGuy.position.lerpVectors(guyPickupStart, guyPickup, eased);
+    stride = Math.sin(time * 9.2);
+    rig.leftLeg.rotation.x = stride * 0.24;
+    rig.rightLeg.rotation.x = -stride * 0.24;
+    starbucksGuy.userData.leftLeg.rotation.x = -stride * 0.24;
+    starbucksGuy.userData.rightLeg.rotation.x = stride * 0.24;
+    if (walkProgress >= 1) {
+      starbucksPostPuzzlePhase = 'to-table';
+      starbucksPostPuzzleStartedAt = time;
+      starbucksGirlDrink.visible = true;
+      starbucksGuyDrink.visible = true;
+    }
+  } else if (starbucksPostPuzzlePhase === 'to-table') {
+    walkProgress = THREE.MathUtils.clamp((time - starbucksPostPuzzleStartedAt) / 3.1, 0, 1);
+    const eased = THREE.MathUtils.smoothstep(walkProgress, 0, 1);
+    player.position.lerpVectors(girlPickup, girlTable, eased);
+    starbucksGuy.position.lerpVectors(guyPickup, guyTable, eased);
+    stride = Math.sin(time * 8.8);
+    rig.leftLeg.rotation.x = stride * 0.25;
+    rig.rightLeg.rotation.x = -stride * 0.25;
+    starbucksGuy.userData.leftLeg.rotation.x = -stride * 0.25;
+    starbucksGuy.userData.rightLeg.rotation.x = stride * 0.25;
+    if (walkProgress >= 1) {
+      starbucksPostPuzzlePhase = 'table';
+      starbucksAtTable = true;
+      beginStarbucksExitHeartDrop();
+    }
   } else {
-    player.position.copy(girlCounter);
-    starbucksGuy.position.copy(guyCounter);
+    if (!starbucksCanMove) player.position.copy(starbucksAtTable ? girlTable : girlCounter);
+    starbucksGuy.position.copy(starbucksAtTable ? guyTable : guyCounter);
     rig.leftLeg.rotation.x = 0;
     rig.rightLeg.rotation.x = 0;
     starbucksGuy.userData.leftLeg.rotation.x = 0;
     starbucksGuy.userData.rightLeg.rotation.x = 0;
   }
-  player.rotation.y = Math.PI;
+  const walkingToTable = starbucksPostPuzzlePhase === 'to-table';
+  player.rotation.y = starbucksAtTable ? Math.PI : walkingToTable ? -Math.PI / 2 : Math.PI;
   avatar.position.y = avatarGroundOffset + Math.sin(time * 1.5) * 0.005;
   rig.torso.rotation.x = 0;
   rig.torso.rotation.z = 0.01;
-  rig.leftArm.rotation.z = -0.9;
-  rig.rightArm.rotation.z = 0.48;
+  rig.leftArm.rotation.z = starbucksGirlDrink.visible ? -0.66 : -0.9;
+  rig.rightArm.rotation.z = starbucksGirlDrink.visible ? 0.1 : 0.48;
   rig.leftArm.rotation.x = 0.18;
-  rig.rightArm.rotation.x = 0.06;
+  rig.rightArm.rotation.x = starbucksGirlDrink.visible ? 0.34 : 0.06;
   rig.head.rotation.x = -0.015 + Math.sin(time * 1.2) * 0.004;
 
-  starbucksGuy.rotation.y = Math.PI;
+  starbucksGuy.rotation.y = starbucksAtTable ? 0 : walkingToTable ? -Math.PI / 2 : Math.PI;
   starbucksGuy.userData.torso.rotation.x = 0;
   starbucksGuy.userData.head.rotation.x = -0.01 + Math.sin(time * 1.1) * 0.004;
-  starbucksGuy.userData.leftArm.rotation.z = -0.58;
-  starbucksGuy.userData.rightArm.rotation.z = 0.9;
-  starbucksGuy.userData.leftArm.rotation.x = 0.06;
+  starbucksGuy.userData.leftArm.rotation.z = starbucksGuyDrink.visible ? -0.1 : -0.58;
+  starbucksGuy.userData.rightArm.rotation.z = starbucksGuyDrink.visible ? 0.72 : 0.9;
+  starbucksGuy.userData.leftArm.rotation.x = starbucksGuyDrink.visible ? 0.32 : 0.06;
   starbucksGuy.userData.rightArm.rotation.x = 0.18;
 
   barista.position.set(0, 0, -3.35);
@@ -3804,8 +4020,26 @@ function updateStarbucksScene(time) {
 
   starbucksBaristaBubble.position.copy(barista.position).add(new THREE.Vector3(0, 2.72, 0.1));
   starbucksGuyBubble.position.copy(starbucksGuy.position).add(new THREE.Vector3(0, 2.65, 0.15));
+  starbucksGirlBubble.position.copy(player.position).add(new THREE.Vector3(0, 2.65, 0.15));
   starbucksBaristaBubble.lookAt(camera.position);
   starbucksGuyBubble.lookAt(camera.position);
+  starbucksGirlBubble.lookAt(camera.position);
+}
+
+function updateStarbucksOutdoorScene(time) {
+  if (currentArea !== 'starbucks-outdoor') return;
+  starbucksGirlDrink.visible = true;
+  avatar.position.y = avatarGroundOffset + Math.sin(time * 1.5) * 0.005;
+  rig.leftArm.rotation.z = -0.66;
+  rig.rightArm.rotation.z = 0.1;
+  rig.leftArm.rotation.x = 0.18;
+  rig.rightArm.rotation.x = 0.34;
+
+  starbucksOutdoorGuy.userData.head.rotation.x = -0.01 + Math.sin(time * 1.1) * 0.004;
+  starbucksOutdoorGuy.userData.leftArm.rotation.z = -0.1;
+  starbucksOutdoorGuy.userData.leftArm.rotation.x = 0.32;
+  starbucksOutdoorGuy.userData.rightArm.rotation.z = 0.72;
+  starbucksOutdoorGuy.userData.rightArm.rotation.x = 0.18;
 }
 
 function updateMeetupScene(time, delta) {
@@ -3921,6 +4155,16 @@ function resetGameProgress() {
   starbucksConversationActive = false;
   starbucksConversationIndex = 0;
   starbucksWalkingToCounter = false;
+  starbucksPostPuzzlePhase = '';
+  starbucksPostPuzzleStartedAt = 0;
+  starbucksAtTable = false;
+  starbucksCanMove = false;
+  starbucksExitHeart.visible = false;
+  starbucksExitHeartDropping = false;
+  starbucksExitHeartLanded = false;
+  starbucksExitDoorUnlocked = false;
+  starbucksExitDoorFalling = false;
+  starbucksExitDoorReady = false;
   clearStarbucksTimer();
   clearMeetupTimer();
   hideMeetupChoices();
@@ -3943,11 +4187,17 @@ function resetGameProgress() {
   root.visible = true;
   room.visible = false;
   outdoorArea.visible = false;
+  starbucksOutdoorArea.visible = false;
+  starbucksOutdoorGuy.visible = false;
   starbucksArea.visible = false;
   starbucksGuy.visible = false;
   barista.visible = false;
-  starbucksBaristaBubble.visible = false;
-  starbucksGuyBubble.visible = false;
+  hideStarbucksBubbles();
+  starbucksGirlDrink.visible = false;
+  starbucksGuyDrink.visible = false;
+  starbucksPostPuzzlePhase = '';
+  starbucksAtTable = false;
+  sceneWipe.classList.remove('is-closing', 'is-covered', 'is-opening');
   randomGuy.visible = false;
   guyMeetupBubble.visible = false;
   girlMeetupBubble.visible = false;
@@ -4045,9 +4295,17 @@ function enterBedroom() {
 function startRoomLoading() {
   const usingBedroomDoor = currentArea === 'bedroom' && bedroomDoorReady;
   const usingTutorialDoor = currentArea === 'tutorial-island' && doorReady;
-  if ((!usingBedroomDoor && !usingTutorialDoor) || roomLoading) return;
+  const usingStarbucksDoor = currentArea === 'starbucks' && starbucksExitDoorReady;
+  if ((!usingBedroomDoor && !usingTutorialDoor && !usingStarbucksDoor) || roomLoading) return;
   roomLoading = true;
   stopMovementInput();
+  if (usingStarbucksDoor) {
+    runSceneCircleWipe(() => {
+      enterStarbucksOutdoor();
+      roomLoading = false;
+    });
+    return;
+  }
   loadingScreen.classList.add('is-visible');
   setTimeout(() => {
     loadingScreen.classList.remove('is-visible');
@@ -4060,6 +4318,36 @@ function startRoomLoading() {
   }, 900);
 }
 
+function enterStarbucksOutdoor() {
+  currentArea = 'starbucks-outdoor';
+  roomLoading = false;
+  starbucksCanMove = true;
+  starbucksArea.visible = false;
+  starbucksGuy.visible = false;
+  barista.visible = false;
+  hideStarbucksBubbles();
+  starbucksExitDoorReady = false;
+  starbucksExitDoor.visible = false;
+  starbucksOutdoorArea.visible = true;
+  starbucksOutdoorGuy.visible = true;
+  starbucksGirlDrink.visible = true;
+  starbucksGuyDrink.visible = false;
+  player.position.set(-1.2, 0, 1.85);
+  player.rotation.y = -Math.PI / 2;
+  starbucksOutdoorGuy.position.set(0.15, 0, 1.85);
+  starbucksOutdoorGuy.rotation.y = Math.PI / 2;
+  starbucksOutdoorGuy.userData.leftLeg.rotation.x = 0;
+  starbucksOutdoorGuy.userData.rightLeg.rotation.x = 0;
+  starbucksOutdoorGuy.userData.leftArm.rotation.z = -0.1;
+  starbucksOutdoorGuy.userData.leftArm.rotation.x = 0.32;
+  starbucksOutdoorGuy.userData.rightArm.rotation.z = 0.72;
+  starbucksOutdoorGuy.userData.rightArm.rotation.x = 0.18;
+  missionStatus.textContent = 'Starbucks outside';
+  cameraDistance = 5.8;
+  yaw = Math.PI / 2;
+  stopMovementInput();
+}
+
 function enterNextPart() {
   currentArea = 'next-part';
   roomLoading = false;
@@ -4068,13 +4356,18 @@ function enterNextPart() {
   root.visible = false;
   room.visible = false;
   starbucksArea.visible = false;
+  starbucksOutdoorArea.visible = false;
+  starbucksOutdoorGuy.visible = false;
   starbucksGuy.visible = false;
   barista.visible = false;
-  starbucksBaristaBubble.visible = false;
-  starbucksGuyBubble.visible = false;
+  hideStarbucksBubbles();
+  starbucksGirlDrink.visible = false;
+  starbucksGuyDrink.visible = false;
   starbucksConversationActive = false;
   starbucksConversationIndex = 0;
   starbucksWalkingToCounter = false;
+  starbucksPostPuzzlePhase = '';
+  starbucksAtTable = false;
   clearStarbucksTimer();
   outdoorArea.visible = true;
   randomGuy.visible = true;
@@ -4136,10 +4429,21 @@ function updateDoor(delta, time) {
     }
   }
 
+  if (starbucksExitDoorUnlocked) {
+    if (starbucksExitDoorFalling) {
+      starbucksExitDoor.position.y = Math.max(doorGroundY, starbucksExitDoor.position.y - delta * 6.2);
+      if (starbucksExitDoor.position.y <= doorGroundY + 0.001) {
+        starbucksExitDoorFalling = false;
+        starbucksExitDoorReady = true;
+      }
+    }
+  }
+
   const nearTutorialDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
   const nearBedroomDoor = bedroomDoorReady && currentArea === 'bedroom' && bedroomDoor.position.distanceTo(player.position) < 2.05;
-  const activeDoor = nearBedroomDoor ? bedroomDoor : nextDoor;
-  const nearDoor = nearTutorialDoor || nearBedroomDoor;
+  const nearStarbucksDoor = starbucksExitDoorReady && currentArea === 'starbucks' && starbucksExitDoor.position.distanceTo(player.position) < 2.05;
+  const activeDoor = nearStarbucksDoor ? starbucksExitDoor : nearBedroomDoor ? bedroomDoor : nextDoor;
+  const nearDoor = nearTutorialDoor || nearBedroomDoor || nearStarbucksDoor;
   doorPromptVisible = nearDoor && !roomLoading;
   doorButton.classList.toggle('is-visible', doorPromptVisible);
 
@@ -4182,6 +4486,39 @@ function updatePuzzleHeart(time, delta) {
   if (distanceToHeart > 1.9) puzzleHeartReadyToOpen = true;
   if (puzzleHeartLanded && puzzleHeartReadyToOpen && distanceToHeart < 1.35) {
     openPuzzleScene();
+  }
+}
+
+function updateStarbucksExitHeart(time, delta) {
+  if (currentArea !== 'starbucks' || !starbucksExitHeart.visible || starbucksExitDoorUnlocked) return;
+
+  starbucksExitHeart.rotation.y += delta * (starbucksExitHeartDropping ? 2.8 : 1.45);
+  starbucksExitHeartMesh.position.y = 0.58 + Math.sin(time * 3.1) * 0.055;
+  if (starbucksExitHeartDropping) {
+    starbucksExitHeart.position.y = Math.max(0.08, starbucksExitHeart.position.y - delta * 3.1);
+    if (starbucksExitHeart.position.y <= 0.081) {
+      starbucksExitHeartDropping = false;
+      starbucksExitHeartLanded = true;
+      starbucksExitHeart.position.y = 0.08;
+      starbucksExitHeart.scale.setScalar(1);
+    }
+    return;
+  }
+
+  starbucksExitHeart.position.y = 0.08 + Math.sin(time * 2.2) * 0.035;
+  const heartFlat = new THREE.Vector2(starbucksExitHeart.position.x, starbucksExitHeart.position.z);
+  const playerFlat = new THREE.Vector2(player.position.x, player.position.z);
+  const distanceToHeart = heartFlat.distanceTo(playerFlat);
+  if (distanceToHeart > 1.9) starbucksExitHeartReady = true;
+  if (starbucksExitHeartLanded && starbucksExitHeartReady && distanceToHeart < 1.35) {
+    starbucksExitHeartReady = false;
+    starbucksExitHeart.visible = false;
+    starbucksExitDoorUnlocked = true;
+    starbucksExitDoorFalling = true;
+    starbucksExitDoorReady = false;
+    starbucksExitDoor.visible = true;
+    starbucksExitDoor.position.set(-5.1, doorDropStartY, 3.95);
+    missionStatus.textContent = 'Door unlocked';
   }
 }
 
@@ -4313,11 +4650,13 @@ function tick() {
   updatePlayer(delta);
   updateMeetupScene(time, delta);
   updateStarbucksScene(time);
+  updateStarbucksOutdoorScene(time);
   updateTypedBubbles(time);
   updateCamera();
   updateRoomWalls();
   updateBumbleLogo(time, delta);
   updatePuzzleHeart(time, delta);
+  updateStarbucksExitHeart(time, delta);
   updateMarkers(time);
   updateDoor(delta, time);
   updatePhonePrompt();
