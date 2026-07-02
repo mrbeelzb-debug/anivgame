@@ -150,12 +150,16 @@
         <div class="proposal-ending-panel">
           <strong>Game Over</strong>
           <p id="proposal-ending-line"></p>
+          <div class="final-ending-actions" id="final-ending-actions" aria-label="Final choice">
+            <button id="final-yes" type="button">YES I WILL!</button>
+            <button id="final-no" type="button">NO</button>
+          </div>
         </div>
       </div>
 
       <div class="maze-game" id="maze-game" aria-hidden="true">
         <div class="maze-stage">
-          <canvas id="maze-canvas" width="1254" height="1254" aria-label="Wallet maze"></canvas>
+          <canvas id="maze-canvas" width="1500" height="1500" aria-label="Wallet maze"></canvas>
         </div>
         <div class="maze-controls" aria-label="Maze controls">
           <button id="maze-up" type="button" aria-label="Move up">↑</button>

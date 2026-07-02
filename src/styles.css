@@ -885,7 +885,9 @@ body.game-started .dog-bubble {
   font: inherit;
   font-size: 0.9rem;
   font-weight: 900;
-  touch-action: manipulation;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cuddle-button.is-visible {
@@ -1368,6 +1370,27 @@ body.room-editor-mode .room-editor {
   display: grid;
 }
 
+.proposal-ending.is-final {
+  background: #000;
+}
+
+.proposal-ending.is-love-wipe::before {
+  position: absolute;
+  left: 50%;
+  bottom: -14vh;
+  z-index: 1;
+  color: #000;
+  content: "♥";
+  font-size: clamp(260px, 48vw, 760px);
+  line-height: 1;
+  transform: translateX(-50%) scale(0.08);
+  animation: final-heart-cover 1.75s cubic-bezier(0.68, 0, 0.18, 1) forwards;
+}
+
+.proposal-ending.is-final .proposal-ending-panel {
+  color: #fff;
+}
+
 .proposal-ending-panel strong {
   font-size: clamp(3.4rem, 12vw, 8rem);
   font-weight: 950;
@@ -1378,10 +1401,50 @@ body.room-editor-mode .room-editor {
 .proposal-ending-panel p {
   min-height: 72px;
   margin: 0;
-  color: #201314;
+  color: inherit;
   font-size: clamp(1.1rem, 3.5vw, 2rem);
   font-weight: 900;
   line-height: 1.25;
+}
+
+.final-ending-actions {
+  position: relative;
+  display: none;
+  width: min(520px, calc(100vw - 56px));
+  min-height: 180px;
+}
+
+.proposal-ending.is-final .final-ending-actions {
+  display: block;
+}
+
+.final-ending-actions button {
+  position: absolute;
+  top: 0;
+  width: calc(50% - 7px);
+  min-height: 54px;
+  border: 0;
+  border-radius: 10px;
+  color: #201314;
+  background: #ff8fbd;
+  box-shadow: 0 8px 0 #b83f76;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+}
+
+.final-ending-actions #final-yes {
+  left: 0;
+}
+
+.final-ending-actions #final-no {
+  right: 0;
+  transition: left 180ms ease, top 180ms ease, transform 180ms ease;
+}
+
+.final-ending-actions button:active {
+  transform: translateY(5px);
+  box-shadow: 0 3px 0 #b83f76;
 }
 
 @keyframes proposal-firework {
@@ -1404,6 +1467,22 @@ body.room-editor-mode .room-editor {
     opacity: 0;
     transform: scale(calc(var(--firework-scale) * 1.9));
     filter: blur(1px);
+  }
+}
+
+@keyframes final-heart-cover {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(0.08);
+  }
+
+  72% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(7.2);
   }
 }
 

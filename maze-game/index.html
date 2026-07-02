@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maze Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="game-header">
+        <h1>Maze Game</h1>
+        <p>Use WASD, arrows, swipe, or the buttons.</p>
+      </header>
+
+      <section class="stage-wrap" aria-label="Maze game">
+        <canvas id="game-canvas"></canvas>
+        <div class="win-panel" id="win-panel" aria-hidden="true">
+          <strong>You Win!</strong>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </section>
+
+      <nav class="touch-controls" aria-label="Movement controls">
+        <button class="control-button up" type="button" data-direction="up" aria-label="Move up">Up</button>
+        <button class="control-button left" type="button" data-direction="left" aria-label="Move left">Left</button>
+        <button class="control-button right" type="button" data-direction="right" aria-label="Move right">Right</button>
+        <button class="control-button down" type="button" data-direction="down" aria-label="Move down">Down</button>
+      </nav>
+    </main>
+
+    <script src="src/maze.js"></script>
+    <script src="src/main.js"></script>
+  </body>
+</html>
