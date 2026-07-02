@@ -131,6 +131,7 @@ const outdoorFocusMode = true;
 const starbucksFocusMode = true;
 const postStarbucksMemoryFocusMode = true;
 const mazeFocusMode = true;
+const finalChoiceFocusMode = true;
 const showGirlCoffeeCup = false;
 
 function updateAppViewport() {
@@ -647,6 +648,24 @@ const dogBubbleMessages = [
   "mot mot is watching!",
   "try walking around",
   "hearts unlock memories",
+];
+const dogFreeRoamMessages = [
+  "maddy smell badd",
+  "i love bryan!",
+  "i need pet pet",
+  "where snack?",
+  "mot mot is baby",
+  "wait for meee!",
+  "tiny legs, big adventure",
+  "i am helping!",
+  "can we cuddle now?",
+  "woof woof! that's important",
+  "i found a smell!",
+  "bryan is my bestie",
+  "maddy owes me treats",
+  "look! i can hop!",
+  "no thoughts, only walkies",
+  "pet me for good luck",
 ];
 let dogNextMessageAt = 0;
 let dogPlayful = false;
@@ -3333,6 +3352,13 @@ startButton.addEventListener('click', () => {
     gameStarted = true;
     document.body.classList.add('game-started');
     startTransition.classList.remove('is-active');
+    if (finalChoiceFocusMode) {
+      tutorialActive = false;
+      tutorial.classList.remove('is-visible');
+      document.body.classList.remove('tutorial-active');
+      showFinalGameOver();
+      return;
+    }
     if (mazeFocusMode) {
       tutorialActive = false;
       tutorial.classList.remove('is-visible');
@@ -5036,6 +5062,8 @@ function enterFreeRoamArea(area) {
   dogTarget.y = 0.03;
   dog.visible = true;
   dogBubble.style.display = '';
+  dogBubble.textContent = dogFreeRoamMessages[Math.floor(Math.random() * dogFreeRoamMessages.length)];
+  dogNextMessageAt = clock.elapsedTime + 3;
   pickDogTarget();
   updateFreeRoamPortalDoors();
   stopMovementInput();
@@ -5281,9 +5309,8 @@ function updateMeetupScene(time, delta) {
   if (currentArea !== 'next-part') return;
   if (updateFinalWalletScene(time)) return;
   if (freeRoamActive) {
-    applyPlayerMeetupPose(time);
     randomGuy.visible = false;
-    meetupTableProps.visible = true;
+    meetupTableProps.visible = false;
     guyMeetupBubble.visible = false;
     girlMeetupBubble.visible = false;
     hideMeetupChoices();
@@ -5853,7 +5880,13 @@ function updateDog(time, delta) {
   const isCuddling = time < cuddleUntil;
 
   if (dogPlayful !== lastDogPlayful) {
-    dogBubble.textContent = dogPlayful ? "cuddle mot mot?" : "woof! follow the hearts";
+    if (freeRoamActive) {
+      dogBubble.textContent = dogPlayful
+        ? "i need pet pet"
+        : dogFreeRoamMessages[Math.floor(Math.random() * dogFreeRoamMessages.length)];
+    } else {
+      dogBubble.textContent = dogPlayful ? "cuddle mot mot?" : "woof! follow the hearts";
+    }
     dogNextMessageAt = time + 3;
     cuddleButton.classList.toggle('is-visible', dogPlayful);
     lastDogPlayful = dogPlayful;
@@ -5903,7 +5936,8 @@ function updateDog(time, delta) {
   });
 
   if (!isCuddling && time > dogNextMessageAt) {
-    dogBubble.textContent = dogBubbleMessages[Math.floor(Math.random() * dogBubbleMessages.length)];
+    const messages = freeRoamActive ? dogFreeRoamMessages : dogBubbleMessages;
+    dogBubble.textContent = messages[Math.floor(Math.random() * messages.length)];
     dogNextMessageAt = time + 4 + Math.random() * 4;
   }
 

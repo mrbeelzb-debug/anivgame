@@ -1372,6 +1372,7 @@ body.room-editor-mode .room-editor {
 
 .proposal-ending.is-final {
   background: #000;
+  pointer-events: auto;
 }
 
 .proposal-ending.is-love-wipe::before {
