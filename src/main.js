@@ -123,15 +123,15 @@ const bumbleWordmarkTexture = textureLoader.load('/bumble.png');
 const bigPhoneTexture = textureLoader.load('/bumble-slide/phone.png');
 bigPhoneTexture.colorSpace = THREE.SRGBColorSpace;
 bigPhoneTexture.anisotropy = 8;
-const roomFocusMode = true;
+const roomFocusMode = false;
 const blankRoomMode = false;
-const chatFocusMode = true;
-const puzzleFocusMode = true;
-const outdoorFocusMode = true;
-const starbucksFocusMode = true;
-const postStarbucksMemoryFocusMode = true;
-const mazeFocusMode = true;
-const finalChoiceFocusMode = true;
+const chatFocusMode = false;
+const puzzleFocusMode = false;
+const outdoorFocusMode = false;
+const starbucksFocusMode = false;
+const postStarbucksMemoryFocusMode = false;
+const mazeFocusMode = false;
+const finalChoiceFocusMode = false;
 const showGirlCoffeeCup = false;
 
 function updateAppViewport() {
@@ -1725,9 +1725,15 @@ let chatTyping = null;
 let chatChoiceStep = 'first';
 let puzzleOpen = false;
 let puzzleSolved = false;
+let puzzleMode = 'picture';
 let puzzleHeartDropping = false;
 let puzzleHeartLanded = false;
 let puzzleHeartReadyToOpen = true;
+let selectedPuzzleTile = null;
+let puzzleTiles = [];
+let puzzleImageReady = false;
+let puzzleImageObjectUrl = null;
+let puzzleImageSrc = '/puzzle/puzzle.png';
 let puzzleRound = 0;
 let puzzleCards = [];
 let puzzleAcceptingInput = false;
@@ -1973,7 +1979,7 @@ const defaultRoomLayout = [
   { id: 'photoCanvas', x: 2.85, y: 2.18, z: -roomHalfDepth + 0.12, s: 0.95 },
 ];
 let editorAssets = [...featuredEditorAssets];
-let roomEditorActive = true;
+let roomEditorActive = false;
 let selectedEditorAsset = editorAssets[0];
 let selectedEditorObject = null;
 const placedEditorObjects = [];
@@ -2403,6 +2409,83 @@ function beginPuzzleHeartDrop() {
   stopMovementInput();
 }
 
+function shufflePicturePuzzleTiles() {
+  puzzleTiles = Array.from({ length: 9 }, (_, index) => index);
+  for (let index = puzzleTiles.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [puzzleTiles[index], puzzleTiles[swapIndex]] = [puzzleTiles[swapIndex], puzzleTiles[index]];
+  }
+  if (puzzleTiles.every((tile, index) => tile === index)) {
+    [puzzleTiles[0], puzzleTiles[1]] = [puzzleTiles[1], puzzleTiles[0]];
+  }
+}
+
+function renderPicturePuzzle() {
+  puzzleGrid.replaceChildren();
+  if (!puzzleImageReady) return;
+  puzzleTiles.forEach((tileIndex, displayIndex) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'puzzle-tile';
+    tile.style.backgroundImage = `url("${puzzleImageSrc}")`;
+    tile.style.backgroundPosition = `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`;
+    tile.setAttribute('aria-label', `Puzzle tile ${displayIndex + 1}`);
+    if (selectedPuzzleTile === displayIndex) tile.classList.add('is-selected');
+    tile.addEventListener('click', () => choosePicturePuzzleTile(displayIndex));
+    puzzleGrid.append(tile);
+  });
+}
+
+function checkPicturePuzzleImage() {
+  const image = new Image();
+  image.onload = () => {
+    puzzleImageReady = true;
+    puzzlePicker.classList.remove('is-visible');
+    puzzleStatus.textContent = 'tap two pieces to swap them';
+    renderPicturePuzzle();
+  };
+  image.onerror = () => {
+    puzzleImageReady = false;
+    puzzleGrid.replaceChildren();
+    puzzlePicker.classList.add('is-visible');
+    puzzleStatus.textContent = 'choose the photo first';
+  };
+  image.src = puzzleImageSrc;
+}
+
+function setPicturePuzzleImage(file) {
+  if (!file) return;
+  if (puzzleImageObjectUrl) URL.revokeObjectURL(puzzleImageObjectUrl);
+  puzzleImageObjectUrl = URL.createObjectURL(file);
+  puzzleImageSrc = puzzleImageObjectUrl;
+  puzzleSolved = false;
+  selectedPuzzleTile = null;
+  shufflePicturePuzzleTiles();
+  checkPicturePuzzleImage();
+}
+
+function choosePicturePuzzleTile(index) {
+  if (puzzleSolved || puzzleMode !== 'picture') return;
+  if (selectedPuzzleTile === null) {
+    selectedPuzzleTile = index;
+    puzzleStatus.textContent = 'pick another piece';
+    renderPicturePuzzle();
+    return;
+  }
+  if (selectedPuzzleTile !== index) {
+    [puzzleTiles[selectedPuzzleTile], puzzleTiles[index]] = [puzzleTiles[index], puzzleTiles[selectedPuzzleTile]];
+  }
+  selectedPuzzleTile = null;
+  const solved = puzzleTiles.every((tile, tileIndex) => tile === tileIndex);
+  puzzleStatus.textContent = solved ? 'perfect :)' : 'keep going';
+  if (solved) {
+    puzzleSolved = true;
+    puzzleHeart.visible = false;
+    window.setTimeout(completeFirstMission, 900);
+  }
+  renderPicturePuzzle();
+}
+
 function clearPuzzleTimers() {
   while (puzzleTimers.length) clearTimeout(puzzleTimers.pop());
 }
@@ -2550,26 +2633,37 @@ function completeFirstMission() {
   unlockBedroomDoor();
 }
 
-function openPuzzleScene() {
+function openPuzzleScene(mode = currentArea === 'starbucks' ? 'memory' : 'picture') {
   if (puzzleOpen || puzzleSolved) return;
   puzzleOpen = true;
-  puzzleRound = 0;
-  puzzleLastHardShuffleClass = '';
-  puzzlePicker.classList.remove('is-visible');
-  puzzleStatus.textContent = "get ready";
+  puzzleMode = mode;
+  puzzleScene.classList.toggle('is-picture-puzzle', mode === 'picture');
+  puzzleScene.querySelector('.puzzle-topbar span').textContent = mode === 'picture' ? 'Picture puzzle' : 'Remember the card';
   stopMovementInput();
   puzzleScene.classList.add('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('puzzle-open');
+  if (mode === 'picture') {
+    selectedPuzzleTile = null;
+    shufflePicturePuzzleTiles();
+    puzzleStatus.textContent = 'loading photo...';
+    checkPicturePuzzleImage();
+    return;
+  }
+  puzzleRound = 0;
+  puzzleLastHardShuffleClass = '';
+  puzzlePicker.classList.remove('is-visible');
+  puzzleStatus.textContent = "get ready";
   startPuzzleRound();
 }
 
 function openPuzzleSceneFromStarbucks(delay = 0) {
-  if (puzzleOpen || puzzleSolved) return;
+  if (puzzleOpen) return;
   starbucksLastTimer = window.setTimeout(() => {
     starbucksConversationActive = false;
     hideStarbucksBubbles();
-    openPuzzleScene();
+    puzzleSolved = false;
+    openPuzzleScene('memory');
   }, delay);
 }
 
@@ -2577,6 +2671,7 @@ function closePuzzleScene() {
   puzzleOpen = false;
   clearPuzzleTimers();
   puzzleAcceptingInput = false;
+  selectedPuzzleTile = null;
   puzzleHeartReadyToOpen = false;
   puzzleScene.classList.remove('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'true');
@@ -3494,6 +3589,7 @@ puzzleScene.addEventListener('pointerdown', (event) => {
 });
 puzzlePickButton.addEventListener('click', () => puzzleFileInput.click());
 puzzleFileInput.addEventListener('change', () => {
+  setPicturePuzzleImage(puzzleFileInput.files?.[0]);
   puzzleFileInput.value = '';
 });
 mediaClose.addEventListener('click', closeMediaViewer);
@@ -4973,6 +5069,7 @@ function getNearbyFreeRoamPortalDoor() {
 
 function enterFreeRoamArea(area) {
   freeRoamActive = true;
+  document.body.classList.add('final-free-roam');
   finalWalletSequenceActive = false;
   finalWalletWalking = false;
   finalEndingActive = false;
@@ -5008,6 +5105,8 @@ function enterFreeRoamArea(area) {
   currentArea = area;
   root.visible = area === 'tutorial-island';
   room.visible = area === 'bedroom';
+  bigPhone.visible = area !== 'bedroom';
+  bumbleLogo.visible = area !== 'bedroom';
   outdoorArea.visible = area === 'next-part';
   starbucksArea.visible = area === 'starbucks';
   starbucksOutdoorArea.visible = area === 'starbucks-outdoor';
@@ -5416,6 +5515,12 @@ function unlockBedroomDoor() {
 function resetGameProgress() {
   currentArea = 'tutorial-island';
   freeRoamActive = false;
+  puzzleSolved = false;
+  puzzleMode = 'picture';
+  puzzleHeart.visible = false;
+  document.body.classList.remove('final-free-roam');
+  bigPhone.visible = true;
+  bumbleLogo.visible = true;
   meetupStartedAt = 0;
   meetupGuySeated = false;
   meetupConversationActive = false;
