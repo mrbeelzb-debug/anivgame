@@ -1911,8 +1911,7 @@ const chatChoiceSets = {
 };
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
-const puzzleImageSource = '/puzzle/puzzle.png';
-const puzzleTileColumns = 3;
+const puzzlePhotoSources = Array.from({ length: 9 }, (_, index) => `/puzzlestarbucks/${index + 1}.jpeg`);
 
 const mediaItems = [
   { type: 'image', title: 'Phone Preview', src: '/bumble-slide/phone.png' },
@@ -2392,7 +2391,9 @@ function startRoomReturnFromChat() {
   window.setTimeout(() => {
     closeChatScene();
     chatScene.classList.remove('is-returning');
-    beginPuzzleHeartDrop();
+    puzzleSolved = false;
+    puzzleHeart.visible = false;
+    openPuzzleScene('picture');
   }, 1400);
 }
 
@@ -2428,8 +2429,8 @@ function renderPicturePuzzle() {
     const tile = document.createElement('button');
     tile.type = 'button';
     tile.className = 'puzzle-tile';
-    tile.style.backgroundImage = `url("${puzzleImageSrc}")`;
-    tile.style.backgroundPosition = `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`;
+    tile.style.setProperty('--puzzle-image', `url("${puzzleImageSrc}")`);
+    tile.style.setProperty('--puzzle-position', `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`);
     tile.setAttribute('aria-label', `Puzzle tile ${displayIndex + 1}`);
     if (selectedPuzzleTile === displayIndex) tile.classList.add('is-selected');
     tile.addEventListener('click', () => choosePicturePuzzleTile(displayIndex));
@@ -2618,71 +2619,6 @@ function choosePuzzleCard(index) {
   addPuzzleTimer(completeFirstMission, 900);
 }
 
-function startPicturePuzzle() {
-  clearPuzzleTimers();
-  puzzleAcceptingInput = true;
-  puzzleRoundCorrectSlot = -1;
-  puzzleShuffleClass = '';
-  puzzleGrid.classList.remove('is-ready', 'is-shaking', 'is-shuffling', ...puzzleAllShufflePaths.map((path) => path.className));
-  puzzleGrid.replaceChildren();
-
-  puzzleCards = Array.from({ length: puzzleTileColumns * puzzleTileColumns }, (_, index) => index);
-  for (let index = puzzleCards.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [puzzleCards[index], puzzleCards[swapIndex]] = [puzzleCards[swapIndex], puzzleCards[index]];
-  }
-  if (puzzleCards.every((piece, index) => piece === index)) {
-    [puzzleCards[0], puzzleCards[1]] = [puzzleCards[1], puzzleCards[0]];
-  }
-
-  puzzleStatus.textContent = "tap two pieces to swap them";
-  puzzleGrid.classList.add('is-ready', 'is-picture-puzzle');
-  renderPicturePuzzle();
-}
-
-function renderPicturePuzzle() {
-  puzzleGrid.replaceChildren();
-  puzzleCards.forEach((piece, index) => {
-    const tile = document.createElement('button');
-    tile.type = 'button';
-    tile.className = 'puzzle-tile';
-    tile.setAttribute('aria-label', `Puzzle piece ${index + 1}`);
-    if (index === puzzleRoundCorrectSlot) tile.classList.add('is-picked');
-
-    const pieceColumn = piece % puzzleTileColumns;
-    const pieceRow = Math.floor(piece / puzzleTileColumns);
-    tile.style.backgroundImage = `url("${puzzleImageSource}")`;
-    tile.style.backgroundPosition = `${pieceColumn * 50}% ${pieceRow * 50}%`;
-    tile.addEventListener('click', () => choosePicturePuzzlePiece(index));
-    puzzleGrid.append(tile);
-  });
-}
-
-function choosePicturePuzzlePiece(index) {
-  if (!puzzleAcceptingInput || puzzleSolved) return;
-  if (puzzleRoundCorrectSlot === index) {
-    puzzleRoundCorrectSlot = -1;
-    renderPicturePuzzle();
-    return;
-  }
-  if (puzzleRoundCorrectSlot < 0) {
-    puzzleRoundCorrectSlot = index;
-    renderPicturePuzzle();
-    return;
-  }
-
-  [puzzleCards[puzzleRoundCorrectSlot], puzzleCards[index]] = [puzzleCards[index], puzzleCards[puzzleRoundCorrectSlot]];
-  puzzleRoundCorrectSlot = -1;
-  renderPicturePuzzle();
-  if (!puzzleCards.every((piece, slot) => piece === slot)) return;
-
-  puzzleAcceptingInput = false;
-  puzzleSolved = true;
-  puzzleStatus.textContent = "perfect memory :)";
-  puzzleHeart.visible = false;
-  addPuzzleTimer(completeFirstMission, 900);
-}
-
 function completeFirstMission() {
   closePuzzleScene();
   if (currentArea === 'starbucks') {
@@ -2709,9 +2645,6 @@ function openPuzzleScene(mode = currentArea === 'starbucks' ? 'memory' : 'pictur
   puzzleScene.classList.add('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('puzzle-open');
-<<<<<<< HEAD
-  startPicturePuzzle();
-=======
   if (mode === 'picture') {
     selectedPuzzleTile = null;
     shufflePicturePuzzleTiles();
@@ -2724,7 +2657,6 @@ function openPuzzleScene(mode = currentArea === 'starbucks' ? 'memory' : 'pictur
   puzzlePicker.classList.remove('is-visible');
   puzzleStatus.textContent = "get ready";
   startPuzzleRound();
->>>>>>> e406a218db8e3bef9cec5ba161d7f582dd150582
 }
 
 function openPuzzleSceneFromStarbucks(delay = 0) {
@@ -2744,6 +2676,7 @@ function closePuzzleScene() {
   selectedPuzzleTile = null;
   puzzleHeartReadyToOpen = false;
   puzzleScene.classList.remove('is-visible');
+  puzzleScene.classList.remove('is-picture-puzzle');
   puzzleScene.setAttribute('aria-hidden', 'true');
   puzzleGrid.classList.remove('is-picture-puzzle');
   document.body.classList.remove('puzzle-open');
@@ -2776,7 +2709,7 @@ function startChatScript() {
   chatPanel.classList.remove('is-shaking');
 
   if (chatFocusMode) {
-    startThirdQuestionScript();
+    startMoveSomewhereScript();
     return;
   }
 
@@ -5670,8 +5603,8 @@ function resetGameProgress() {
   bigPhoneGlowMaterial.color.set(0xffffff);
   bigPhoneGlowMaterial.emissive.set(0xfff4d8);
   bigPhoneGlowMaterial.emissiveIntensity = 1.05;
-  dog.visible = true;
-  dogBubble.style.display = '';
+  dog.visible = false;
+  dogBubble.style.display = 'none';
   loadingScreen.classList.remove('is-visible');
   doorButton.classList.remove('is-visible');
   phoneButton.classList.remove('is-visible');
@@ -6032,6 +5965,13 @@ function updateMarkers(time) {
 }
 
 function updateDog(time, delta) {
+  if (!tutorialActive && !freeRoamActive) {
+    dog.visible = false;
+    dogBubble.style.display = 'none';
+    cuddleButton.classList.remove('is-visible');
+    return;
+  }
+
   const freeRoamDogAllowed = freeRoamActive && (
     currentArea === 'tutorial-island' ||
     currentArea === 'bedroom' ||
