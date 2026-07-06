@@ -30,6 +30,9 @@ const sceneWipe = document.querySelector('#scene-wipe');
 const proposalEnding = document.querySelector('#proposal-ending');
 const proposalFireworks = document.querySelector('#proposal-fireworks');
 const proposalEndingLine = document.querySelector('#proposal-ending-line');
+const finalEndingActions = document.querySelector('#final-ending-actions');
+const finalYes = document.querySelector('#final-yes');
+const finalNo = document.querySelector('#final-no');
 const mazeGame = document.querySelector('#maze-game');
 const mazeCanvas = document.querySelector('#maze-canvas');
 const mazeUp = document.querySelector('#maze-up');
@@ -120,14 +123,15 @@ const bumbleWordmarkTexture = textureLoader.load('/bumble.png');
 const bigPhoneTexture = textureLoader.load('/bumble-slide/phone.png');
 bigPhoneTexture.colorSpace = THREE.SRGBColorSpace;
 bigPhoneTexture.anisotropy = 8;
-const roomFocusMode = true;
+const roomFocusMode = false;
 const blankRoomMode = false;
-const chatFocusMode = true;
-const puzzleFocusMode = true;
-const outdoorFocusMode = true;
-const starbucksFocusMode = true;
-const postStarbucksMemoryFocusMode = true;
-const mazeFocusMode = true;
+const chatFocusMode = false;
+const puzzleFocusMode = false;
+const outdoorFocusMode = false;
+const starbucksFocusMode = false;
+const postStarbucksMemoryFocusMode = false;
+const mazeFocusMode = false;
+const finalChoiceFocusMode = false;
 const showGirlCoffeeCup = false;
 
 function updateAppViewport() {
@@ -461,6 +465,7 @@ function typeMeetupBubble(plane, text) {
   plane.userData.typingText = text;
   plane.userData.typedText = '';
   plane.userData.typingStartedAt = clock?.elapsedTime || 0;
+  plane.userData.typingSpeed = plane === guyMeetupBubble || plane === girlMeetupBubble ? 16 : 28;
   plane.userData.typing = true;
   drawMeetupBubble(plane, '', true);
 }
@@ -469,7 +474,7 @@ function updateTypedBubbles(time) {
   typedBubblePlanes.forEach((plane) => {
     if (!plane.userData.typing || !plane.visible) return;
     const fullText = plane.userData.typingText || '';
-    const typedLength = Math.min(fullText.length, Math.floor((time - plane.userData.typingStartedAt) * 28));
+    const typedLength = Math.min(fullText.length, Math.floor((time - plane.userData.typingStartedAt) * (plane.userData.typingSpeed || 28)));
     const nextText = fullText.slice(0, typedLength);
     const stillTyping = typedLength < fullText.length;
     if (nextText !== plane.userData.typedText || stillTyping !== plane.userData.lastTypingState) {
@@ -643,6 +648,24 @@ const dogBubbleMessages = [
   "mot mot is watching!",
   "try walking around",
   "hearts unlock memories",
+];
+const dogFreeRoamMessages = [
+  "maddy smell badd",
+  "i love bryan!",
+  "i need pet pet",
+  "where snack?",
+  "mot mot is baby",
+  "wait for meee!",
+  "tiny legs, big adventure",
+  "i am helping!",
+  "can we cuddle now?",
+  "woof woof! that's important",
+  "i found a smell!",
+  "bryan is my bestie",
+  "maddy owes me treats",
+  "look! i can hop!",
+  "no thoughts, only walkies",
+  "pet me for good luck",
 ];
 let dogNextMessageAt = 0;
 let dogPlayful = false;
@@ -1434,6 +1457,25 @@ starbucksExitDoor.rotation.y = Math.PI;
 starbucksExitDoor.visible = false;
 starbucksArea.add(starbucksExitDoor);
 
+const freeRoamPortalDoors = [];
+
+function createFreeRoamPortalDoor(parent, area, destination, position, rotationY = 0) {
+  const door = createFallingDoor();
+  door.position.set(position[0], position[1], position[2]);
+  door.rotation.y = rotationY;
+  door.visible = false;
+  door.userData.portalArea = area;
+  door.userData.portalDestination = destination;
+  parent.add(door);
+  freeRoamPortalDoors.push(door);
+  return door;
+}
+
+createFreeRoamPortalDoor(root, 'tutorial-island', 'bedroom', [2.8, 0, -3.2], 0);
+createFreeRoamPortalDoor(room, 'bedroom', 'next-part', [0, 0, 4.25], Math.PI);
+createFreeRoamPortalDoor(outdoorArea, 'next-part', 'starbucks', [0, 0, 4.85], Math.PI);
+createFreeRoamPortalDoor(starbucksArea, 'starbucks', 'bedroom', [5.85, 0, 2.55], -Math.PI / 2);
+
 const meetupLoveHearts = [];
 for (let i = 0; i < 8; i += 1) {
   const heart = new THREE.Mesh(createHeartGeometry(), heartPinkMaterial.clone());
@@ -1683,9 +1725,15 @@ let chatTyping = null;
 let chatChoiceStep = 'first';
 let puzzleOpen = false;
 let puzzleSolved = false;
+let puzzleMode = 'picture';
 let puzzleHeartDropping = false;
 let puzzleHeartLanded = false;
 let puzzleHeartReadyToOpen = true;
+let selectedPuzzleTile = null;
+let puzzleTiles = [];
+let puzzleImageReady = false;
+let puzzleImageObjectUrl = null;
+let puzzleImageSrc = '/puzzle/puzzle.png';
 let puzzleRound = 0;
 let puzzleCards = [];
 let puzzleAcceptingInput = false;
@@ -1741,6 +1789,12 @@ let starbucksOutdoorTimer = null;
 let starbucksProposalActive = false;
 const proposalEndingTimers = [];
 let starbucksWalletGameReady = false;
+let finalWalletSequenceActive = false;
+let finalWalletWalking = false;
+let finalWalletWalkStartedAt = 0;
+let finalWalletDialogueIndex = 0;
+let finalEndingActive = false;
+let freeRoamActive = false;
 let mazeOpen = false;
 let mazeReady = true;
 const mazeContext = mazeCanvas.getContext('2d');
@@ -1748,14 +1802,14 @@ const mazePlayerImage = new Image();
 const mazePlayer = {
   x: 110,
   y: 120,
-  visualRadius: 36,
-  collisionRadius: 14,
-  step: 22,
+  visualRadius: 24,
+  collisionRadius: 10,
+  step: 16,
 };
-const mazeWallThickness = 9;
-const mazeBounds = { left: 48, top: 48, right: 1206, bottom: 1206 };
+const mazeWallThickness = 10;
+const mazeBounds = { left: 48, top: 48, right: 1452, bottom: 1452 };
 const mazeWalls = [
-  [48, 48, 1206, 48], [1206, 48, 1206, 1206], [1206, 1206, 48, 1206], [48, 1206, 48, 48],
+  [48, 48, 1452, 48], [1452, 48, 1452, 1452], [1452, 1452, 48, 1452], [48, 1452, 48, 48],
   [262, 48, 262, 170], [48, 170, 125, 170], [184, 170, 262, 170], [320, 106, 678, 106], [320, 106, 320, 170],
   [320, 170, 382, 170], [382, 170, 382, 418], [438, 170, 735, 170], [735, 48, 735, 170], [792, 106, 912, 106],
   [912, 106, 912, 170], [912, 170, 1088, 170], [970, 48, 970, 108], [1028, 106, 1148, 106], [1148, 106, 1148, 354],
@@ -1774,17 +1828,35 @@ const mazeWalls = [
   [322, 678, 500, 678], [322, 678, 322, 836], [382, 742, 382, 836], [262, 836, 322, 836], [322, 898, 500, 898],
   [500, 836, 500, 898], [382, 1020, 382, 1148], [230, 1020, 382, 1020], [322, 958, 322, 1206], [438, 678, 438, 836],
   [500, 538, 735, 538], [500, 538, 500, 772], [735, 538, 735, 678], [558, 598, 680, 598], [558, 598, 558, 712],
-  [558, 712, 680, 712], [680, 598, 680, 712], [500, 772, 620, 772], [620, 772, 620, 836], [558, 836, 678, 836],
-  [438, 898, 558, 898], [438, 898, 438, 1148], [438, 1148, 620, 1148], [500, 1020, 735, 1020], [500, 1020, 500, 1084],
-  [500, 1084, 735, 1084], [735, 1020, 735, 1084], [620, 1148, 795, 1148], [795, 836, 795, 1148], [680, 898, 852, 898],
+  [680, 598, 680, 712], [500, 772, 620, 772], [620, 772, 620, 836], [558, 836, 678, 836],
+  [438, 898, 558, 898], [438, 898, 438, 1148], [438, 1148, 620, 1148], [500, 1020, 735, 1020],
+  [620, 1148, 795, 1148], [795, 836, 795, 1148], [680, 898, 852, 898],
   [680, 898, 680, 958], [618, 958, 795, 958], [735, 898, 735, 958], [795, 898, 852, 898], [852, 898, 852, 960],
   [852, 960, 912, 960], [912, 960, 912, 1020], [852, 1020, 1148, 1020], [912, 1085, 970, 1085], [912, 1085, 912, 1148],
   [970, 1085, 970, 1206], [1028, 1085, 1148, 1085], [1028, 1085, 1028, 1206],
   [735, 416, 912, 416], [735, 416, 735, 474], [912, 416, 912, 474], [852, 474, 970, 474], [852, 474, 852, 550],
   [970, 474, 970, 538], [735, 620, 912, 620], [795, 474, 795, 620], [912, 538, 1028, 538], [1028, 474, 1028, 538],
-  [970, 598, 1088, 598], [970, 598, 970, 898], [1088, 598, 1088, 898], [1010, 660, 1010, 792], [1046, 660, 1046, 792],
-  [1010, 792, 1046, 792], [1088, 898, 1206, 898], [1028, 898, 1028, 960], [1028, 960, 1206, 960], [1148, 678, 1206, 678],
+  [970, 598, 1088, 598], [970, 598, 970, 898], [1088, 598, 1088, 898], [1010, 660, 1010, 792],
+  [1088, 898, 1206, 898], [1028, 898, 1028, 960], [1028, 960, 1206, 960], [1148, 678, 1206, 678],
   [1148, 742, 1148, 836], [1148, 742, 1206, 742],
+  [204, 354, 204, 416], [262, 292, 322, 292], [438, 354, 500, 354], [735, 678, 852, 678],
+  [852, 678, 852, 772], [912, 742, 970, 742], [912, 742, 912, 836], [970, 1020, 970, 1085],
+  [1088, 1020, 1088, 1085],
+  [125, 170, 125, 230], [184, 230, 184, 292], [262, 620, 322, 620], [322, 538, 382, 538],
+  [438, 474, 500, 474], [438, 538, 438, 620], [500, 678, 558, 678], [620, 836, 620, 898],
+  [735, 772, 852, 772], [852, 772, 852, 836], [912, 620, 912, 678], [970, 836, 1028, 836],
+  [1028, 598, 1028, 660], [1088, 538, 1148, 538], [795, 1085, 852, 1085],
+  [852, 1148, 912, 1148], [620, 958, 620, 1020], [262, 958, 262, 1020],
+  [560, 670, 620, 670], [618, 640, 618, 712], [560, 1048, 680, 1048], [615, 1084, 735, 1084],
+  [1044, 684, 1044, 748], [1008, 748, 1070, 748],
+  [1206, 170, 1390, 170], [1268, 230, 1268, 520], [1328, 290, 1452, 290], [1206, 416, 1388, 416],
+  [1388, 416, 1388, 650], [1268, 598, 1328, 598], [1328, 598, 1328, 742], [1206, 742, 1390, 742],
+  [1268, 836, 1452, 836], [1328, 898, 1328, 1048], [1206, 1048, 1328, 1048], [1268, 1120, 1452, 1120],
+  [1390, 1120, 1390, 1332], [1268, 1278, 1328, 1278],
+  [110, 1268, 322, 1268], [110, 1268, 110, 1388], [230, 1330, 438, 1330], [438, 1210, 438, 1390],
+  [322, 1390, 620, 1390], [560, 1210, 560, 1330], [620, 1268, 852, 1268], [852, 1210, 852, 1390],
+  [735, 1330, 970, 1330], [970, 1210, 970, 1452], [1032, 1278, 1160, 1278], [1032, 1278, 1032, 1390],
+  [1092, 1390, 1210, 1390], [1210, 1330, 1210, 1390], [1330, 1210, 1330, 1278], [1330, 1278, 1390, 1278],
 ];
 const bumbleSwipe = {
   active: false,
@@ -1908,7 +1980,7 @@ const defaultRoomLayout = [
   { id: 'photoCanvas', x: 2.85, y: 2.18, z: -roomHalfDepth + 0.12, s: 0.95 },
 ];
 let editorAssets = [...featuredEditorAssets];
-let roomEditorActive = true;
+let roomEditorActive = false;
 let selectedEditorAsset = editorAssets[0];
 let selectedEditorObject = null;
 const placedEditorObjects = [];
@@ -2338,6 +2410,83 @@ function beginPuzzleHeartDrop() {
   stopMovementInput();
 }
 
+function shufflePicturePuzzleTiles() {
+  puzzleTiles = Array.from({ length: 9 }, (_, index) => index);
+  for (let index = puzzleTiles.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [puzzleTiles[index], puzzleTiles[swapIndex]] = [puzzleTiles[swapIndex], puzzleTiles[index]];
+  }
+  if (puzzleTiles.every((tile, index) => tile === index)) {
+    [puzzleTiles[0], puzzleTiles[1]] = [puzzleTiles[1], puzzleTiles[0]];
+  }
+}
+
+function renderPicturePuzzle() {
+  puzzleGrid.replaceChildren();
+  if (!puzzleImageReady) return;
+  puzzleTiles.forEach((tileIndex, displayIndex) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'puzzle-tile';
+    tile.style.backgroundImage = `url("${puzzleImageSrc}")`;
+    tile.style.backgroundPosition = `${(tileIndex % 3) * 50}% ${Math.floor(tileIndex / 3) * 50}%`;
+    tile.setAttribute('aria-label', `Puzzle tile ${displayIndex + 1}`);
+    if (selectedPuzzleTile === displayIndex) tile.classList.add('is-selected');
+    tile.addEventListener('click', () => choosePicturePuzzleTile(displayIndex));
+    puzzleGrid.append(tile);
+  });
+}
+
+function checkPicturePuzzleImage() {
+  const image = new Image();
+  image.onload = () => {
+    puzzleImageReady = true;
+    puzzlePicker.classList.remove('is-visible');
+    puzzleStatus.textContent = 'tap two pieces to swap them';
+    renderPicturePuzzle();
+  };
+  image.onerror = () => {
+    puzzleImageReady = false;
+    puzzleGrid.replaceChildren();
+    puzzlePicker.classList.add('is-visible');
+    puzzleStatus.textContent = 'choose the photo first';
+  };
+  image.src = puzzleImageSrc;
+}
+
+function setPicturePuzzleImage(file) {
+  if (!file) return;
+  if (puzzleImageObjectUrl) URL.revokeObjectURL(puzzleImageObjectUrl);
+  puzzleImageObjectUrl = URL.createObjectURL(file);
+  puzzleImageSrc = puzzleImageObjectUrl;
+  puzzleSolved = false;
+  selectedPuzzleTile = null;
+  shufflePicturePuzzleTiles();
+  checkPicturePuzzleImage();
+}
+
+function choosePicturePuzzleTile(index) {
+  if (puzzleSolved || puzzleMode !== 'picture') return;
+  if (selectedPuzzleTile === null) {
+    selectedPuzzleTile = index;
+    puzzleStatus.textContent = 'pick another piece';
+    renderPicturePuzzle();
+    return;
+  }
+  if (selectedPuzzleTile !== index) {
+    [puzzleTiles[selectedPuzzleTile], puzzleTiles[index]] = [puzzleTiles[index], puzzleTiles[selectedPuzzleTile]];
+  }
+  selectedPuzzleTile = null;
+  const solved = puzzleTiles.every((tile, tileIndex) => tile === tileIndex);
+  puzzleStatus.textContent = solved ? 'perfect :)' : 'keep going';
+  if (solved) {
+    puzzleSolved = true;
+    puzzleHeart.visible = false;
+    window.setTimeout(completeFirstMission, 900);
+  }
+  renderPicturePuzzle();
+}
+
 function clearPuzzleTimers() {
   while (puzzleTimers.length) clearTimeout(puzzleTimers.pop());
 }
@@ -2550,26 +2699,41 @@ function completeFirstMission() {
   unlockBedroomDoor();
 }
 
-function openPuzzleScene() {
+function openPuzzleScene(mode = currentArea === 'starbucks' ? 'memory' : 'picture') {
   if (puzzleOpen || puzzleSolved) return;
   puzzleOpen = true;
-  puzzleRound = 0;
-  puzzleLastHardShuffleClass = '';
-  puzzlePicker.classList.remove('is-visible');
-  puzzleStatus.textContent = "get ready";
+  puzzleMode = mode;
+  puzzleScene.classList.toggle('is-picture-puzzle', mode === 'picture');
+  puzzleScene.querySelector('.puzzle-topbar span').textContent = mode === 'picture' ? 'Picture puzzle' : 'Remember the card';
   stopMovementInput();
   puzzleScene.classList.add('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('puzzle-open');
+<<<<<<< HEAD
   startPicturePuzzle();
+=======
+  if (mode === 'picture') {
+    selectedPuzzleTile = null;
+    shufflePicturePuzzleTiles();
+    puzzleStatus.textContent = 'loading photo...';
+    checkPicturePuzzleImage();
+    return;
+  }
+  puzzleRound = 0;
+  puzzleLastHardShuffleClass = '';
+  puzzlePicker.classList.remove('is-visible');
+  puzzleStatus.textContent = "get ready";
+  startPuzzleRound();
+>>>>>>> e406a218db8e3bef9cec5ba161d7f582dd150582
 }
 
 function openPuzzleSceneFromStarbucks(delay = 0) {
-  if (puzzleOpen || puzzleSolved) return;
+  if (puzzleOpen) return;
   starbucksLastTimer = window.setTimeout(() => {
     starbucksConversationActive = false;
     hideStarbucksBubbles();
-    openPuzzleScene();
+    puzzleSolved = false;
+    openPuzzleScene('memory');
   }, delay);
 }
 
@@ -2577,6 +2741,7 @@ function closePuzzleScene() {
   puzzleOpen = false;
   clearPuzzleTimers();
   puzzleAcceptingInput = false;
+  selectedPuzzleTile = null;
   puzzleHeartReadyToOpen = false;
   puzzleScene.classList.remove('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'true');
@@ -3353,6 +3518,13 @@ startButton.addEventListener('click', () => {
     gameStarted = true;
     document.body.classList.add('game-started');
     startTransition.classList.remove('is-active');
+    if (finalChoiceFocusMode) {
+      tutorialActive = false;
+      tutorial.classList.remove('is-visible');
+      document.body.classList.remove('tutorial-active');
+      showFinalGameOver();
+      return;
+    }
     if (mazeFocusMode) {
       tutorialActive = false;
       tutorial.classList.remove('is-visible');
@@ -3488,6 +3660,7 @@ puzzleScene.addEventListener('pointerdown', (event) => {
 });
 puzzlePickButton.addEventListener('click', () => puzzleFileInput.click());
 puzzleFileInput.addEventListener('change', () => {
+  setPicturePuzzleImage(puzzleFileInput.files?.[0]);
   puzzleFileInput.value = '';
 });
 mediaClose.addEventListener('click', closeMediaViewer);
@@ -3690,7 +3863,8 @@ stick.addEventListener('lostpointercapture', (event) => {
 function updateInput() {
   move.set(0, 0);
   const starbucksLocked = currentArea === 'starbucks' && !starbucksCanMove;
-  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen || mazeOpen || currentArea === 'next-part' || currentArea === 'starbucks-outdoor' || starbucksLocked) {
+  const storyAreaLocked = !freeRoamActive && (currentArea === 'next-part' || currentArea === 'starbucks-outdoor');
+  if (!gameStarted || tutorialActive || bumbleOpen || mediaOpen || phoneLaunchOpen || chatOpen || puzzleOpen || mazeOpen || storyAreaLocked || starbucksLocked) {
     pointer.active = false;
     pointer.id = null;
     knob.style.transform = 'translate(-50%, -50%)';
@@ -4369,6 +4543,14 @@ function updateStarbucksOutdoorScene(time) {
   const cupIdle = Math.sin(time * 2.05);
   walkStrength = THREE.MathUtils.lerp(walkStrength, 0, 0.18);
 
+  if (freeRoamActive) {
+    starbucksOutdoorGuy.visible = false;
+    starbucksGirlDrink.visible = false;
+    starbucksOutdoorGuyDrink.visible = false;
+    hideStarbucksOutdoorBubbles();
+    return;
+  }
+
   if (starbucksWalletGameReady) {
     player.position.set(-0.72, 0, 2.74);
     player.rotation.y = Math.PI * 0.86;
@@ -4533,6 +4715,19 @@ function clearProposalEndingTimers() {
   while (proposalEndingTimers.length) clearTimeout(proposalEndingTimers.pop());
 }
 
+function resetFinalEndingState() {
+  finalWalletSequenceActive = false;
+  finalWalletWalking = false;
+  finalWalletDialogueIndex = 0;
+  finalEndingActive = false;
+  finalNo.style.transform = '';
+  finalNo.style.left = '';
+  finalNo.style.top = '';
+  finalNo.style.right = '';
+  starbucksHeartClouds.visible = false;
+  proposalEnding.classList.remove('is-final', 'is-love-wipe');
+}
+
 function addProposalEndingTimer(callback, delay) {
   const timer = window.setTimeout(() => {
     const index = proposalEndingTimers.indexOf(timer);
@@ -4607,6 +4802,7 @@ function showWalletGamePrompt() {
 
 function startProposalEndingSequence() {
   clearProposalEndingTimers();
+  resetFinalEndingState();
   hideStarbucksOutdoorChoices();
   starbucksOutdoorConversationActive = false;
   starbucksOutdoorWaitingForChoice = false;
@@ -4746,6 +4942,7 @@ function stopStarbucksOutdoorConversation() {
   setStarbucksProposalActive(false);
   hideStarbucksOutdoorSceneUi();
   proposalEnding.classList.remove('is-visible', 'is-fireworks', 'is-white', 'is-game-over');
+  resetFinalEndingState();
   proposalEnding.setAttribute('aria-hidden', 'true');
   proposalEndingLine.textContent = '';
   proposalFireworks.replaceChildren();
@@ -4760,6 +4957,295 @@ function startWalletMazeTransition() {
   proposalFireworks.replaceChildren();
   missionStatus.textContent = 'Love Game 3/3';
   addProposalEndingTimer(openMazeGame, 900);
+}
+
+const finalWalletDialogue = [
+  { side: 'girl', text: 'why r u so stubborn?!!?!!!' },
+  { side: 'guy', text: 'hahahahaha atleast we find it!' },
+  { side: 'girl', text: 'huhhh' },
+  { side: 'guy', text: 'I love you, thanks for accepting me!', action: 'finalLoveSky' },
+  { side: 'girl', text: 'I love you to..', action: 'finalGameOver' },
+];
+
+function returnToGadingWalkAfterMaze() {
+  closeMazeGame();
+  runSceneCircleWipe(() => {
+    stopStarbucksOutdoorConversation();
+    currentArea = 'next-part';
+    starbucksWalletGameReady = false;
+    finalWalletSequenceActive = true;
+    finalWalletWalking = true;
+    finalWalletWalkStartedAt = clock.elapsedTime;
+    finalWalletDialogueIndex = 0;
+    outdoorArea.visible = true;
+    starbucksOutdoorArea.visible = false;
+    starbucksOutdoorGuy.visible = false;
+    randomGuy.visible = true;
+    meetupTableProps.visible = false;
+    meetupLoveActive = false;
+    meetupLoveHearts.forEach((heart) => {
+      heart.visible = false;
+    });
+    outdoorExitDoor.visible = false;
+    hideMeetupChoices();
+    guyMeetupBubble.visible = false;
+    girlMeetupBubble.visible = false;
+    player.position.set(-0.35, 0, 4.15);
+    randomGuy.position.set(0.35, 0, 4.15);
+    player.rotation.y = Math.PI;
+    randomGuy.rotation.y = Math.PI;
+    yaw = 0;
+    cameraDistance = 5.2;
+    missionStatus.textContent = 'Wallet found';
+    scene.background.set(0x8ed8ff);
+    scene.fog.color.set(0x8ed8ff);
+    dog.visible = false;
+    dogBubble.style.display = 'none';
+    cuddleButton.classList.remove('is-visible');
+    stopMovementInput();
+  });
+}
+
+function runFinalWalletDialogue() {
+  clearMeetupTimer();
+  if (!finalWalletSequenceActive) return;
+  const step = finalWalletDialogue[finalWalletDialogueIndex];
+  if (!step) return;
+  const bubble = step.side === 'girl' ? girlMeetupBubble : guyMeetupBubble;
+  const otherBubble = step.side === 'girl' ? guyMeetupBubble : girlMeetupBubble;
+  otherBubble.visible = false;
+  typeMeetupBubble(bubble, step.text);
+  if (step.action === 'finalLoveSky') {
+    scene.background.set(0xffa6cc);
+    scene.fog.color.set(0xffa6cc);
+    starbucksHeartClouds.visible = true;
+    starbucksHeartClouds.children.forEach((cloud, index) => {
+      cloud.position.set(-4.6 + index * 4.5, 5.1 + index * 0.25, -3.8 - index * 0.75);
+      cloud.scale.setScalar(0.08);
+    });
+    populateProposalFireworks();
+    proposalEnding.classList.add('is-visible', 'is-fireworks');
+    proposalEnding.classList.remove('is-white', 'is-game-over', 'is-final', 'is-love-wipe');
+    proposalEnding.setAttribute('aria-hidden', 'false');
+    proposalEndingLine.textContent = '';
+    finalEndingActions.style.display = '';
+  }
+  finalWalletDialogueIndex += 1;
+  const delay = Math.max(1900, step.text.length * 58) + (step.action === 'finalLoveSky' ? 1000 : 0);
+  if (step.action === 'finalGameOver') {
+    meetupLastTimer = window.setTimeout(showFinalGameOver, delay);
+    return;
+  }
+  meetupLastTimer = window.setTimeout(runFinalWalletDialogue, delay);
+}
+
+function showFinalGameOver() {
+  finalEndingActive = true;
+  clearProposalEndingTimers();
+  proposalEnding.classList.add('is-visible', 'is-love-wipe');
+  proposalEnding.classList.remove('is-fireworks', 'is-white', 'is-game-over', 'is-final');
+  proposalEnding.setAttribute('aria-hidden', 'false');
+  proposalEndingLine.textContent = '';
+  finalNo.style.transform = '';
+  finalNo.style.left = '';
+  finalNo.style.top = '';
+  finalNo.style.right = '';
+  proposalFireworks.replaceChildren();
+  addProposalEndingTimer(() => {
+    proposalEnding.classList.add('is-game-over', 'is-final');
+    proposalEndingLine.textContent = 'Will you repeat this in another life?';
+  }, 1750);
+}
+
+function moveFinalNoButton() {
+  if (!finalEndingActive) return;
+  const box = finalEndingActions.getBoundingClientRect();
+  const buttonWidth = finalNo.offsetWidth || 130;
+  const buttonHeight = finalNo.offsetHeight || 54;
+  const maxLeft = Math.max(0, box.width - buttonWidth);
+  const maxTop = Math.max(0, box.height + 120 - buttonHeight);
+  const currentLeft = Number.parseFloat(finalNo.style.left || `${maxLeft}`) || maxLeft;
+  const currentTop = Number.parseFloat(finalNo.style.top || '0') || 0;
+  let nextLeft = Math.random() * maxLeft;
+  let nextTop = Math.random() * maxTop;
+
+  for (let i = 0; i < 8 && Math.hypot(nextLeft - currentLeft, nextTop - currentTop) < 120; i += 1) {
+    nextLeft = Math.random() * maxLeft;
+    nextTop = Math.random() * maxTop;
+  }
+
+  finalNo.style.right = 'auto';
+  finalNo.style.left = `${nextLeft}px`;
+  finalNo.style.top = `${nextTop}px`;
+  finalNo.style.transform = `rotate(${(-16 + Math.random() * 32).toFixed(1)}deg)`;
+}
+
+function updateFinalWalletScene(time) {
+  if (!finalWalletSequenceActive) return false;
+  const girlTarget = new THREE.Vector3(-0.82, 0, -0.08);
+  const guyTarget = new THREE.Vector3(0.82, 0, -0.08);
+  if (finalWalletWalking) {
+    yaw = 0;
+    const progress = THREE.MathUtils.clamp((time - finalWalletWalkStartedAt) / 2.7, 0, 1);
+    const eased = THREE.MathUtils.smoothstep(progress, 0, 1);
+    player.position.lerpVectors(new THREE.Vector3(-0.35, 0, 4.15), girlTarget, eased);
+    randomGuy.position.lerpVectors(new THREE.Vector3(0.35, 0, 4.15), guyTarget, eased);
+    player.rotation.y = Math.PI;
+    randomGuy.rotation.y = Math.PI;
+    const stride = Math.sin(time * 8.4);
+    rig.leftLeg.rotation.x = stride * 0.24;
+    rig.rightLeg.rotation.x = -stride * 0.24;
+    randomGuy.userData.leftLeg.rotation.x = -stride * 0.24;
+    randomGuy.userData.rightLeg.rotation.x = stride * 0.24;
+    if (progress >= 1) {
+      finalWalletWalking = false;
+      meetupLastTimer = window.setTimeout(runFinalWalletDialogue, 700);
+    }
+  } else {
+    applyPlayerMeetupPose(time);
+    applyGuyStandingPose(time);
+  }
+
+  guyMeetupBubble.position.copy(randomGuy.position).add(new THREE.Vector3(0, 2.55, 0));
+  girlMeetupBubble.position.copy(player.position).add(new THREE.Vector3(0, 2.65, 0));
+  guyMeetupBubble.lookAt(camera.position);
+  girlMeetupBubble.lookAt(camera.position);
+  if (starbucksHeartClouds.visible) {
+    starbucksHeartClouds.children.forEach((cloud, index) => {
+      const target = cloud.userData.targetScale || 0.6;
+      cloud.scale.lerp(new THREE.Vector3(target, target, target), 0.02 + index * 0.004);
+      cloud.position.x += Math.sin(time * 0.26 + index) * 0.002;
+      cloud.lookAt(camera.position);
+    });
+  }
+  return true;
+}
+
+function updateFreeRoamPortalDoors() {
+  freeRoamPortalDoors.forEach((door) => {
+    door.visible = freeRoamActive && door.userData.portalArea === currentArea;
+    if (door.visible) door.position.y = doorGroundY;
+  });
+}
+
+function getNearbyFreeRoamPortalDoor() {
+  if (!freeRoamActive) return null;
+  updateFreeRoamPortalDoors();
+  return freeRoamPortalDoors.find((door) => (
+    door.visible &&
+    door.userData.portalArea === currentArea &&
+    door.position.distanceTo(player.position) < 2.1
+  )) || null;
+}
+
+function enterFreeRoamArea(area) {
+  freeRoamActive = true;
+  document.body.classList.add('final-free-roam');
+  finalWalletSequenceActive = false;
+  finalWalletWalking = false;
+  finalEndingActive = false;
+  starbucksWalletGameReady = false;
+  starbucksOutdoorConversationActive = false;
+  starbucksOutdoorWaitingForChoice = false;
+  meetupConversationActive = false;
+  meetupWaitingForChoice = false;
+  meetupWalkingToDoor = false;
+  meetupLoveActive = false;
+  meetupLoveHearts.forEach((heart) => {
+    heart.visible = false;
+  });
+  starbucksConversationActive = false;
+  starbucksWalkingToCounter = false;
+  starbucksAtTable = false;
+  starbucksCanMove = true;
+  clearMeetupTimer();
+  clearStarbucksTimer();
+  clearStarbucksOutdoorTimer();
+  hideMeetupChoices();
+  hideStarbucksBubbles();
+  hideStarbucksOutdoorBubbles();
+  hideStarbucksOutdoorChoices();
+  proposalEnding.classList.remove('is-visible', 'is-fireworks', 'is-white', 'is-game-over', 'is-final', 'is-love-wipe');
+  proposalEnding.setAttribute('aria-hidden', 'true');
+  proposalEndingLine.textContent = '';
+  proposalFireworks.replaceChildren();
+  loveGameButton.classList.remove('is-visible');
+  phoneButton.classList.remove('is-visible');
+  cuddleButton.classList.remove('is-visible');
+
+  currentArea = area;
+  root.visible = area === 'tutorial-island';
+  room.visible = area === 'bedroom';
+  bigPhone.visible = area !== 'bedroom';
+  bumbleLogo.visible = area !== 'bedroom';
+  outdoorArea.visible = area === 'next-part';
+  starbucksArea.visible = area === 'starbucks';
+  starbucksOutdoorArea.visible = area === 'starbucks-outdoor';
+
+  randomGuy.visible = false;
+  starbucksGuy.visible = false;
+  starbucksOutdoorGuy.visible = false;
+  barista.visible = false;
+  starbucksGirlDrink.visible = false;
+  starbucksGuyDrink.visible = false;
+  starbucksOutdoorGuyDrink.visible = false;
+  girlMeetupBubble.visible = false;
+  guyMeetupBubble.visible = false;
+  meetupTableProps.visible = false;
+  scene.background.set(0x8ed8ff);
+  scene.fog.color.set(0x8ed8ff);
+
+  if (area === 'tutorial-island') {
+    player.position.set(0, 0, 1.2);
+    player.rotation.y = 0;
+    yaw = 0;
+    cameraDistance = 6.2;
+    missionStatus.textContent = 'Free roam';
+  } else if (area === 'bedroom') {
+    player.position.set(-0.2, 0, 1.65);
+    player.rotation.y = Math.PI * 0.92;
+    yaw = Math.PI;
+    cameraDistance = 5.4;
+    missionStatus.textContent = 'Bedroom';
+  } else if (area === 'next-part') {
+    player.position.set(-0.82, 0, -0.08);
+    player.rotation.y = Math.PI / 2;
+    yaw = Math.PI * 0.92;
+    cameraDistance = 4.8;
+    missionStatus.textContent = 'Gading Walk';
+  } else if (area === 'starbucks') {
+    player.position.set(-1.2, 0, 1.2);
+    player.rotation.y = Math.PI;
+    yaw = Math.PI;
+    cameraDistance = 5.8;
+    missionStatus.textContent = 'Starbucks';
+  } else if (area === 'starbucks-outdoor') {
+    player.position.set(-1.2, 0, 2.35);
+    player.rotation.y = Math.PI;
+    yaw = Math.PI;
+    cameraDistance = 5.8;
+    missionStatus.textContent = 'Starbucks outside';
+  }
+
+  dog.position.set(player.position.x + 1, 0.03, player.position.z + 0.8);
+  dogTarget.copy(player.position);
+  dogTarget.y = 0.03;
+  dog.visible = true;
+  dogBubble.style.display = '';
+  dogBubble.textContent = dogFreeRoamMessages[Math.floor(Math.random() * dogFreeRoamMessages.length)];
+  dogNextMessageAt = clock.elapsedTime + 3;
+  pickDogTarget();
+  updateFreeRoamPortalDoors();
+  stopMovementInput();
+}
+
+function startFinalFreeRoam() {
+  if (!finalEndingActive) return;
+  proposalEnding.classList.remove('is-visible', 'is-fireworks', 'is-white', 'is-game-over', 'is-final', 'is-love-wipe');
+  proposalEnding.setAttribute('aria-hidden', 'true');
+  proposalEndingLine.textContent = '';
+  proposalFireworks.replaceChildren();
+  enterFreeRoamArea('bedroom');
 }
 
 function drawMazeGame() {
@@ -4794,13 +5280,12 @@ function drawMazeGame() {
   mazeContext.lineTo(172, 108);
   mazeContext.closePath();
   mazeContext.fill();
-  mazeContext.fillText('GOAL', 1110, 1132);
   mazeContext.save();
-  mazeContext.translate(1110, 1162);
+  mazeContext.translate(1360, 1416);
   mazeContext.beginPath();
   for (let i = 0; i < 10; i += 1) {
     const angle = -Math.PI / 2 + (i * Math.PI) / 5;
-    const radius = i % 2 === 0 ? 20 : 8;
+    const radius = i % 2 === 0 ? 28 : 11;
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
     if (i === 0) mazeContext.moveTo(x, y);
@@ -4822,10 +5307,10 @@ function drawMazeGame() {
     mazeContext.fill();
   }
   mazeContext.restore();
-  mazeContext.lineWidth = 8;
+  mazeContext.lineWidth = 5;
   mazeContext.strokeStyle = '#ff7eb3';
   mazeContext.beginPath();
-  mazeContext.arc(mazePlayer.x, mazePlayer.y, mazePlayer.visualRadius + 3, 0, Math.PI * 2);
+  mazeContext.arc(mazePlayer.x, mazePlayer.y, mazePlayer.visualRadius + 2, 0, Math.PI * 2);
   mazeContext.stroke();
 }
 
@@ -4870,8 +5355,10 @@ function canMoveMazePlayerTo(x, y) {
 }
 
 function checkMazeGoal() {
-  if (mazePlayer.x > 1040 && mazePlayer.y > 1080) {
+  if (Math.hypot(mazePlayer.x - 1360, mazePlayer.y - 1416) < 54) {
     missionStatus.textContent = 'Wallet path found';
+    mazeReady = false;
+    window.setTimeout(returnToGadingWalkAfterMaze, 650);
   }
 }
 
@@ -4907,6 +5394,7 @@ function openMazeGame() {
   proposalEnding.classList.remove('is-visible', 'is-white', 'is-game-over', 'is-fireworks');
   proposalEnding.setAttribute('aria-hidden', 'true');
   mazeOpen = true;
+  mazeReady = true;
   mazePlayer.x = 110;
   mazePlayer.y = 120;
   mazeGame.classList.add('is-visible');
@@ -4917,6 +5405,7 @@ function openMazeGame() {
 }
 
 function closeMazeGame() {
+  stopMazeButtonMove();
   mazeOpen = false;
   mazeGame.classList.remove('is-visible');
   mazeGame.setAttribute('aria-hidden', 'true');
@@ -4926,10 +5415,56 @@ function closeMazeGame() {
 mazePlayerImage.addEventListener('load', drawMazeGame);
 mazePlayerImage.src = '/maze/round_clean_crop.png';
 
-mazeUp.addEventListener('click', () => moveMazePlayer(0, -1));
-mazeDown.addEventListener('click', () => moveMazePlayer(0, 1));
-mazeLeft.addEventListener('click', () => moveMazePlayer(-1, 0));
-mazeRight.addEventListener('click', () => moveMazePlayer(1, 0));
+let mazeMoveDelayTimer = 0;
+let mazeMoveRepeatTimer = 0;
+
+function stopMazeButtonMove() {
+  window.clearTimeout(mazeMoveDelayTimer);
+  window.clearInterval(mazeMoveRepeatTimer);
+  mazeMoveDelayTimer = 0;
+  mazeMoveRepeatTimer = 0;
+}
+
+function bindMazeMoveButton(button, dx, dy) {
+  button.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || !mazeOpen || !mazeReady) return;
+    event.preventDefault();
+    stopMazeButtonMove();
+    button.setPointerCapture(event.pointerId);
+    moveMazePlayer(dx, dy);
+    mazeMoveDelayTimer = window.setTimeout(() => {
+      mazeMoveRepeatTimer = window.setInterval(() => {
+        moveMazePlayer(dx, dy);
+      }, 70);
+    }, 180);
+  });
+
+  button.addEventListener('pointerup', stopMazeButtonMove);
+  button.addEventListener('pointercancel', stopMazeButtonMove);
+  button.addEventListener('lostpointercapture', stopMazeButtonMove);
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (event.detail === 0) moveMazePlayer(dx, dy);
+  });
+}
+
+bindMazeMoveButton(mazeUp, 0, -1);
+bindMazeMoveButton(mazeDown, 0, 1);
+bindMazeMoveButton(mazeLeft, -1, 0);
+bindMazeMoveButton(mazeRight, 1, 0);
+window.addEventListener('blur', stopMazeButtonMove);
+
+finalNo.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  moveFinalNoButton();
+});
+finalNo.addEventListener('click', (event) => {
+  event.preventDefault();
+  moveFinalNoButton();
+});
+finalYes.addEventListener('click', () => {
+  startFinalFreeRoam();
+});
 
 loveGameButton.addEventListener('click', () => {
   if (!starbucksWalletGameReady) return;
@@ -4942,6 +5477,15 @@ loveGameButton.addEventListener('click', () => {
 
 function updateMeetupScene(time, delta) {
   if (currentArea !== 'next-part') return;
+  if (updateFinalWalletScene(time)) return;
+  if (freeRoamActive) {
+    randomGuy.visible = false;
+    meetupTableProps.visible = false;
+    guyMeetupBubble.visible = false;
+    girlMeetupBubble.visible = false;
+    hideMeetupChoices();
+    return;
+  }
   if (!meetupWalkingToDoor) applyPlayerMeetupPose(time);
   dog.visible = false;
   doorButton.classList.remove('is-visible');
@@ -5041,6 +5585,13 @@ function unlockBedroomDoor() {
 
 function resetGameProgress() {
   currentArea = 'tutorial-island';
+  freeRoamActive = false;
+  puzzleSolved = false;
+  puzzleMode = 'picture';
+  puzzleHeart.visible = false;
+  document.body.classList.remove('final-free-roam');
+  bigPhone.visible = true;
+  bumbleLogo.visible = true;
   meetupStartedAt = 0;
   meetupGuySeated = false;
   meetupConversationActive = false;
@@ -5135,6 +5686,7 @@ function resetGameProgress() {
   nextDoor.position.set(0, doorDropStartY, -5.35);
   bedroomDoor.visible = false;
   bedroomDoor.position.set(-0.2, doorDropStartY, 4.15);
+  updateFreeRoamPortalDoors();
   markers.forEach((marker) => {
     marker.userData.collected = false;
     marker.userData.heart.material = glowMaterial;
@@ -5192,6 +5744,17 @@ function enterBedroom() {
 }
 
 function startRoomLoading() {
+  const portalDoor = getNearbyFreeRoamPortalDoor();
+  if (portalDoor && !roomLoading) {
+    roomLoading = true;
+    stopMovementInput();
+    runSceneCircleWipe(() => {
+      enterFreeRoamArea(portalDoor.userData.portalDestination);
+      roomLoading = false;
+    });
+    return;
+  }
+
   const usingBedroomDoor = currentArea === 'bedroom' && bedroomDoorReady;
   const usingTutorialDoor = currentArea === 'tutorial-island' && doorReady;
   const usingStarbucksDoor = currentArea === 'starbucks' && starbucksExitDoorReady;
@@ -5349,11 +5912,12 @@ function updateDoor(delta, time) {
     }
   }
 
-  const nearTutorialDoor = doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
-  const nearBedroomDoor = bedroomDoorReady && currentArea === 'bedroom' && bedroomDoor.position.distanceTo(player.position) < 2.05;
-  const nearStarbucksDoor = starbucksExitDoorReady && currentArea === 'starbucks' && starbucksExitDoor.position.distanceTo(player.position) < 2.05;
-  const activeDoor = nearStarbucksDoor ? starbucksExitDoor : nearBedroomDoor ? bedroomDoor : nextDoor;
-  const nearDoor = nearTutorialDoor || nearBedroomDoor || nearStarbucksDoor;
+  const nearTutorialDoor = !freeRoamActive && doorReady && currentArea === 'tutorial-island' && nextDoor.position.distanceTo(player.position) < 1.75;
+  const nearBedroomDoor = !freeRoamActive && bedroomDoorReady && currentArea === 'bedroom' && bedroomDoor.position.distanceTo(player.position) < 2.05;
+  const nearStarbucksDoor = !freeRoamActive && starbucksExitDoorReady && currentArea === 'starbucks' && starbucksExitDoor.position.distanceTo(player.position) < 2.05;
+  const nearbyPortalDoor = getNearbyFreeRoamPortalDoor();
+  const activeDoor = nearbyPortalDoor || (nearStarbucksDoor ? starbucksExitDoor : nearBedroomDoor ? bedroomDoor : nextDoor);
+  const nearDoor = nearTutorialDoor || nearBedroomDoor || nearStarbucksDoor || Boolean(nearbyPortalDoor);
   doorPromptVisible = nearDoor && !roomLoading;
   doorButton.classList.toggle('is-visible', doorPromptVisible);
 
@@ -5468,17 +6032,37 @@ function updateMarkers(time) {
 }
 
 function updateDog(time, delta) {
-  if (currentArea !== 'tutorial-island') {
+  const freeRoamDogAllowed = freeRoamActive && (
+    currentArea === 'tutorial-island' ||
+    currentArea === 'bedroom' ||
+    currentArea === 'next-part' ||
+    currentArea === 'starbucks' ||
+    currentArea === 'starbucks-outdoor'
+  );
+  const dogAllowed =
+    currentArea === 'tutorial-island' ||
+    currentArea === 'bedroom' ||
+    currentArea === 'starbucks-outdoor' ||
+    freeRoamDogAllowed;
+  if (!dogAllowed) {
+    dog.visible = false;
     dogBubble.style.display = 'none';
     return;
   }
+  dog.visible = true;
   dogBubble.style.display = '';
   const distanceToPlayer = dog.position.distanceTo(player.position);
   dogPlayful = gameStarted && !tutorialActive && distanceToPlayer < 1.7;
   const isCuddling = time < cuddleUntil;
 
   if (dogPlayful !== lastDogPlayful) {
-    dogBubble.textContent = dogPlayful ? "cuddle mot mot?" : "woof! follow the hearts";
+    if (freeRoamActive) {
+      dogBubble.textContent = dogPlayful
+        ? "i need pet pet"
+        : dogFreeRoamMessages[Math.floor(Math.random() * dogFreeRoamMessages.length)];
+    } else {
+      dogBubble.textContent = dogPlayful ? "cuddle mot mot?" : "woof! follow the hearts";
+    }
     dogNextMessageAt = time + 3;
     cuddleButton.classList.toggle('is-visible', dogPlayful);
     lastDogPlayful = dogPlayful;
@@ -5486,17 +6070,23 @@ function updateDog(time, delta) {
 
   cuddleButton.classList.toggle('is-visible', dogPlayful);
 
+  if (freeRoamActive) {
+    dogTarget.copy(player.position);
+    dogTarget.y = 0.03;
+  }
+
   const toTarget = dogTarget.clone().sub(dog.position);
   toTarget.y = 0;
 
-  if (!isCuddling && toTarget.length() < 0.22) {
+  if (!freeRoamActive && !isCuddling && toTarget.length() < 0.22) {
     pickDogTarget();
   }
 
-  const speed = dogPlayful ? 1.05 : 0.75;
+  const speed = freeRoamActive ? 2.35 : dogPlayful ? 1.05 : 0.75;
   const direction = dogTarget.clone().sub(dog.position);
   direction.y = 0;
-  const isWalking = !isCuddling && direction.lengthSq() > 0.01;
+  const followDistance = freeRoamActive ? 1.15 : 0.1;
+  const isWalking = !isCuddling && direction.lengthSq() > followDistance * followDistance;
 
   if (isWalking) {
     direction.normalize();
@@ -5511,8 +6101,8 @@ function updateDog(time, delta) {
     }
   }
 
-  const bounceSpeed = isCuddling ? 12 : dogPlayful ? 7 : 4.2;
-  dog.position.y = 0.03 + Math.abs(Math.sin(time * bounceSpeed)) * (isCuddling ? 0.075 : dogPlayful ? 0.035 : 0.012);
+  const bounceSpeed = isCuddling ? 12 : freeRoamActive && isWalking ? 8 : dogPlayful ? 7 : 4.2;
+  dog.position.y = 0.03 + Math.abs(Math.sin(time * bounceSpeed)) * (isCuddling ? 0.075 : freeRoamActive && isWalking ? 0.09 : dogPlayful ? 0.035 : 0.012);
   dog.scale.setScalar(isCuddling ? 1 + Math.sin(time * 18) * 0.04 : 1);
   dogBody.rotation.x = Math.sin(time * (isCuddling ? 9 : 3.8)) * (isCuddling ? 0.1 : 0.04);
   dogHead.rotation.z = Math.sin(time * (isCuddling ? 8 : 2.2)) * (isCuddling ? 0.13 : dogPlayful ? 0.08 : 0.04);
@@ -5522,7 +6112,8 @@ function updateDog(time, delta) {
   });
 
   if (!isCuddling && time > dogNextMessageAt) {
-    dogBubble.textContent = dogBubbleMessages[Math.floor(Math.random() * dogBubbleMessages.length)];
+    const messages = freeRoamActive ? dogFreeRoamMessages : dogBubbleMessages;
+    dogBubble.textContent = messages[Math.floor(Math.random() * messages.length)];
     dogNextMessageAt = time + 4 + Math.random() * 4;
   }
 
