@@ -1839,7 +1839,8 @@ const chatChoiceSets = {
 };
 const doorScreenPosition = new THREE.Vector3();
 const phoneScreenPosition = new THREE.Vector3();
-const puzzlePhotoSources = Array.from({ length: 9 }, (_, index) => `/puzzlestarbucks/${index + 1}.jpeg`);
+const puzzleImageSource = '/puzzle/puzzle.png';
+const puzzleTileColumns = 3;
 
 const mediaItems = [
   { type: 'image', title: 'Phone Preview', src: '/bumble-slide/phone.png' },
@@ -2468,6 +2469,71 @@ function choosePuzzleCard(index) {
   addPuzzleTimer(completeFirstMission, 900);
 }
 
+function startPicturePuzzle() {
+  clearPuzzleTimers();
+  puzzleAcceptingInput = true;
+  puzzleRoundCorrectSlot = -1;
+  puzzleShuffleClass = '';
+  puzzleGrid.classList.remove('is-ready', 'is-shaking', 'is-shuffling', ...puzzleAllShufflePaths.map((path) => path.className));
+  puzzleGrid.replaceChildren();
+
+  puzzleCards = Array.from({ length: puzzleTileColumns * puzzleTileColumns }, (_, index) => index);
+  for (let index = puzzleCards.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [puzzleCards[index], puzzleCards[swapIndex]] = [puzzleCards[swapIndex], puzzleCards[index]];
+  }
+  if (puzzleCards.every((piece, index) => piece === index)) {
+    [puzzleCards[0], puzzleCards[1]] = [puzzleCards[1], puzzleCards[0]];
+  }
+
+  puzzleStatus.textContent = "tap two pieces to swap them";
+  puzzleGrid.classList.add('is-ready', 'is-picture-puzzle');
+  renderPicturePuzzle();
+}
+
+function renderPicturePuzzle() {
+  puzzleGrid.replaceChildren();
+  puzzleCards.forEach((piece, index) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'puzzle-tile';
+    tile.setAttribute('aria-label', `Puzzle piece ${index + 1}`);
+    if (index === puzzleRoundCorrectSlot) tile.classList.add('is-picked');
+
+    const pieceColumn = piece % puzzleTileColumns;
+    const pieceRow = Math.floor(piece / puzzleTileColumns);
+    tile.style.backgroundImage = `url("${puzzleImageSource}")`;
+    tile.style.backgroundPosition = `${pieceColumn * 50}% ${pieceRow * 50}%`;
+    tile.addEventListener('click', () => choosePicturePuzzlePiece(index));
+    puzzleGrid.append(tile);
+  });
+}
+
+function choosePicturePuzzlePiece(index) {
+  if (!puzzleAcceptingInput || puzzleSolved) return;
+  if (puzzleRoundCorrectSlot === index) {
+    puzzleRoundCorrectSlot = -1;
+    renderPicturePuzzle();
+    return;
+  }
+  if (puzzleRoundCorrectSlot < 0) {
+    puzzleRoundCorrectSlot = index;
+    renderPicturePuzzle();
+    return;
+  }
+
+  [puzzleCards[puzzleRoundCorrectSlot], puzzleCards[index]] = [puzzleCards[index], puzzleCards[puzzleRoundCorrectSlot]];
+  puzzleRoundCorrectSlot = -1;
+  renderPicturePuzzle();
+  if (!puzzleCards.every((piece, slot) => piece === slot)) return;
+
+  puzzleAcceptingInput = false;
+  puzzleSolved = true;
+  puzzleStatus.textContent = "perfect memory :)";
+  puzzleHeart.visible = false;
+  addPuzzleTimer(completeFirstMission, 900);
+}
+
 function completeFirstMission() {
   closePuzzleScene();
   if (currentArea === 'starbucks') {
@@ -2495,7 +2561,7 @@ function openPuzzleScene() {
   puzzleScene.classList.add('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'false');
   document.body.classList.add('puzzle-open');
-  startPuzzleRound();
+  startPicturePuzzle();
 }
 
 function openPuzzleSceneFromStarbucks(delay = 0) {
@@ -2514,6 +2580,7 @@ function closePuzzleScene() {
   puzzleHeartReadyToOpen = false;
   puzzleScene.classList.remove('is-visible');
   puzzleScene.setAttribute('aria-hidden', 'true');
+  puzzleGrid.classList.remove('is-picture-puzzle');
   document.body.classList.remove('puzzle-open');
   stopMovementInput();
 }
