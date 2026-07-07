@@ -33,6 +33,10 @@ const proposalEndingLine = document.querySelector('#proposal-ending-line');
 const finalEndingActions = document.querySelector('#final-ending-actions');
 const finalYes = document.querySelector('#final-yes');
 const finalNo = document.querySelector('#final-no');
+const poemEnding = document.querySelector('#poem-ending');
+const poemEndingScroller = document.querySelector('#poem-ending-scroller');
+const poemEndingText = document.querySelector('#poem-ending-text');
+const poemEndingContinue = document.querySelector('#poem-ending-continue');
 const mazeGame = document.querySelector('#maze-game');
 const mazeCanvas = document.querySelector('#maze-canvas');
 const mazeUp = document.querySelector('#maze-up');
@@ -133,6 +137,342 @@ const postStarbucksMemoryFocusMode = false;
 const mazeFocusMode = false;
 const finalChoiceFocusMode = false;
 const showGirlCoffeeCup = false;
+
+const finalPoem = `Two Years, And Still You
+
+Two years ago,
+the universe did something quietly beautiful.
+It placed you in my life
+like a soft light entering a room
+I didn't even know was dark.
+
+At first, maybe it was just a hello,
+just a smile,
+just a moment that looked ordinary
+to everyone else.
+
+But to me,
+it became the beginning
+of everything I now call home.
+
+Two years with you,
+and somehow my heart still acts
+like it is meeting you for the first time.
+
+Still nervous.
+Still amazed.
+Still smiling at the thought of you.
+Still finding little reasons
+to fall for you again.
+
+I love the way you exist
+in the smallest parts of my day.
+
+In the songs that suddenly sound like us.
+In the places that feel warmer
+because I once imagined you there.
+In the jokes I save in my head
+just because I want to tell you later.
+In the quiet moments
+when my heart whispers your name
+without asking permission.
+
+You became my favorite routine
+and my favorite surprise.
+
+The person I want to tell everything to.
+The person I want beside me
+when nothing is happening.
+The person who makes ordinary time
+feel like something worth remembering.
+
+And maybe that is love.
+Not always fireworks.
+Not always grand speeches.
+Sometimes love is just
+wanting to sit next to someone
+at the end of a long day
+and feel like the world is okay again.
+
+With you,
+even silence feels kind.
+Even distance feels temporary.
+Even the future feels less scary
+because somewhere in my imagination,
+you are always there.
+
+Two years is not just a number.
+It is all the little versions of us
+that survived and grew.
+
+The shy beginning.
+The silly conversations.
+The late-night thoughts.
+The "are you okay?" moments.
+The laughter that came out of nowhere.
+The days we understood each other.
+The days we tried to.
+The tiny fights.
+The soft forgiveness.
+The way we kept choosing each other
+even when life was not perfectly easy.
+
+That is what makes it beautiful.
+
+Not because every day was perfect,
+but because you were worth every day.
+
+You were worth the waiting.
+Worth the learning.
+Worth the patience.
+Worth the prayers.
+Worth the hope.
+
+And if I could go back
+to the day before I met you,
+I would tell myself,
+"Be ready.
+Someone is coming
+who will change the meaning
+of your favorite word: love."
+
+Because now love sounds like your voice.
+Love looks like your smile.
+Love feels like your hand in mine,
+even when you are far away.
+Love is your name
+written quietly inside my heart
+in a place no one else can reach.
+
+Sometimes I wonder
+how one person can become
+so many things at once.
+
+My comfort.
+My chaos.
+My peace.
+My favorite notification.
+My softest thought.
+My reason to smile at my phone
+like an idiot.
+My dream that learned how to breathe.
+
+You are cute in ways
+you probably don't even notice.
+
+The way you talk.
+The way you care.
+The way you get excited.
+The way you become quiet.
+The way your little habits
+became tiny treasures to me.
+
+I don't just love the easy parts of you.
+I love the real parts too.
+
+The tired you.
+The overthinking you.
+The emotional you.
+The strong you
+who keeps going even when it is hard.
+The soft you
+who deserves to be loved gently.
+The you that the world sees,
+and the you that only a few people understand.
+
+And I hope you know
+that I am thankful for all of it.
+
+For every version of you
+that has stayed with me
+through these two years.
+
+If our love were a movie,
+this would be the credit scene.
+
+The music would be soft.
+The screen would slowly fade
+through all our memories.
+Your smile would appear
+between every line.
+And somewhere at the end,
+after all the names,
+after all the moments,
+after every laugh and every tear,
+there would be one sentence glowing quietly:
+
+"Thank you for being my favorite chapter."
+
+But honestly,
+you are more than a chapter.
+
+You are the sentence
+I keep rereading.
+The page I don't want to turn too quickly.
+The story I want to live slowly,
+carefully,
+and with both hands holding the book.
+
+I want more mornings
+where the first thought is you.
+More nights
+where I hope you sleep peacefully.
+More random moments
+where I see something beautiful
+and wish you could see it too.
+More small dates.
+More silly talks.
+More dreams shared between us
+like secret stars.
+
+I want more of us.
+
+Not just the romantic parts
+that look pretty in pictures,
+but the real life parts too.
+
+Grocery-store love.
+Rainy-day love.
+Sleepy-face love.
+Bad-mood love.
+Growing-up love.
+Trying-again love.
+Holding-on love.
+Laughing-at-nothing love.
+
+The kind of love
+that does not need to be perfect
+to be precious.
+
+The kind that says,
+"I am here,"
+even when words are difficult.
+
+The kind that stays.
+
+And on this day,
+as we celebrate two years,
+I want to say something simple
+but endless:
+
+Thank you.
+
+Thank you for coming into my life.
+Thank you for staying.
+Thank you for making my world softer.
+Thank you for being the reason
+my heart learned to smile differently.
+Thank you for becoming someone
+I never want to lose.
+
+I don't know everything
+about the future.
+
+I don't know where life will take us,
+what seasons will change,
+what roads will bend,
+what dreams will come true,
+or what challenges will ask us
+to be stronger than before.
+
+But I know this:
+
+In this life,
+I am so lucky
+that I got to love you.
+
+And if time is kind,
+I hope it gives us many more years.
+
+Years where we become better.
+Years where we grow together.
+Years where we look back
+and laugh at how young we were.
+Years where we build a love
+that feels safe, warm, and real.
+
+And if someday,
+far beyond this lifetime,
+when the stars forget our names
+and the world begins again
+in some other place,
+some other sky,
+some other story...
+
+I hope my soul remembers you.
+
+I hope I find you
+in another crowd,
+in another city,
+in another dream.
+
+Maybe we will have different names.
+Maybe we will have different faces.
+Maybe we will not remember
+why our hearts feel familiar.
+
+But I hope, somehow,
+I will look at you
+and feel the same quiet miracle.
+
+Like,
+"Oh.
+There you are.
+I have been looking for you."
+
+So tell me, my love...
+
+Will you meet me again in another life?
+
+Will you let the universe
+write us twice?
+
+Will you find me
+when the stars change places,
+when the moon belongs to another night,
+when the world gives us a new beginning?
+
+Because I would choose you again.
+
+In this life.
+In the next.
+In every soft version of forever
+that exists between heaven and earth.
+
+I would choose your smile
+in every timeline.
+Your laugh
+in every language.
+Your hand
+in every universe.
+Your heart
+in every lifetime
+where I am lucky enough
+to meet you.
+
+And until then,
+until another life,
+until another beginning,
+let me love you here.
+
+Let me love you now.
+
+For two years behind us,
+for today beside us,
+and for all the tomorrows
+we have not touched yet.
+
+Happy two years, my love.
+
+You are my favorite person,
+my sweetest memory,
+my most beautiful coincidence,
+and the forever
+I want to believe in.`;
+
+let poemScrollFrame = null;
+let poemScrollLastTime = 0;
+let poemUserScrollPauseUntil = 0;
 
 function updateAppViewport() {
   const height = window.visualViewport?.height || window.innerHeight;
@@ -4649,6 +4989,7 @@ function clearProposalEndingTimers() {
 }
 
 function resetFinalEndingState() {
+  stopPoemAutoScroll();
   finalWalletSequenceActive = false;
   finalWalletWalking = false;
   finalWalletDialogueIndex = 0;
@@ -4659,6 +5000,9 @@ function resetFinalEndingState() {
   finalNo.style.right = '';
   starbucksHeartClouds.visible = false;
   proposalEnding.classList.remove('is-final', 'is-love-wipe');
+  poemEnding.classList.remove('is-visible');
+  poemEnding.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('poem-open');
 }
 
 function addProposalEndingTimer(callback, delay) {
@@ -5174,11 +5518,57 @@ function enterFreeRoamArea(area) {
 
 function startFinalFreeRoam() {
   if (!finalEndingActive) return;
+  stopPoemAutoScroll();
+  document.body.classList.remove('poem-open');
+  poemEnding.classList.remove('is-visible');
+  poemEnding.setAttribute('aria-hidden', 'true');
   proposalEnding.classList.remove('is-visible', 'is-fireworks', 'is-white', 'is-game-over', 'is-final', 'is-love-wipe');
   proposalEnding.setAttribute('aria-hidden', 'true');
   proposalEndingLine.textContent = '';
   proposalFireworks.replaceChildren();
   enterFreeRoamArea('bedroom');
+}
+
+function stopPoemAutoScroll() {
+  if (poemScrollFrame) {
+    cancelAnimationFrame(poemScrollFrame);
+    poemScrollFrame = null;
+  }
+  poemScrollLastTime = 0;
+  poemUserScrollPauseUntil = 0;
+}
+
+function runPoemAutoScroll(time) {
+  if (!poemEnding.classList.contains('is-visible')) return;
+  if (!poemScrollLastTime) poemScrollLastTime = time;
+  const delta = Math.min(time - poemScrollLastTime, 50);
+  poemScrollLastTime = time;
+  const maxScroll = poemEndingScroller.scrollHeight - poemEndingScroller.clientHeight;
+
+  if (time > poemUserScrollPauseUntil && poemEndingScroller.scrollTop < maxScroll - 1) {
+    poemEndingScroller.scrollTop += delta * 0.018;
+  }
+
+  poemScrollFrame = requestAnimationFrame(runPoemAutoScroll);
+}
+
+function pausePoemAutoScroll(duration = 3200) {
+  poemUserScrollPauseUntil = performance.now() + duration;
+}
+
+function showFinalPoem() {
+  if (!finalEndingActive) return;
+  proposalEnding.classList.remove('is-visible', 'is-game-over', 'is-final', 'is-love-wipe');
+  proposalEnding.setAttribute('aria-hidden', 'true');
+  proposalEndingLine.textContent = '';
+  proposalFireworks.replaceChildren();
+  poemEndingText.textContent = finalPoem;
+  poemEndingScroller.scrollTop = 0;
+  document.body.classList.add('poem-open');
+  poemEnding.classList.add('is-visible');
+  poemEnding.setAttribute('aria-hidden', 'false');
+  stopPoemAutoScroll();
+  poemScrollFrame = requestAnimationFrame(runPoemAutoScroll);
 }
 
 function drawMazeGame() {
@@ -5396,8 +5786,16 @@ finalNo.addEventListener('click', (event) => {
   moveFinalNoButton();
 });
 finalYes.addEventListener('click', () => {
+  showFinalPoem();
+});
+poemEndingContinue.addEventListener('click', () => {
   startFinalFreeRoam();
 });
+poemEndingScroller.addEventListener('pointerdown', () => pausePoemAutoScroll(4200));
+poemEndingScroller.addEventListener('pointermove', () => pausePoemAutoScroll(1800));
+poemEndingScroller.addEventListener('wheel', () => pausePoemAutoScroll(2800), { passive: true });
+poemEndingScroller.addEventListener('touchstart', () => pausePoemAutoScroll(4200), { passive: true });
+poemEndingScroller.addEventListener('touchmove', () => pausePoemAutoScroll(1800), { passive: true });
 
 loveGameButton.addEventListener('click', () => {
   if (!starbucksWalletGameReady) return;
@@ -5522,7 +5920,10 @@ function resetGameProgress() {
   puzzleSolved = false;
   puzzleMode = 'picture';
   puzzleHeart.visible = false;
-  document.body.classList.remove('final-free-roam');
+  stopPoemAutoScroll();
+  document.body.classList.remove('final-free-roam', 'poem-open');
+  poemEnding.classList.remove('is-visible');
+  poemEnding.setAttribute('aria-hidden', 'true');
   bigPhone.visible = true;
   bumbleLogo.visible = true;
   meetupStartedAt = 0;

@@ -32,6 +32,20 @@ body.final-free-roam .hud {
   pointer-events: none;
 }
 
+body.poem-open .hud,
+body.poem-open .touch-stick,
+body.poem-open .dog-bubble,
+body.poem-open .cuddle-button,
+body.poem-open .door-button,
+body.poem-open .phone-button,
+body.poem-open .love-game-button {
+  display: none !important;
+}
+
+body.poem-open {
+  touch-action: pan-y;
+}
+
 body.tutorial-active .hud,
 body.tutorial-active .touch-stick,
 body.tutorial-active .dog-bubble,
@@ -79,6 +93,7 @@ body.tutorial-active .love-game-button {
 .fireworks,
 .menu-particles,
 .falling-drops,
+.menu-character,
 .memory-preview {
   pointer-events: none;
 }
@@ -93,11 +108,33 @@ body.tutorial-active .love-game-button {
 
 .menu-content {
   position: relative;
-  z-index: 4;
+  z-index: 5;
   width: min(680px, 100%);
   pointer-events: auto;
-  text-shadow: 0 8px 28px rgb(39 18 38 / 44%);
+  text-shadow:
+    0 2px 0 rgb(72 36 62 / 72%),
+    0 8px 28px rgb(39 18 38 / 54%);
   animation: menu-rise 900ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
+}
+
+.menu-character {
+  position: absolute;
+  left: 50%;
+  bottom: max(-16vh, -150px);
+  z-index: 4;
+  width: auto;
+  height: min(112vh, 1120px);
+  max-width: min(78vw, 900px);
+  object-fit: contain;
+  object-position: center bottom;
+  filter:
+    drop-shadow(0 24px 42px rgb(35 16 38 / 38%))
+    drop-shadow(0 0 34px rgb(255 213 164 / 26%));
+  opacity: 0.9;
+  transform-origin: 50% 100%;
+  animation:
+    character-show 1100ms cubic-bezier(0.18, 0.9, 0.18, 1) 220ms both,
+    character-float 4.8s ease-in-out 1.35s infinite;
 }
 
 .menu-kicker {
@@ -107,6 +144,10 @@ body.tutorial-active .love-game-button {
   font-weight: 850;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  -webkit-text-stroke: 0.45px rgb(93 43 69 / 76%);
+  text-shadow:
+    0 1px 0 rgb(93 43 69 / 82%),
+    0 8px 22px rgb(39 18 38 / 56%);
   animation: menu-fade 900ms ease 140ms both;
 }
 
@@ -121,10 +162,15 @@ body.tutorial-active .love-game-button {
   line-height: 0.78;
   text-wrap: balance;
   text-shadow:
+    -2px -2px 0 rgb(105 54 77 / 58%),
+    2px -2px 0 rgb(105 54 77 / 58%),
+    -2px 2px 0 rgb(105 54 77 / 58%),
+    2px 2px 0 rgb(105 54 77 / 58%),
     0 4px 0 rgb(115 48 64 / 18%),
     0 10px 30px rgb(34 15 38 / 44%),
     0 0 30px rgb(255 194 117 / 72%),
     0 0 62px rgb(255 114 186 / 34%);
+  -webkit-text-stroke: 1px rgb(112 54 78 / 56%);
   animation: title-glow 3.8s ease-in-out infinite;
 }
 
@@ -133,6 +179,10 @@ body.tutorial-active .love-game-button {
   color: rgb(255 248 237 / 92%);
   font-size: clamp(1.1rem, 3.6vw, 1.8rem);
   font-weight: 800;
+  -webkit-text-stroke: 0.55px rgb(55 28 50 / 68%);
+  text-shadow:
+    0 2px 0 rgb(55 28 50 / 72%),
+    0 10px 24px rgb(34 15 38 / 58%);
   animation: menu-fade 900ms ease 260ms both;
 }
 
@@ -567,6 +617,10 @@ body.tutorial-active .love-game-button {
 @keyframes title-glow {
   50% {
     text-shadow:
+      -2px -2px 0 rgb(105 54 77 / 50%),
+      2px -2px 0 rgb(105 54 77 / 50%),
+      -2px 2px 0 rgb(105 54 77 / 50%),
+      2px 2px 0 rgb(105 54 77 / 50%),
       0 4px 0 rgb(115 48 64 / 14%),
       0 10px 34px rgb(34 15 38 / 38%),
       0 0 48px rgb(255 194 117 / 82%),
@@ -619,6 +673,32 @@ body.tutorial-active .love-game-button {
 @keyframes card-float {
   50% {
     transform: translateY(-12px);
+  }
+}
+
+@keyframes character-show {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 40px, 0) scale(0.84);
+    filter:
+      blur(8px)
+      drop-shadow(0 18px 32px rgb(35 16 38 / 28%));
+  }
+
+  68% {
+    opacity: 0.96;
+    transform: translate3d(-50%, -8px, 0) scale(1.03);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+}
+
+@keyframes character-float {
+  50% {
+    transform: translate3d(-50%, -12px, 0) scale(1.012);
   }
 }
 
@@ -1452,6 +1532,150 @@ body.room-editor-mode .room-editor {
 .final-ending-actions button:active {
   transform: translateY(5px);
   box-shadow: 0 3px 0 #b83f76;
+}
+
+.poem-ending {
+  position: fixed;
+  inset: 0;
+  z-index: 86;
+  visibility: hidden;
+  opacity: 0;
+  color: #4a2734;
+  background:
+    radial-gradient(circle at 18% 18%, rgb(255 193 215 / 48%) 0 11%, transparent 24%),
+    radial-gradient(circle at 82% 10%, rgb(255 218 155 / 34%) 0 9%, transparent 23%),
+    radial-gradient(circle at 50% 92%, rgb(255 183 208 / 34%) 0 14%, transparent 32%),
+    #fffdf9;
+  pointer-events: none;
+  touch-action: pan-y;
+  transition:
+    opacity 420ms ease,
+    visibility 420ms ease;
+}
+
+.poem-ending.is-visible {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.poem-ending::before,
+.poem-ending::after {
+  position: absolute;
+  color: rgb(255 143 189 / 16%);
+  font-family: Georgia, serif;
+  font-size: clamp(8rem, 18vw, 18rem);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.poem-ending::before {
+  left: 3vw;
+  top: 2vh;
+  content: "love";
+  transform: rotate(-8deg);
+}
+
+.poem-ending::after {
+  right: 3vw;
+  bottom: -2vh;
+  content: "2";
+  transform: rotate(10deg);
+}
+
+.poem-ending-scroller {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: max(42px, env(safe-area-inset-top)) 18px max(70px, env(safe-area-inset-bottom));
+  scroll-behavior: smooth;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.poem-ending-card {
+  width: min(780px, 100%);
+  margin: 0 auto;
+  padding: 36px min(6vw, 54px) 46px;
+  border: 2px solid rgb(255 183 208 / 46%);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 78%);
+  box-shadow:
+    0 24px 80px rgb(111 50 76 / 16%),
+    inset 0 0 0 8px rgb(255 245 249 / 76%);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  touch-action: pan-y;
+  animation: poem-card-in 700ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
+}
+
+.poem-ending-kicker {
+  margin: 0 0 18px;
+  color: #e06d9c;
+  font-family: "Comic Sans MS", "Trebuchet MS", cursive;
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.poem-ending-text {
+  margin: 0;
+  color: #4a2734;
+  font-family: "Comic Sans MS", "Trebuchet MS", "Segoe Print", cursive;
+  font-size: clamp(1.18rem, 3vw, 1.72rem);
+  font-weight: 800;
+  line-height: 1.62;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: pre-wrap;
+  text-wrap: balance;
+  text-shadow:
+    0 1px 0 #fff,
+    0 8px 24px rgb(224 109 156 / 12%);
+  touch-action: pan-y;
+}
+
+.poem-ending-text::first-line {
+  color: #b83f76;
+  font-size: 1.4em;
+  font-weight: 950;
+}
+
+.poem-ending-continue {
+  min-width: min(260px, 82vw);
+  min-height: 58px;
+  margin-top: 34px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff8fbd 0%, #ffb46b 100%);
+  box-shadow:
+    0 12px 0 #b83f76,
+    0 24px 48px rgb(184 63 118 / 18%);
+  cursor: pointer;
+  font: inherit;
+  font-family: "Comic Sans MS", "Trebuchet MS", cursive;
+  font-size: 1.05rem;
+  font-weight: 950;
+  touch-action: manipulation;
+}
+
+.poem-ending-continue:active {
+  transform: translateY(6px);
+  box-shadow:
+    0 6px 0 #b83f76,
+    0 14px 28px rgb(184 63 118 / 18%);
+}
+
+@keyframes poem-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.98);
+  }
 }
 
 @keyframes proposal-firework {
@@ -3637,6 +3861,13 @@ body.maze-open .meetup-choices {
   .menu-content h1 {
     font-size: clamp(2.4rem, min(8.6vw, 17vh), 4.8rem);
     line-height: 0.82;
+  }
+
+  .menu-character {
+    bottom: max(-22vh, -190px);
+    height: min(126vh, 980px);
+    max-width: min(104vw, 780px);
+    opacity: 0.8;
   }
 
   .menu-kicker {
